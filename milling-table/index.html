@@ -110,7 +110,8 @@
     overflow: hidden;
   }
   .art-wrap { margin: calc(-1 * var(--pad)) calc(-1 * var(--pad)) 1.5rem; border-bottom: 1px solid var(--rule); background: #1B2529; }
-  .art { display: block; width: 100%; height: clamp(150px, 34vh, 300px); }
+  .art { display: block; width: 100%; height: auto; aspect-ratio: 12 / 5; }
+  .art.photo { aspect-ratio: auto; }
   .art.photo { height: auto; }
   .sheet:focus { outline: none; }
 
@@ -318,8 +319,8 @@
   .rlabel { display: block; text-align: left; font-weight: 700; margin: 0.75rem 0 0.35rem; }
   .art-wrap { overflow: hidden; }
   @media (prefers-reduced-motion: no-preference) {
-    .art-wrap svg.art { animation: a-drift 26s ease-in-out infinite alternate; transform-origin: 50% 70%; will-change: transform; }
-    @keyframes a-drift { from { transform: scale(1); } to { transform: scale(1.06) translate(-1%, -0.6%); } }
+    .art-wrap svg.art { animation: a-drift 26s ease-in-out infinite alternate; transform-origin: 50% 0%; will-change: transform; }
+    @keyframes a-drift { from { transform: scale(1); } to { transform: scale(1.06) translate(-1%, 0); } }
     .art .anim-wave { animation: a-wave 5s ease-in-out infinite alternate; }
     @keyframes a-wave { from { transform: translateX(-7px); } to { transform: translateX(7px); } }
     .art .anim-bob { transform-box: fill-box; transform-origin: 50% 100%; animation: a-bob 4.6s ease-in-out infinite alternate; }
