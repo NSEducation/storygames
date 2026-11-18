@@ -77,6 +77,20 @@
   .byline { margin: 14px 0 0; color: var(--muted); font-size: 0.95rem; }
   .addr { color: var(--ink); font-weight: 700; white-space: nowrap; user-select: all; -webkit-user-select: all; }
   footer { margin-top: 30px; color: var(--muted); font-size: 0.92rem; max-width: 52rem; }
+
+  .lbtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+  .lbtabs button { font: inherit; font-size: 0.9rem; padding: 7px 12px; border-radius: 999px; border: 2px solid var(--sea); background: var(--paper); color: var(--sea); cursor: pointer; }
+  .lbtabs button[aria-selected="true"] { background: var(--sea); color: var(--on-sea); }
+  .lbgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .lbcard, .lbmeter { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 16px; }
+  .lbcard h3, .lbmeter h3 { font-size: 1rem; margin: 0 0 6px; }
+  .lbcard ol { margin: 0; padding-left: 1.5rem; }
+  .lbcard li { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; border-bottom: 1px solid var(--rule); }
+  .lbname { font-weight: 700; flex: 1 1 auto; } .lbbadge { font-size: 0.8rem; color: var(--muted); }
+  .lbmeter { margin-top: 14px; }
+  .lbmeter .mrow { display: grid; grid-template-columns: minmax(120px, 12rem) 1fr 3rem; gap: 10px; align-items: center; margin: 6px 0; }
+  .lbmeter .mbar { height: 14px; background: var(--sea-tint); border-radius: 7px; overflow: hidden; display: block; }
+  .lbmeter .mfill { display: block; height: 100%; background: var(--sea); }
 </style>
 </head>
 <body>
@@ -254,6 +268,112 @@
       </ul>
       <a class="play" href="https://nseducation.github.io/storygames/what-the-box-remembers/">Play What the Box Remembers</a>
     </article>
+  </section>
+
+  <section class="lb" aria-labelledby="lbHead">
+    <h2 id="lbHead">🏆 Class leaderboard</h2>
+    <p class="lede">Sign in inside any game with a nickname and a 4-digit PIN to save your progress and join the board. New progress can take up to 5 minutes to show.</p>
+    <div class="lbtabs" role="tablist" aria-label="Choose a game">
+      <button type="button" role="tab" data-g="all" aria-selected="true">All four games</button>
+      <button type="button" role="tab" data-g="words" aria-selected="false">The Words We Carry</button>
+      <button type="button" role="tab" data-g="soldiers" aria-selected="false">The Day the Soldiers Came</button>
+      <button type="button" role="tab" data-g="milling" aria-selected="false">The Milling Table</button>
+      <button type="button" role="tab" data-g="box" aria-selected="false">What the Box Remembers</button>
+    </div>
+    <div id="lbOut" aria-live="polite"><p class="note">Loading the class list…</p></div>
+    <script>
+    (function () {
+      var CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRypCvIzcroecjljlPkSeiGQZDxS2H9T0FHY36O-Y-yGA9hpMFSfYPr6OAzzTI65WBtcrDWPIHqzYdP/pub?gid=2021087597&single=true&output=csv';
+      var T = {
+        words: { kindness: ['💛', 'Kindness'], courage: ['🦅', 'Courage'], loyalty: ['🤝', 'Community'], caution: ['🧠', 'Remembering'], self: ['🌱', 'Hope'] },
+        soldiers: { kindness: ['💛', 'Kindness'], courage: ['🦁', 'Courage'], loyalty: ['🤝', 'Loyalty'], caution: ['🛡️', 'Caution'], self: ['🏃', 'Self-protection'] },
+        milling: { kindness: ['💛', 'Kindness'], courage: ['🦅', 'Courage'], loyalty: ['🤝', 'Community'], caution: ['🧠', 'Remembering'], self: ['🌱', 'Hope'] },
+        box: { kindness: ['💛', 'Kindness'], courage: ['🦁', 'Courage'], loyalty: ['🤝', 'Community'], caution: ['🛡️', 'Caution'], self: ['🌱', 'Hope'] },
+        all: { kindness: ['💛', 'Kindness'], courage: ['🦁', 'Courage'], loyalty: ['🤝', 'Community and loyalty'], caution: ['🧠', 'Caution and remembering'], self: ['🌱', 'Hope and self-protection'] }
+      };
+      var BOARDS = [['e', '🏁 Most endings found'], ['c', '🔎 Most clues found'], ['d', '📜 Most real documents read'], ['h', '🔓 Most hidden paths opened']];
+      var rows = null, tab = 'all', out = document.getElementById('lbOut');
+      function parse(text) {
+        var res = [], row = [], f = '', q = false;
+        for (var i = 0; i < text.length; i++) {
+          var c = text[i];
+          if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+          else if (c === '"') q = true; else if (c === ',') { row.push(f); f = ''; }
+          else if (c === '\n') { row.push(f); res.push(row); row = []; f = ''; } else if (c !== '\r') f += c;
+        }
+        if (f || row.length) { row.push(f); res.push(row); }
+        return res;
+      }
+      function clean(s) { return String(s || '').replace(/[^\p{L}\p{N} '\-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 16) || 'Player'; }
+      function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+      function players(g) {
+        var by = {};
+        rows.forEach(function (r) {
+          if (g !== 'all' && r.kind !== g) return;
+          var p = by[r.player] || (by[r.player] = { name: r.name, st: { e: 0, c: 0, d: 0, h: 0 }, tr: {} });
+          p.name = r.name;
+          ['e', 'c', 'd', 'h'].forEach(function (k) { p.st[k] += (r.d.st || {})[k] || 0; });
+          Object.keys(r.d.tr || {}).forEach(function (k) { p.tr[k] = (p.tr[k] || 0) + r.d.tr[k]; });
+        });
+        return Object.keys(by).map(function (k) { return by[k]; });
+      }
+      function draw() {
+        out.textContent = '';
+        var ps = players(tab), labels = T[tab];
+        if (!ps.length) { out.appendChild(mk('p', 'note', 'No one is on this board yet. Be the first!')); return; }
+        var grid = mk('div', 'lbgrid');
+        BOARDS.forEach(function (b) {
+          var list = ps.filter(function (p) { return p.st[b[0]] > 0; }).sort(function (x, y) { return y.st[b[0]] - x.st[b[0]] || x.name.localeCompare(y.name); }).slice(0, 10);
+          var card = mk('div', 'lbcard'); card.appendChild(mk('h3', null, b[1]));
+          if (!list.length) card.appendChild(mk('p', 'note', 'No one yet.'));
+          else {
+            var ol = mk('ol');
+            list.forEach(function (p) {
+              var top = Object.keys(p.tr).filter(function (k) { return labels[k] && p.tr[k] > 0; }).sort(function (a, c) { return p.tr[c] - p.tr[a]; })[0];
+              var li = mk('li');
+              li.appendChild(mk('span', 'lbname', p.name));
+              li.appendChild(mk('span', 'lbbadge', top ? labels[top][0] + ' ' + labels[top][1] : ''));
+              li.appendChild(mk('strong', null, String(p.st[b[0]])));
+              ol.appendChild(li);
+            });
+            card.appendChild(ol);
+          }
+          grid.appendChild(card);
+        });
+        out.appendChild(grid);
+        var tot = {}; ps.forEach(function (p) { Object.keys(p.tr).forEach(function (k) { if (labels[k]) tot[k] = (tot[k] || 0) + p.tr[k]; }); });
+        var keys = Object.keys(labels).sort(function (a, b) { return (tot[b] || 0) - (tot[a] || 0); });
+        var max = Math.max.apply(null, [1].concat(keys.map(function (k) { return tot[k] || 0; })));
+        var meter = mk('div', 'lbmeter'); meter.appendChild(mk('h3', null, '💭 Our class’s choices'));
+        keys.forEach(function (k) {
+          var r = mk('div', 'mrow');
+          r.appendChild(mk('span', 'mlabel', labels[k][0] + ' ' + labels[k][1]));
+          var bar = mk('span', 'mbar'), fill = mk('span', 'mfill'); fill.style.width = Math.round(((tot[k] || 0) / max) * 100) + '%'; bar.appendChild(fill); r.appendChild(bar);
+          r.appendChild(mk('strong', null, String(tot[k] || 0)));
+          meter.appendChild(r);
+        });
+        meter.appendChild(mk('p', 'note', 'The badge beside each name shows the kind of choice that player made most often.'));
+        out.appendChild(meter);
+      }
+      document.querySelectorAll('.lbtabs button').forEach(function (b) {
+        b.addEventListener('click', function () {
+          tab = b.getAttribute('data-g');
+          document.querySelectorAll('.lbtabs button').forEach(function (x) { x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
+          if (rows) draw();
+        });
+      });
+      fetch(CSV + '&t=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (t) {
+        var latest = {};
+        parse(t).slice(1).forEach(function (c) {
+          if (!c[1] || !c[3] || !c[4]) return;
+          var d; try { d = JSON.parse(c[4]); } catch (e) { return; }
+          latest[c[3] + '|' + c[1]] = { player: c[1], name: clean(c[2]), kind: c[3], d: d };
+        });
+        rows = Object.keys(latest).map(function (k) { return latest[k]; });
+        draw();
+      }).catch(function () { out.textContent = ''; out.appendChild(mk('p', 'note', 'The class leaderboard can’t be reached right now. Try again in a few minutes.')); });
+    })();
+    </script>
   </section>
 
   <section>

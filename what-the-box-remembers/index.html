@@ -586,6 +586,18 @@
   .wp-play.failed::after { content: ' (not available here: use the link)'; font-weight: 400; }
   .wp-src { font-size: 0.86rem; }
   .wp-note { display: block; font-size: 0.8rem; opacity: 0.8; margin-top: 2px; }
+
+  .cloudbox .cloudin { font: inherit; padding: 8px 10px; border: 2px solid var(--line, #bbb); border-radius: 8px; min-width: 0; flex: 1 1 140px; background: var(--card, #fff); color: inherit; }
+  .cloudbox .cloudin.pin { flex: 0 1 120px; letter-spacing: 0.2em; }
+  .cloudboard .board { margin: 1rem 0; }
+  .cloudboard .board ol { padding-left: 1.6rem; margin: 0.3rem 0; }
+  .cloudboard .board li { display: flex; gap: 0.6rem; align-items: baseline; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
+  .cloudboard .board li .bname { font-weight: 700; flex: 1 1 auto; }
+  .cloudboard .board li .bhero { font-size: 0.85rem; opacity: 0.8; }
+  .cloudboard .board li.me { background: rgba(255, 210, 80, 0.25); border-radius: 6px; }
+  .meter .mrow { display: grid; grid-template-columns: minmax(110px, 9rem) 1fr 3rem; gap: 0.6rem; align-items: center; margin: 6px 0; }
+  .meter .mbar { height: 14px; background: rgba(0,0,0,0.1); border-radius: 7px; overflow: hidden; display: block; }
+  .meter .mfill { display: block; height: 100%; background: var(--sea, #2C5266); border-radius: 7px; }
 </style>
 </head>
 <body>
@@ -6374,6 +6386,245 @@ document.getElementById('startBtn').onclick = homePage;
 const HUB_URL = 'https://nseducation.github.io/storygames/';
 if (HUB_URL) { const hub = document.getElementById('hubLink'); hub.href = HUB_URL; hub.hidden = false; }
 function goHub() { try { window.location.href = HUB_URL; } catch (e) { window.open(HUB_URL, '_blank'); } }
+
+// ================= CLASS SAVE AND LEADERBOARD =================
+// Progress is sent to Mark's Google Form and read back from its published sheet.
+// Students sign in with a nickname and a 4-digit PIN. No accounts.
+const CLOUD = {
+  form: 'https://docs.google.com/forms/d/e/1FAIpQLSfJTlEvn5iTFWJOfIb06U0bk22jlqqV0a9P7mf8gT0jaxXtug/formResponse',
+  e: { player: 'entry.143531475', name: 'entry.512553976', kind: 'entry.268120674', data: 'entry.2072822028' },
+  csv: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRypCvIzcroecjljlPkSeiGQZDxS2H9T0FHY36O-Y-yGA9hpMFSfYPr6OAzzTI65WBtcrDWPIHqzYdP/pub?gid=2021087597&single=true&output=csv',
+  game: 'box',
+  keyMe: 'storygames-player',
+  lists: ['items', 'secrets', 'riddles', 'glints', 'words', 'badges', 'seen', 'docs', 'forest', 'chicks', 'ink', 'games', 'doors', 'cross', 'voyages', 'visited'],
+  lastSent: '', lastAt: 0, rows: null, rowsAt: 0, status: '',
+};
+function cloudHash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (h2 >>> 0).toString(36) + (h1 >>> 0).toString(36);
+}
+let CLOUD_ME = null;
+try { CLOUD_ME = JSON.parse(localStorage.getItem(CLOUD.keyMe) || 'null'); } catch (e) { CLOUD_ME = null; }
+function cloudSetMe(me) { CLOUD_ME = me; try { if (me) localStorage.setItem(CLOUD.keyMe, JSON.stringify(me)); else localStorage.removeItem(CLOUD.keyMe); } catch (e) { /* storage blocked: signed in for this visit only */ } }
+const cloudName = (s) => String(s || '').replace(/[^\p{L}\p{N} '\-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 16);
+
+// ---- what counts ----
+function cloudStats() {
+  const P = PROG, n = (k) => (P[k] || []).length;
+  const found = load(KEY_FOUND, []);
+  return {
+    e: found.length,
+    c: n('items') + n('docs') + n('riddles') + n('secrets') + n('doors') + n('forest') + n('chicks') + n('games') + n('ink'),
+    d: n('docs'),
+    h: n('doors'),
+  };
+}
+function cloudPacket() {
+  const p = {}; CLOUD.lists.forEach((k) => { if ((PROG[k] || []).length) p[k] = PROG[k]; });
+  return { v: 1, st: cloudStats(), tr: PROG.tr || {}, f: load(KEY_FOUND, []), p };
+}
+
+// ---- send ----
+function cloudSend(force) {
+  if (!CLOUD_ME) return;
+  const data = JSON.stringify(cloudPacket());
+  const now = Date.now();
+  if (data === CLOUD.lastSent) return;
+  if (!force && now - CLOUD.lastAt < 90000) { clearTimeout(CLOUD.timer); CLOUD.timer = setTimeout(() => cloudSend(true), 90000 - (now - CLOUD.lastAt)); return; }
+  CLOUD.lastSent = data; CLOUD.lastAt = now;
+  const body = new URLSearchParams();
+  body.append(CLOUD.e.player, CLOUD_ME.id); body.append(CLOUD.e.name, CLOUD_ME.name);
+  body.append(CLOUD.e.kind, CLOUD.game); body.append(CLOUD.e.data, data);
+  try {
+    fetch(CLOUD.form, { method: 'POST', mode: 'no-cors', body, keepalive: data.length < 60000 })
+      .then(() => { CLOUD.status = 'saved'; }).catch(() => { CLOUD.status = 'offline'; CLOUD.lastSent = ''; });
+  } catch (e) { CLOUD.status = 'offline'; CLOUD.lastSent = ''; }
+}
+window.addEventListener('pagehide', () => cloudSend(true));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') cloudSend(true); });
+
+// ---- read ----
+function parseCSV(text) {
+  const rows = []; let row = [], f = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true;
+    else if (c === ',') { row.push(f); f = ''; }
+    else if (c === '\n') { row.push(f); rows.push(row); row = []; f = ''; }
+    else if (c !== '\r') f += c;
+  }
+  if (f || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+async function cloudRows(fresh) {
+  if (CLOUD.rows && !fresh && Date.now() - CLOUD.rowsAt < 60000) return CLOUD.rows;
+  const r = await fetch(CLOUD.csv + '&t=' + Date.now(), { cache: 'no-store' });
+  if (!r.ok) throw new Error('read ' + r.status);
+  const all = parseCSV(await r.text()).slice(1);
+  // latest save for each player in each game
+  const latest = {};
+  all.forEach((c) => {
+    const [, player, name, kind, data] = c;
+    if (!player || !kind || !data) return;
+    let d; try { d = JSON.parse(data); } catch (e) { return; }
+    latest[kind + '|' + player] = { player, name: cloudName(name) || 'Player', kind, d };
+  });
+  CLOUD.rows = Object.values(latest); CLOUD.rowsAt = Date.now();
+  return CLOUD.rows;
+}
+async function cloudPull() {
+  if (!CLOUD_ME) return 0;
+  const rows = await cloudRows(true);
+  const mine = rows.find((r) => r.player === CLOUD_ME.id && r.kind === CLOUD.game);
+  if (!mine || !mine.d) return 0;
+  let added = 0;
+  const p = mine.d.p || {};
+  CLOUD.lists.forEach((k) => { (p[k] || []).forEach((v) => { if (!PROG[k]) PROG[k] = []; if (!PROG[k].includes(v)) { PROG[k].push(v); added++; } }); });
+  PROG.tr = PROG.tr || {};
+  Object.entries(mine.d.tr || {}).forEach(([k, v]) => { if ((PROG.tr[k] || 0) < v) { PROG.tr[k] = v; added++; } });
+  const found = load(KEY_FOUND, []);
+  (mine.d.f || []).forEach((e) => { if (!found.includes(e)) { found.push(e); added++; } });
+  save(KEY_FOUND, found); saveProg();
+  return added;
+}
+
+// ---- sign in box ----
+function cloudPanel() {
+  const box = el('section', { class: 'riddle cloudbox noprint' });
+  const fill = () => {
+    box.textContent = '';
+    if (CLOUD_ME) {
+      box.appendChild(el('h2', { text: `👤 Signed in as ${CLOUD_ME.name}` }));
+      box.appendChild(el('p', { class: 'hint', text: 'Your progress saves to the class list as you play, so you can carry on from any Chromebook. Sign in with the same nickname and PIN.' }));
+      box.appendChild(el('div', { class: 'row tight' }, [
+        el('button', { class: 'primary', type: 'button', text: '🏆 Class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }),
+        el('button', { class: 'secondary', type: 'button', text: 'Sign out', onclick: () => { cloudSend(true); cloudSetMe(null); fill(); } }),
+      ]));
+      return;
+    }
+    const nm = el('input', { type: 'text', maxlength: '16', placeholder: 'Nickname', 'aria-label': 'Nickname', autocomplete: 'off', class: 'cloudin' });
+    const pin = el('input', { type: 'password', inputmode: 'numeric', maxlength: '4', placeholder: '4-digit PIN', 'aria-label': '4-digit PIN', autocomplete: 'off', class: 'cloudin pin' });
+    const msg = el('p', { class: 'hint', 'aria-live': 'polite' });
+    const go = el('button', { class: 'primary', type: 'button', text: 'Sign in' });
+    go.onclick = async () => {
+      const n = cloudName(nm.value), p = pin.value.trim();
+      if (!n) { msg.textContent = 'Type a nickname first. Use a nickname, not your full name.'; return; }
+      if (!/^\d{4}$/.test(p)) { msg.textContent = 'Your PIN needs to be 4 numbers.'; return; }
+      cloudSetMe({ name: n, id: cloudHash(n.toLowerCase() + '|' + p + '|storygames') });
+      msg.textContent = 'Signing in…'; go.disabled = true;
+      let added = 0, ok = true;
+      try { added = await cloudPull(); } catch (e) { ok = false; }
+      CLOUD.lastSent = ''; cloudSend(true);
+      fill();
+      toast(!ok ? '👤 Signed in. The class list could not be reached, so your progress is saving on this Chromebook for now.' : added ? '👤 Welcome back! Your progress from another Chromebook is here.' : '👤 Signed in. Your progress will save as you play.');
+    };
+    [nm, pin].forEach((i) => i.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') go.click(); }));
+    box.appendChild(el('h2', { text: '👤 Sign in to save your progress' }));
+    box.appendChild(el('p', { class: 'hint', text: 'Pick a nickname and a 4-digit PIN you will remember. Use the same ones on any Chromebook to carry on where you left off and to join the class leaderboard. Don’t use your full name.' }));
+    box.appendChild(el('div', { class: 'row tight' }, [nm, pin, go]));
+    box.appendChild(msg);
+    box.appendChild(el('button', { class: 'secondary', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }));
+  };
+  fill();
+  return box;
+}
+
+// ---- the leaderboard page ----
+const BOARDS = [
+  ['e', '🏁 Most endings found'],
+  ['c', '🔎 Most clues found'],
+  ['d', '📜 Most real documents read'],
+  ['h', '🔓 Most hidden paths opened'],
+];
+function topTrait(tr) {
+  const t = Object.entries(tr || {}).filter(([k, v]) => v > 0 && LEARN.traits[k]).sort((a, b) => b[1] - a[1])[0];
+  return t ? LEARN.traits[t[0]] : null;
+}
+async function cloudBoard(back) {
+  const wrap = el('div', { class: 'cloudboard' }, [
+    el('h1', { text: `🏆 Class leaderboard: ${document.title}` }),
+    el('p', { class: 'hint', text: 'Loading the class list…' }),
+  ]);
+  const backRow = () => el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '← Back', onclick: back || homePage })]);
+  show([wrap, backRow()]);
+  undoBtn.hidden = true;
+  cloudSend(true);
+  let rows;
+  try { rows = (await cloudRows(true)).filter((r) => r.kind === CLOUD.game); }
+  catch (e) {
+    wrap.replaceChildren(el('h1', { text: '🏆 Class leaderboard' }), el('p', { class: 'readable', text: 'The class list can’t be reached right now. Your progress is still saved on this Chromebook. Try again in a few minutes.' }));
+    return;
+  }
+  const kids = [
+    el('h1', { text: `🏆 Class leaderboard: ${document.title}` }),
+    el('p', { class: 'hint', text: 'New progress can take up to 5 minutes to show here.' }),
+  ];
+  if (CLOUD_ME) kids.push(el('p', { class: 'readable', text: `You are signed in as ${CLOUD_ME.name}. Your name is highlighted.` }));
+  else kids.push(el('p', { class: 'readable', text: 'Sign in on the start page to put your name on the board.' }));
+  if (!rows.length) { kids.push(el('p', { class: 'readable', text: 'No one is on the board yet. Be the first!' })); wrap.replaceChildren(...kids); return; }
+  // character badges: each player's strongest trait
+  BOARDS.forEach(([k, title]) => {
+    const list = rows.map((r) => ({ r, v: (r.d.st || {})[k] || 0 })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v || a.r.name.localeCompare(b.r.name)).slice(0, 10);
+    const sec = el('section', { class: 'board' }, [el('h2', { text: title })]);
+    if (!list.length) sec.appendChild(el('p', { class: 'hint', text: 'No one yet.' }));
+    else sec.appendChild(el('ol', {}, list.map(({ r, v }) => {
+      const t = topTrait(r.d.tr);
+      return el('li', { class: CLOUD_ME && r.player === CLOUD_ME.id ? 'me' : '' }, [
+        el('span', { class: 'bname', text: r.name }),
+        el('span', { class: 'bhero', text: t ? `${t[0]} ${t[1]}` : '' }),
+        el('strong', { text: String(v) }),
+      ]);
+    })));
+    kids.push(sec);
+  });
+  // class character meter
+  const tot = {}; rows.forEach((r) => Object.entries(r.d.tr || {}).forEach(([k, v]) => { if (LEARN.traits[k]) tot[k] = (tot[k] || 0) + v; }));
+  const max = Math.max(1, ...Object.values(tot));
+  const meter = el('section', { class: 'fact meter' }, [el('h2', { text: '💭 Our class’s choices' })]);
+  const ents = Object.entries(LEARN.traits).map(([k, t]) => [t, tot[k] || 0]).sort((a, b) => b[1] - a[1]);
+  if (!ents.some(([, v]) => v)) meter.appendChild(el('p', { class: 'hint', text: 'Finish a story to add your choices.' }));
+  else {
+    ents.forEach(([t, v]) => meter.appendChild(el('div', { class: 'mrow' }, [
+      el('span', { class: 'mlabel', text: `${t[0]} ${t[1]}` }),
+      el('span', { class: 'mbar' }, [el('span', { class: 'mfill', style: `width:${Math.round((v / max) * 100)}%` })]),
+      el('strong', { text: String(v) }),
+    ])));
+    meter.appendChild(el('p', { class: 'readable', text: `Think about it: why did our class choose ${ents[0][0][1].toLowerCase()} most often? Could real people in these times always make that choice? What might it have cost them?` }));
+  }
+  kids.push(meter);
+  kids.push(el('p', { class: 'hint', text: 'The badge beside each name shows the kind of choice that player made most often. Every choice in these stories was a real one that people faced.' }));
+  wrap.replaceChildren(...kids);
+}
+
+// ---- hook into the game ----
+(function () {
+  const baseCover = cover, baseHome = homePage, baseRender = render;
+  const addPanel = () => { const c = document.querySelector('.cover'); if (c && !document.querySelector('.cloudbox')) c.after(cloudPanel()); };
+  cover = function () { const r = baseCover.apply(this, arguments); addPanel(); return r; };
+  homePage = function () { const r = baseHome.apply(this, arguments); addPanel(); return r; };
+  render = function (id) {
+    const r = baseRender.apply(this, arguments);
+    const s = STORY[id];
+    if (s && s.end) {
+      if (!RUN.trDone) { RUN.trDone = true; PROG.tr = PROG.tr || {}; Object.entries(TRAITS).forEach(([k, v]) => { PROG.tr[k] = (PROG.tr[k] || 0) + v; }); saveProg(); }
+      cloudSend(true);
+      const rs = document.querySelector('.runsum');
+      const box = el('section', { class: 'riddle noprint' }, CLOUD_ME
+        ? [el('h2', { text: `🏆 Saved for ${CLOUD_ME.name}` }), el('p', { class: 'hint', text: 'This ending and your clues are on the class list.' }), el('button', { class: 'secondary', type: 'button', text: 'See the class leaderboard', onclick: () => cloudBoard(() => render(id)) })]
+        : [el('h2', { text: '🏆 Want this on the class leaderboard?' }), el('p', { class: 'hint', text: 'Sign in on the start page with a nickname and PIN. Everything you have found on this Chromebook will be added.' }), el('button', { class: 'secondary', type: 'button', text: 'Go to the start page', onclick: homePage })]);
+      if (rs) rs.after(box);
+    } else cloudSend(false);
+    return r;
+  };
+  document.getElementById('home').onclick = homePage;
+  document.getElementById('startBtn').onclick = homePage;
+  if (CLOUD_ME) cloudPull().then((n) => { if (n) toast('👤 Your progress from another Chromebook is here.'); }).catch(() => {});
+})();
+
 homePage();
 </script>
 </body>
