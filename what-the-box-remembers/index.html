@@ -588,7 +588,9 @@
   .wp-note { display: block; font-size: 0.8rem; opacity: 0.8; margin-top: 2px; }
 
   .cloudbox .cloudin { font: inherit; padding: 8px 10px; border: 2px solid var(--line, #bbb); border-radius: 8px; min-width: 0; flex: 1 1 140px; background: var(--card, #fff); color: inherit; }
-  .cloudbox .cloudin.pin { flex: 0 1 120px; letter-spacing: 0.2em; }
+  .cloudbox .cloudin.pin { flex: 0 1 140px; letter-spacing: 0.2em; }
+  .cloudbox select.cloudin { cursor: pointer; }
+  .cloudbox .nickshow { font-weight: 700; margin: 0.3rem 0; }
   .cloudboard .board { margin: 1rem 0; }
   .cloudboard .board ol { padding-left: 1.6rem; margin: 0.3rem 0; }
   .cloudboard .board li { display: flex; gap: 0.6rem; align-items: baseline; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
@@ -6409,7 +6411,10 @@ function cloudHash(str) {
 let CLOUD_ME = null;
 try { CLOUD_ME = JSON.parse(localStorage.getItem(CLOUD.keyMe) || 'null'); } catch (e) { CLOUD_ME = null; }
 function cloudSetMe(me) { CLOUD_ME = me; try { if (me) localStorage.setItem(CLOUD.keyMe, JSON.stringify(me)); else localStorage.removeItem(CLOUD.keyMe); } catch (e) { /* storage blocked: signed in for this visit only */ } }
-const cloudName = (s) => String(s || '').replace(/[^\p{L}\p{N} '\-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 16);
+const NICK_ANIMALS = ["Moose", "Beaver", "Black Bear", "Grizzly Bear", "Polar Bear", "Caribou", "Lynx", "Bobcat", "Cougar", "Red Fox", "Arctic Fox", "Swift Fox", "Grey Wolf", "Coyote", "Snowshoe Hare", "Arctic Hare", "Porcupine", "Raccoon", "River Otter", "Sea Otter", "Mink", "Marten", "Fisher", "Wolverine", "Ermine", "Badger", "Muskrat", "White-tailed Deer", "Mule Deer", "Elk", "Bison", "Muskox", "Mountain Goat", "Bighorn Sheep", "Dall Sheep", "Pronghorn", "Groundhog", "Marmot", "Pika", "Red Squirrel", "Grey Squirrel", "Flying Squirrel", "Chipmunk", "Lemming", "Star-nosed Mole", "Little Brown Bat", "Hoary Bat", "Harbour Seal", "Grey Seal", "Harp Seal", "Hooded Seal", "Ringed Seal", "Sea Lion", "Narwhal", "Beluga", "Orca", "Humpback Whale", "Right Whale", "Blue Whale", "Fin Whale", "Minke Whale", "Harbour Porpoise", "White-sided Dolphin", "Loon", "Canada Goose", "Snow Goose", "Chickadee", "Blue Jay", "Canada Jay", "Steller’s Jay", "Snowy Owl", "Great Horned Owl", "Barred Owl", "Great Grey Owl", "Saw-whet Owl", "Burrowing Owl", "Bald Eagle", "Golden Eagle", "Osprey", "Red-tailed Hawk", "Peregrine Falcon", "Gyrfalcon", "Kestrel", "Raven", "Puffin", "Gannet", "Razorbill", "Murre", "Eider", "Kittiwake", "Shearwater", "Storm-Petrel", "Great Blue Heron", "Bittern", "Sandhill Crane", "Whooping Crane", "Kingfisher", "Pileated Woodpecker", "Downy Woodpecker", "Flicker", "Ptarmigan", "Ruffed Grouse", "Spruce Grouse", "Hummingbird", "Piping Plover", "Killdeer", "Sandpiper", "Trumpeter Swan", "Tundra Swan", "Arctic Tern", "Merganser", "Wood Duck", "Mallard", "Snow Bunting", "Goldfinch", "Cardinal", "Robin", "Bluebird", "Baltimore Oriole", "Cedar Waxwing", "Tree Swallow", "Barn Swallow", "Purple Martin", "Junco", "Song Sparrow", "White-throated Sparrow", "Nuthatch", "Yellow Warbler", "Redpoll", "Evening Grosbeak", "Crossbill", "Meadowlark", "Bobolink", "Red-winged Blackbird", "Mourning Dove", "Pelican", "Cormorant", "Phalarope", "Atlantic Salmon", "Chinook Salmon", "Brook Trout", "Rainbow Trout", "Lake Trout", "Arctic Char", "Sturgeon", "Pike", "Walleye", "Muskie", "Atlantic Cod", "Halibut", "Mackerel", "Herring", "Capelin", "Lobster", "Snow Crab", "Crayfish", "Sea Star", "Sea Urchin", "Sand Dollar", "Giant Pacific Octopus", "Spring Peeper", "Bullfrog", "Wood Frog", "Leopard Frog", "Grey Treefrog", "Spotted Salamander", "Eastern Newt", "Painted Turtle", "Snapping Turtle", "Blanding’s Turtle", "Wood Turtle", "Leatherback Turtle", "Monarch Butterfly", "Tiger Swallowtail", "Black Swallowtail", "Mourning Cloak", "White Admiral", "Red Admiral", "Painted Lady", "Viceroy", "Spring Azure", "Fritillary", "Luna Moth", "Cecropia Moth", "Polyphemus Moth", "Sphinx Moth", "Dragonfly", "Green Darner", "Damselfly", "Firefly", "Ladybug", "Cricket", "Grasshopper", "Katydid", "Water Strider", "Whirligig Beetle", "Tiger Beetle", "June Bug", "Praying Mantis", "Walking Stick", "Caddisfly", "Mayfly", "Lacewing"];
+const NICK_OK = (n) => NICK_ANIMALS.includes(n);
+const cloudName = (s) => String(s || '').replace(/[^\p{L}\p{N} ’'\-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 32);
+if (CLOUD_ME && !NICK_OK(CLOUD_ME.name || '')) CLOUD_ME = null;
 
 // ---- what counts ----
 function cloudStats() {
@@ -6471,7 +6476,8 @@ async function cloudRows(fresh) {
     const [, player, name, kind, data] = c;
     if (!player || !kind || !data) return;
     let d; try { d = JSON.parse(data); } catch (e) { return; }
-    latest[kind + '|' + player] = { player, name: cloudName(name) || 'Player', kind, d };
+    const nm = cloudName(name); if (!NICK_OK(nm)) return;
+    latest[kind + '|' + player] = { player, name: nm, kind, d };
   });
   CLOUD.rows = Object.values(latest); CLOUD.rowsAt = Date.now();
   return CLOUD.rows;
@@ -6506,26 +6512,39 @@ function cloudPanel() {
       ]));
       return;
     }
-    const nm = el('input', { type: 'text', maxlength: '16', placeholder: 'Nickname', 'aria-label': 'Nickname', autocomplete: 'off', class: 'cloudin' });
+    const opt = (v, t) => el('option', { value: v, text: t });
+    const ani = el('select', { class: 'cloudin', 'aria-label': 'Your animal nickname' }, [opt('', 'Pick a Canadian animal…'), ...[...NICK_ANIMALS].sort((x, y) => x.localeCompare(y)).map((w) => opt(w, w))]);
     const pin = el('input', { type: 'password', inputmode: 'numeric', maxlength: '4', placeholder: '4-digit PIN', 'aria-label': '4-digit PIN', autocomplete: 'off', class: 'cloudin pin' });
     const msg = el('p', { class: 'hint', 'aria-live': 'polite' });
+    // grey out animals someone else already has
+    cloudRows(false).then((rows) => {
+      const taken = new Set(rows.map((r) => r.name));
+      [...ani.options].forEach((o) => { if (o.value && taken.has(o.value)) o.textContent = `${o.value} (taken, or yours)`; });
+    }).catch(() => {});
     const go = el('button', { class: 'primary', type: 'button', text: 'Sign in' });
     go.onclick = async () => {
-      const n = cloudName(nm.value), p = pin.value.trim();
-      if (!n) { msg.textContent = 'Type a nickname first. Use a nickname, not your full name.'; return; }
+      const p = pin.value.trim();
+      if (!ani.value) { msg.textContent = 'Pick an animal for your nickname.'; return; }
       if (!/^\d{4}$/.test(p)) { msg.textContent = 'Your PIN needs to be 4 numbers.'; return; }
-      cloudSetMe({ name: n, id: cloudHash(n.toLowerCase() + '|' + p + '|storygames') });
+      const n = ani.value;
+      const id = cloudHash(n.toLowerCase() + '|' + p + '|storygames');
       msg.textContent = 'Signing in…'; go.disabled = true;
-      let added = 0, ok = true;
-      try { added = await cloudPull(); } catch (e) { ok = false; }
+      let rows = null;
+      try { rows = await cloudRows(true); } catch (e) { rows = null; }
+      if (rows && rows.some((r) => r.name.toLowerCase() === n.toLowerCase() && r.player !== id)) {
+        msg.textContent = `Someone already has ${n}. If it’s yours, check your PIN. If not, pick a different animal.`; go.disabled = false; return;
+      }
+      cloudSetMe({ name: n, id });
+      let added = 0;
+      if (rows) { try { added = await cloudPull(); } catch (e) { /* carry on */ } }
       CLOUD.lastSent = ''; cloudSend(true);
       fill();
-      toast(!ok ? '👤 Signed in. The class list could not be reached, so your progress is saving on this Chromebook for now.' : added ? '👤 Welcome back! Your progress from another Chromebook is here.' : '👤 Signed in. Your progress will save as you play.');
+      toast(!rows ? '👤 Signed in. The class list could not be reached, so your progress is saving on this Chromebook for now.' : added ? '👤 Welcome back! Your progress from another Chromebook is here.' : '👤 Signed in. Your progress will save as you play.');
     };
-    [nm, pin].forEach((i) => i.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') go.click(); }));
+    pin.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') go.click(); });
     box.appendChild(el('h2', { text: '👤 Sign in to save your progress' }));
-    box.appendChild(el('p', { class: 'hint', text: 'Pick a nickname and a 4-digit PIN you will remember. Use the same ones on any Chromebook to carry on where you left off and to join the class leaderboard. Don’t use your full name.' }));
-    box.appendChild(el('div', { class: 'row tight' }, [nm, pin, go]));
+    box.appendChild(el('p', { class: 'hint', text: 'Pick a Canadian animal as your nickname, then choose a 4-digit PIN. Each animal can belong to only one student. Write your animal and PIN inside your History Journal so you don’t forget them. Use the same ones on any Chromebook to carry on where you left off and to join the class leaderboard.' }));
+    box.appendChild(el('div', { class: 'row tight' }, [ani, pin, go]));
     box.appendChild(msg);
     box.appendChild(el('button', { class: 'secondary', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }));
   };

@@ -272,7 +272,7 @@
 
   <section class="lb" aria-labelledby="lbHead">
     <h2 id="lbHead">🏆 Class leaderboard</h2>
-    <p class="lede">Sign in inside any game with a nickname and a 4-digit PIN to save your progress and join the board. New progress can take up to 5 minutes to show.</p>
+    <p class="lede">Sign in inside any game with a Canadian animal nickname and a 4-digit PIN to save your progress and join the board. New progress can take up to 5 minutes to show.</p>
     <div class="lbtabs" role="tablist" aria-label="Choose a game">
       <button type="button" role="tab" data-g="all" aria-selected="true">All four games</button>
       <button type="button" role="tab" data-g="words" aria-selected="false">The Words We Carry</button>
@@ -304,7 +304,8 @@
         if (f || row.length) { row.push(f); res.push(row); }
         return res;
       }
-      function clean(s) { return String(s || '').replace(/[^\p{L}\p{N} '\-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 16) || 'Player'; }
+      var NICK = ["Moose", "Beaver", "Black Bear", "Grizzly Bear", "Polar Bear", "Caribou", "Lynx", "Bobcat", "Cougar", "Red Fox", "Arctic Fox", "Swift Fox", "Grey Wolf", "Coyote", "Snowshoe Hare", "Arctic Hare", "Porcupine", "Raccoon", "River Otter", "Sea Otter", "Mink", "Marten", "Fisher", "Wolverine", "Ermine", "Badger", "Muskrat", "White-tailed Deer", "Mule Deer", "Elk", "Bison", "Muskox", "Mountain Goat", "Bighorn Sheep", "Dall Sheep", "Pronghorn", "Groundhog", "Marmot", "Pika", "Red Squirrel", "Grey Squirrel", "Flying Squirrel", "Chipmunk", "Lemming", "Star-nosed Mole", "Little Brown Bat", "Hoary Bat", "Harbour Seal", "Grey Seal", "Harp Seal", "Hooded Seal", "Ringed Seal", "Sea Lion", "Narwhal", "Beluga", "Orca", "Humpback Whale", "Right Whale", "Blue Whale", "Fin Whale", "Minke Whale", "Harbour Porpoise", "White-sided Dolphin", "Loon", "Canada Goose", "Snow Goose", "Chickadee", "Blue Jay", "Canada Jay", "Steller’s Jay", "Snowy Owl", "Great Horned Owl", "Barred Owl", "Great Grey Owl", "Saw-whet Owl", "Burrowing Owl", "Bald Eagle", "Golden Eagle", "Osprey", "Red-tailed Hawk", "Peregrine Falcon", "Gyrfalcon", "Kestrel", "Raven", "Puffin", "Gannet", "Razorbill", "Murre", "Eider", "Kittiwake", "Shearwater", "Storm-Petrel", "Great Blue Heron", "Bittern", "Sandhill Crane", "Whooping Crane", "Kingfisher", "Pileated Woodpecker", "Downy Woodpecker", "Flicker", "Ptarmigan", "Ruffed Grouse", "Spruce Grouse", "Hummingbird", "Piping Plover", "Killdeer", "Sandpiper", "Trumpeter Swan", "Tundra Swan", "Arctic Tern", "Merganser", "Wood Duck", "Mallard", "Snow Bunting", "Goldfinch", "Cardinal", "Robin", "Bluebird", "Baltimore Oriole", "Cedar Waxwing", "Tree Swallow", "Barn Swallow", "Purple Martin", "Junco", "Song Sparrow", "White-throated Sparrow", "Nuthatch", "Yellow Warbler", "Redpoll", "Evening Grosbeak", "Crossbill", "Meadowlark", "Bobolink", "Red-winged Blackbird", "Mourning Dove", "Pelican", "Cormorant", "Phalarope", "Atlantic Salmon", "Chinook Salmon", "Brook Trout", "Rainbow Trout", "Lake Trout", "Arctic Char", "Sturgeon", "Pike", "Walleye", "Muskie", "Atlantic Cod", "Halibut", "Mackerel", "Herring", "Capelin", "Lobster", "Snow Crab", "Crayfish", "Sea Star", "Sea Urchin", "Sand Dollar", "Giant Pacific Octopus", "Spring Peeper", "Bullfrog", "Wood Frog", "Leopard Frog", "Grey Treefrog", "Spotted Salamander", "Eastern Newt", "Painted Turtle", "Snapping Turtle", "Blanding’s Turtle", "Wood Turtle", "Leatherback Turtle", "Monarch Butterfly", "Tiger Swallowtail", "Black Swallowtail", "Mourning Cloak", "White Admiral", "Red Admiral", "Painted Lady", "Viceroy", "Spring Azure", "Fritillary", "Luna Moth", "Cecropia Moth", "Polyphemus Moth", "Sphinx Moth", "Dragonfly", "Green Darner", "Damselfly", "Firefly", "Ladybug", "Cricket", "Grasshopper", "Katydid", "Water Strider", "Whirligig Beetle", "Tiger Beetle", "June Bug", "Praying Mantis", "Walking Stick", "Caddisfly", "Mayfly", "Lacewing"];
+      function clean(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
       function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
       function players(g) {
         var by = {};
@@ -367,7 +368,8 @@
         parse(t).slice(1).forEach(function (c) {
           if (!c[1] || !c[3] || !c[4]) return;
           var d; try { d = JSON.parse(c[4]); } catch (e) { return; }
-          latest[c[3] + '|' + c[1]] = { player: c[1], name: clean(c[2]), kind: c[3], d: d };
+          var nm = clean(c[2]); if (NICK.indexOf(nm) < 0) return; // only animal nicknames are shown
+          latest[c[3] + '|' + c[1]] = { player: c[1], name: nm, kind: c[3], d: d };
         });
         rows = Object.keys(latest).map(function (k) { return latest[k]; });
         draw();
