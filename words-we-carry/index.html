@@ -208,6 +208,7 @@
     border-radius: 6px; padding: 1rem 1.25rem; margin: 0 0 1.25rem;
   }
   .note h2 { font-size: 1rem; margin: 0 0 0.4rem; }
+  .kind { font-size: 0.88rem; font-style: italic; opacity: 0.85; margin: 0 0 0.5rem; }
   .note p { margin: 0; font-size: 0.95rem; }
   .found { margin-top: 1.5rem; font-size: 0.9rem; }
   .found h2 { font-size: 1rem; margin: 0 0 0.5rem; }
@@ -3489,7 +3490,7 @@ function render(id) {
   withFirsts(id, s.p).forEach((t) => story.appendChild(rich('p', { class: 'readable' }, t)));
   nodes.push(story);
   if (s.fact) nodes.push(el('section', { class: 'fact' }, [el('h2', { class: 'readable', text: 'Did you know?' }), rich('p', { class: 'readable' }, s.fact)]));
-  if (s.hnote) { nodes.push(el('section', { class: 'note' }, [el('h2', { class: 'readable', text: 'History Note' }), rich('p', { class: 'readable' }, s.hnote)])); const wf = ffBox('Why did it happen?'); if (wf) nodes.push(wf); }
+  if (s.hnote) { nodes.push(el('section', { class: 'note' }, [el('h2', { class: 'readable', text: '📘 History Note' }), el('p', { class: 'kind', text: '🖊️ Written today to explain what really happened. Tick “History Note” in your booklet.' }), rich('p', { class: 'readable' }, s.hnote)])); const wf = ffBox('Why did it happen?'); if (wf) nodes.push(wf); }
   const srcs = sourcesAt(id);
   if (srcs.length) {
     const holder = el('div');
@@ -3526,7 +3527,8 @@ function render(id) {
       else nodes.push(el('p', { class: 'hint', text: 'Some fates could not be changed, just as they could not for many real people in this history.' }));
     }
     nodes.push(el('section', { class: 'note' }, [
-      el('h2', { class: 'readable', text: 'History Note: what really happened' }),
+      el('h2', { class: 'readable', text: '📘 History Note: what really happened' }),
+      el('p', { class: 'kind', text: '🖊️ Written today to explain what really happened. Tick “History Note” in your booklet.' }),
       rich('p', { class: 'readable' }, s.note),
     ]));
     const ff = ffBox(s.end); if (ff) nodes.push(ff);
@@ -4486,6 +4488,7 @@ function sourceCard(key) {
   checkBadges();
   return el('section', { class: 'source' }, [
     el('h2', { text: `📜 Real document: ${s.title}` }),
+    el('p', { class: 'kind', text: '📜 A real record from the past, made at the time. It was not written for this game. Tick “real document” in your booklet.' }),
     el('p', { class: 'srcmeta', text: s.doc }),
     ...(s.quote ? [el('blockquote', { class: 'readable', text: `“${s.quote}”` })] : []),
     el('p', { class: 'readable', text: s.plain }),
