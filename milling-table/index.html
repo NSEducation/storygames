@@ -586,7 +586,7 @@
   <div class="bar-inner">
     <button class="bar-title" id="home" type="button">The Milling Table</button>
     <button class="tool" id="startBtn" type="button" aria-label="Back to the start page">🏠 Start</button>
-    <a class="tool navlink" id="hubLink" href="#" target="_blank" rel="noopener" hidden>📚 Choose a story</a>
+    <a class="tool navlink" id="hubLink" href="#" hidden>📚 Choose a story</a>
     <button class="tool" id="smaller" type="button" aria-label="Make text smaller">A−</button>
     <button class="tool" id="bigger" type="button" aria-label="Make text bigger">A+</button>
     <button class="tool" id="speak" type="button" aria-pressed="false" hidden>Read aloud</button>
@@ -3154,12 +3154,13 @@ function render(id) {
       el('button', { class: 'primary', type: 'button', text: `Try a different path as ${heroOf(id).name}`, onclick: () => go(heroOf(id).start, false) }),
       ...Object.values(HEROES).filter((h) => h !== heroOf(id)).map((h) => el('button', { class: 'secondary', type: 'button', text: `Play as ${h.name}`, onclick: () => go(h.start, false) })),
       el('button', { class: 'secondary', type: 'button', text: 'Back to the title page', onclick: cover }),
+      ...(HUB_URL ? [el('button', { class: 'secondary', type: 'button', text: '📚 Choose another story', onclick: goHub })] : []),
     ]));
     nodes.push(foundList(heroOf(id)));
     undoBtn.hidden = true;
   }
   // From any scene: back to the story's title page, where you choose who to play.
-  if (!s.end) nodes.push(el('div', { class: 'row scenenav' }, [el('button', { class: 'secondary', type: 'button', text: '👥 Choose a different character', onclick: cover })]));
+  if (!s.end) nodes.push(el('div', { class: 'row scenenav' }, [el('button', { class: 'secondary', type: 'button', text: '👥 Choose a different character', onclick: cover }), ...(HUB_URL ? [el('button', { class: 'secondary', type: 'button', text: '📚 Choose another story', onclick: goHub })] : [])]));
   show(nodes);
   SND.scene(id);
 }
@@ -5594,9 +5595,10 @@ function zoomMapBox(here, caption, sceneId) {
 
 document.getElementById('home').onclick = homePage;
 document.getElementById('startBtn').onclick = homePage;
-// The main page that links all the story games (the teacher's Google Site). Empty = the link stays hidden.
+// The main page that links all the story games. Empty = the links stay hidden.
 const HUB_URL = 'https://nseducation.github.io/storygames/';
 if (HUB_URL) { const hub = document.getElementById('hubLink'); hub.href = HUB_URL; hub.hidden = false; }
+function goHub() { try { window.location.href = HUB_URL; } catch (e) { window.open(HUB_URL, '_blank'); } }
 homePage();
 </script>
 </body>
