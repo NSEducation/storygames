@@ -17,9 +17,10 @@
   .wp-note { display: block; font-size: 0.8rem; opacity: 0.8; margin-top: 2px; }
 
   .cloudbox .cloudin { font: inherit; padding: 8px 10px; border: 2px solid var(--line, #bbb); border-radius: 8px; min-width: 0; flex: 1 1 140px; background: var(--card, #fff); color: inherit; }
-  .cloudbox .cloudin.pin { flex: 0 1 140px; letter-spacing: 0.2em; }
-  .cloudbox select.cloudin { cursor: pointer; }
-  .cloudbox .nickshow { font-weight: 700; margin: 0.3rem 0; }
+  .cloudbox .cloudin.pin { flex: 0 1 150px; letter-spacing: 0.2em; }
+  .cloudbox select.cloudin { cursor: pointer; flex: 1 1 280px; }
+  .cloudbox .cloudin.pin::placeholder { letter-spacing: normal; }
+  .cloudbox .nickshow { font-weight: 700; font-size: 1.5rem; margin: 0.3rem 0; }
   .cloudboard .board { margin: 1rem 0; }
   .cloudboard .board ol { padding-left: 1.6rem; margin: 0.3rem 0; }
   .cloudboard .board li { display: flex; gap: 0.6rem; align-items: baseline; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
@@ -7576,14 +7577,16 @@ async function cloudRows(fresh) {
   if (!r.ok) throw new Error('read ' + r.status);
   const all = parseCSV(await r.text()).slice(1);
   // latest save for each player in each game
-  const latest = {};
+  const latest = {}, owners = {};
   all.forEach((c) => {
     const [, player, name, kind, data] = c;
     if (!player || !kind || !data) return;
     let d; try { d = JSON.parse(data); } catch (e) { return; }
     const nm = cloudName(name); if (!NICK_OK(nm)) return;
-    latest[kind + '|' + player] = { player, name: nm, kind, d };
+    (owners[nm] = owners[nm] || []); if (!owners[nm].includes(player)) owners[nm].push(player);
+    latest[kind + '|' + player] = { player, base: nm, kind, d };
   });
+  Object.values(latest).forEach((r) => { const i = owners[r.base].indexOf(r.player); r.name = i ? `${r.base} ${i + 1}` : r.base; });
   CLOUD.rows = Object.values(latest); CLOUD.rowsAt = Date.now();
   return CLOUD.rows;
 }
@@ -7610,47 +7613,67 @@ function cloudPanel() {
     box.textContent = '';
     if (CLOUD_ME) {
       box.appendChild(el('h2', { text: `👤 Signed in as ${CLOUD_ME.name}` }));
-      box.appendChild(el('p', { class: 'hint', text: 'Your progress saves to the class list as you play, so you can carry on from any Chromebook. Sign in with the same nickname and PIN.' }));
+      box.appendChild(el('p', { class: 'hint', text: 'Your progress saves to the class list as you play. On another Chromebook, choose “I already have an animal” and use the same PIN.' }));
       box.appendChild(el('div', { class: 'row tight' }, [
         el('button', { class: 'primary', type: 'button', text: '🏆 Class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }),
         el('button', { class: 'secondary', type: 'button', text: 'Sign out', onclick: () => { cloudSend(true); cloudSetMe(null); fill(); } }),
       ]));
       return;
     }
-    const opt = (v, t) => el('option', { value: v, text: t });
-    const ani = el('select', { class: 'cloudin', 'aria-label': 'Your animal nickname' }, [opt('', 'Pick a Canadian animal…'), ...[...NICK_ANIMALS].sort((x, y) => x.localeCompare(y)).map((w) => opt(w, w))]);
     const pin = el('input', { type: 'password', inputmode: 'numeric', maxlength: '4', placeholder: '4-digit PIN', 'aria-label': '4-digit PIN', autocomplete: 'off', class: 'cloudin pin' });
     const msg = el('p', { class: 'hint', 'aria-live': 'polite' });
-    // grey out animals someone else already has
-    cloudRows(false).then((rows) => {
-      const taken = new Set(rows.map((r) => r.name));
-      [...ani.options].forEach((o) => { if (o.value && taken.has(o.value)) o.textContent = `${o.value} (taken, or yours)`; });
-    }).catch(() => {});
-    const go = el('button', { class: 'primary', type: 'button', text: 'Sign in' });
-    go.onclick = async () => {
+    const signIn = async (n, isNew) => {
       const p = pin.value.trim();
-      if (!ani.value) { msg.textContent = 'Pick an animal for your nickname.'; return; }
       if (!/^\d{4}$/.test(p)) { msg.textContent = 'Your PIN needs to be 4 numbers.'; return; }
-      const n = ani.value;
       const id = cloudHash(n.toLowerCase() + '|' + p + '|storygames');
-      msg.textContent = 'Signing in…'; go.disabled = true;
-      let rows = null;
-      try { rows = await cloudRows(true); } catch (e) { rows = null; }
-      if (rows && rows.some((r) => r.name.toLowerCase() === n.toLowerCase() && r.player !== id)) {
-        msg.textContent = `Someone already has ${n}. If it’s yours, check your PIN. If not, pick a different animal.`; go.disabled = false; return;
-      }
+      msg.textContent = 'Signing in…';
       cloudSetMe({ name: n, id });
-      let added = 0;
-      if (rows) { try { added = await cloudPull(); } catch (e) { /* carry on */ } }
+      let ok = true, added = 0;
+      try { added = await cloudPull(); } catch (e) { ok = false; }
       CLOUD.lastSent = ''; cloudSend(true);
       fill();
-      toast(!rows ? '👤 Signed in. The class list could not be reached, so your progress is saving on this Chromebook for now.' : added ? '👤 Welcome back! Your progress from another Chromebook is here.' : '👤 Signed in. Your progress will save as you play.');
+      toast(!ok ? '👤 Signed in. The class list could not be reached, so your progress is saving on this Chromebook for now.'
+        : added ? '👤 Welcome back! Your progress from another Chromebook is here.'
+        : isNew ? `👤 Welcome, ${n}! Your progress will save as you play.`
+        : '👤 Signed in. If you have played before and nothing came back, check your PIN, or wait 5 minutes and sign in again.');
     };
-    pin.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') go.click(); });
+    const showNew = async () => {
+      box.textContent = '';
+      box.appendChild(el('h2', { text: '🆕 Pick your animal' }));
+      box.appendChild(el('p', { class: 'hint', text: 'Pick any animal left in the list. Animals other students have already chosen are gone from it. Then make up a 4-digit PIN, and write your animal and PIN inside your History Journal.' }));
+      const opt = (v, t) => el('option', { value: v, text: t });
+      const ani = el('select', { class: 'cloudin', 'aria-label': 'Pick your animal' }, [opt('', 'Loading the animals…')]);
+      ani.disabled = true;
+      const go = el('button', { class: 'primary', type: 'button', text: 'Save my animal and sign in', onclick: () => { if (!ani.value) { msg.textContent = 'Pick an animal first.'; return; } signIn(ani.value, true); } });
+      pin.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') go.click(); });
+      box.appendChild(el('div', { class: 'row tight' }, [ani, pin, go]));
+      box.appendChild(msg);
+      box.appendChild(el('button', { class: 'secondary', type: 'button', text: '← Back', onclick: fill }));
+      let taken = new Set();
+      try { (await cloudRows(true)).forEach((r) => taken.add(r.base)); } catch (e) { /* show them all */ }
+      const free = NICK_ANIMALS.filter((x) => !taken.has(x)).sort((x, y) => x.localeCompare(y));
+      const list = free.length ? free : [...NICK_ANIMALS].sort((x, y) => x.localeCompare(y));
+      ani.replaceChildren(opt('', `Pick a Canadian animal (${list.length} left)…`), ...list.map((w) => opt(w, w)));
+      ani.disabled = false;
+    };
+    const showBack = () => {
+      box.textContent = '';
+      box.appendChild(el('h2', { text: '🔑 Welcome back' }));
+      box.appendChild(el('p', { class: 'hint', text: 'Choose your animal and type your PIN. They are written inside your History Journal.' }));
+      const opt = (v, t) => el('option', { value: v, text: t });
+      const ani = el('select', { class: 'cloudin', 'aria-label': 'Your animal' }, [opt('', 'Choose your animal…'), ...[...NICK_ANIMALS].sort((x, y) => x.localeCompare(y)).map((w) => opt(w, w))]);
+      const go = el('button', { class: 'primary', type: 'button', text: 'Sign in', onclick: () => { if (!ani.value) { msg.textContent = 'Choose your animal first.'; return; } signIn(ani.value, false); } });
+      pin.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') go.click(); });
+      box.appendChild(el('div', { class: 'row tight' }, [ani, pin, go]));
+      box.appendChild(msg);
+      box.appendChild(el('button', { class: 'secondary', type: 'button', text: '← Back', onclick: fill }));
+    };
     box.appendChild(el('h2', { text: '👤 Sign in to save your progress' }));
-    box.appendChild(el('p', { class: 'hint', text: 'Pick a Canadian animal as your nickname, then choose a 4-digit PIN. Each animal can belong to only one student. Write your animal and PIN inside your History Journal so you don’t forget them. Use the same ones on any Chromebook to carry on where you left off and to join the class leaderboard.' }));
-    box.appendChild(el('div', { class: 'row tight' }, [ani, pin, go]));
-    box.appendChild(msg);
+    box.appendChild(el('p', { class: 'hint', text: 'Sign in to keep your progress on any Chromebook and join the class leaderboard. Your nickname is a Canadian animal.' }));
+    box.appendChild(el('div', { class: 'row tight' }, [
+      el('button', { class: 'primary', type: 'button', text: '🆕 I’m new: give me an animal', onclick: showNew }),
+      el('button', { class: 'primary', type: 'button', text: '🔑 I already have an animal', onclick: showBack }),
+    ]));
     box.appendChild(el('button', { class: 'secondary', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }));
   };
   fill();

@@ -272,7 +272,7 @@
 
   <section class="lb" aria-labelledby="lbHead">
     <h2 id="lbHead">🏆 Class leaderboard</h2>
-    <p class="lede">Sign in inside any game with a Canadian animal nickname and a 4-digit PIN to save your progress and join the board. New progress can take up to 5 minutes to show.</p>
+    <p class="lede">Sign in inside any game to get your own Canadian animal nickname to save your progress and join the board. New progress can take up to 5 minutes to show.</p>
     <div class="lbtabs" role="tablist" aria-label="Choose a game">
       <button type="button" role="tab" data-g="all" aria-selected="true">All four games</button>
       <button type="button" role="tab" data-g="words" aria-selected="false">The Words We Carry</button>
@@ -364,14 +364,15 @@
         });
       });
       fetch(CSV + '&t=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (t) {
-        var latest = {};
+        var latest = {}, owners = {};
         parse(t).slice(1).forEach(function (c) {
           if (!c[1] || !c[3] || !c[4]) return;
           var d; try { d = JSON.parse(c[4]); } catch (e) { return; }
           var nm = clean(c[2]); if (NICK.indexOf(nm) < 0) return; // only animal nicknames are shown
-          latest[c[3] + '|' + c[1]] = { player: c[1], name: nm, kind: c[3], d: d };
+          owners[nm] = owners[nm] || []; if (owners[nm].indexOf(c[1]) < 0) owners[nm].push(c[1]);
+          latest[c[3] + '|' + c[1]] = { player: c[1], base: nm, kind: c[3], d: d };
         });
-        rows = Object.keys(latest).map(function (k) { return latest[k]; });
+        rows = Object.keys(latest).map(function (k) { var r = latest[k], i = owners[r.base].indexOf(r.player); r.name = i ? r.base + ' ' + (i + 1) : r.base; return r; });
         draw();
       }).catch(function () { out.textContent = ''; out.appendChild(mk('p', 'note', 'The class leaderboard can’t be reached right now. Try again in a few minutes.')); });
     })();
