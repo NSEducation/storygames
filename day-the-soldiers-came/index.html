@@ -227,6 +227,9 @@
     border-radius: 6px; padding: 1rem 1.25rem; margin: 0 0 1.25rem;
   }
   .note h2 { font-size: 1rem; margin: 0 0 0.4rem; }
+  .rs-h { font-size: 0.98rem; margin: 0.8rem 0 0.2rem; }
+  .runsum ul { margin: 0.2rem 0 0.4rem; padding-left: 1.3rem; }
+  @media print { .runsum { display: block !important; } }
   .kind { font-size: 0.88rem; font-style: italic; opacity: 0.85; margin: 0 0 0.5rem; }
   .note p { margin: 0; font-size: 0.95rem; }
   .found { margin-top: 1.5rem; font-size: 0.9rem; }
@@ -4048,13 +4051,17 @@ function cover() {
 const KEY_GAME = 'soldiers-came-game';
 const PROG = Object.assign({ items: [], secrets: [], visited: [], riddles: [], glints: [], words: [], badges: [], seen: [], voyages: [], docs: [], forest: [], ideas: [], chicks: [], ink: [], games: [], doors: [], cross: [], journal: {}, ff: {}, review: { right: 0, total: 0 }, name: '', reflection: '' }, load(KEY_GAME, {}));
 const saveProg = () => save(KEY_GAME, PROG);
-const addTo = (list, v) => { if (!PROG[list].includes(v)) { PROG[list].push(v); saveProg(); return true; } return false; };
+// What the reader finds on this journey only (reset each time a story starts).
+let RUN = {};
+const RUN_KEYS = ['items', 'docs', 'riddles', 'secrets', 'doors', 'forest', 'words', 'chicks', 'games', 'cross'];
+function runAdd(list, v) { if (!RUN_KEYS.includes(list)) return; (RUN[list] = RUN[list] || []); if (!RUN[list].includes(v)) RUN[list].push(v); }
+const addTo = (list, v) => { runAdd(list, v); if (!PROG[list].includes(v)) { PROG[list].push(v); saveProg(); return true; } return false; };
 let PACK = new Set();      // items carried on this path
 let SEARCHED = new Set();  // scenes searched on this path
 let GLINTED = new Set();   // glints clicked on this path
 let SECRET_TAKEN = new Set();
 
-function newRun() { FIRST_AT = {}; PACK = new Set(); SEARCHED = new Set(); GLINTED = new Set(); SECRET_TAKEN = new Set(); FOREST_DONE = new Set(); TRAITS = {}; RUNPATH = []; }
+function newRun() { RUN = {}; FIRST_AT = {}; PACK = new Set(); SEARCHED = new Set(); GLINTED = new Set(); SECRET_TAKEN = new Set(); FOREST_DONE = new Set(); TRAITS = {}; RUNPATH = []; }
 
 // ---- toasts ----
 const toastEl = document.getElementById('toast');
@@ -4196,6 +4203,7 @@ function riddleBox(id) {
   const [key, r] = entry;
   const box = el('section', { class: 'riddle' });
   if (PROG.riddles.includes(key)) {
+    runAdd('riddles', key);
     box.appendChild(el('h2', { text: `🧩 Solved: “${r.a[0]}”` }));
     box.appendChild(el('p', { class: 'readable', text: r.win }));
     if (r.item && !PACK.has(r.item)) box.appendChild(el('button', { class: 'gamebtn', type: 'button', text: `Take your reward: ${GAME.items[r.item].icon} ${GAME.items[r.item].name}`, onclick: () => { grant(r.item); render(current); } }));
@@ -4278,6 +4286,35 @@ function go(id, record = true) {
   render(id);
 }
 
+function runSummary() {
+  const R = (k) => (RUN[k] || []);
+  const safe = (f) => { try { return f(); } catch (e) { return null; } };
+  const groups = [];
+  const add = (icon, title, list) => { const items = list.filter(Boolean); if (items.length) groups.push([icon, title, items]); };
+  add('🎒', 'Things you found or were given', R('items').map((k) => safe(() => `${GAME.items[k].icon} ${GAME.items[k].name}`)));
+  add('📜', 'Real documents you read', R('docs').map((k) => safe(() => `${SOURCES[k].title} (${SOURCES[k].year})`)));
+  add('🧩', 'Riddles and questions you answered', R('riddles').map((k) => safe(() => { const r = GAME.riddles[k]; return `“${r.a[0]}”${r.who ? ', for ' + r.who : ''}`; })));
+  add('🗝️', 'Secret places you discovered', R('secrets').map((k) => safe(() => GAME.secrets[k].name)));
+  add('🔓', 'Hidden paths you opened', R('doors').map((k) => safe(() => DOORS[k].label)));
+  add('🌿', 'Forest knowledge you learned', R('forest').map((k) => safe(() => `${FOREST_KNOW[k][0]} ${FOREST_KNOW[k][1]}`)));
+  add('🎮', 'Games you played', R('games').map((k) => safe(() => GAMES[k].name)));
+  add('💬', 'Words you looked up', R('words').map((k) => safe(() => { const g = GLOSSARY[k]; return `${g[0]}${g[1] ? ' (' + g[1] + ')' : ''}: ${g[2].split(/[.;]/)[0]}`; })));
+  const chicks = R('chicks').length;
+  if (!groups.length && !chicks) return el('section', { class: 'note runsum' }, [
+    el('h2', { class: 'readable', text: '🔎 Clues you found on this journey' }),
+    el('p', { class: 'readable', text: 'You went straight through this time. Next time, try 🔍 Search this place, tap the underlined words, look for ✨ glints in the pictures and 📜 real documents.' }),
+  ]);
+  const total = groups.reduce((n, g) => n + g[2].length, 0) + chicks;
+  return el('section', { class: 'note runsum' }, [
+    el('h2', { class: 'readable', text: `🔎 Clues you found on this journey (${total})` }),
+    el('p', { class: 'kind', text: 'Copy the ones you want into your booklet before you start a new path.' }),
+    ...groups.map(([icon, title, items]) => el('div', { class: 'rs-group' }, [
+      el('h3', { class: 'readable rs-h', text: `${icon} ${title} (${items.length})` }),
+      el('ul', {}, items.map((t) => el('li', { class: 'readable', text: t }))),
+    ])),
+    ...(chicks ? [el('p', { class: 'readable', text: `🐦 Chickadees you spotted in the pictures: ${chicks}` })] : []),
+  ]);
+}
 function render(id) {
   undoBtn.hidden = trail.length === 0;
   const s = STORY[id];
@@ -4362,6 +4399,7 @@ function render(id) {
       el('button', { class: 'secondary', type: 'button', text: 'Back to the title page', onclick: cover }),
       ...(HUB_URL ? [el('button', { class: 'secondary', type: 'button', text: '📚 Choose another story', onclick: goHub })] : []),
     ]));
+    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs);
     nodes.push(foundList(heroOf(id)));
     undoBtn.hidden = true;
   }
