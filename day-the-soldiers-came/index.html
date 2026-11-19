@@ -6541,136 +6541,6 @@ function gRoute(box, win) {
   draw();
 }
 
-// ---------- 5. Run for the woods (a jumping game) ----------
-function gPatrol(box, win) {
-  box.innerHTML = '';
-  const NS = 'http://www.w3.org/2000/svg';
-  const W = 600, H = 230, GROUND = 186, PX = 96;
-  const relax = RELAXED;
-  const SPEED0 = relax ? 175 : 225, SPEED1 = relax ? 205 : 285;
-  const GRAV = 2000, JUMP = relax ? 640 : 615, CUT = 260;
-  const LIVES = relax ? 5 : 3, COUNT = relax ? 14 : 18;
-  // obstacle kinds: w, h, gap (a brook you must clear instead of a thing you must top)
-  const KINDS = {
-    fence: { w: 34, h: 34, draw: (x) => `<g transform="translate(${x} ${GROUND})"><rect x="2" y="-34" width="4" height="34" fill="#6B5034"/><rect x="28" y="-34" width="4" height="34" fill="#6B5034"/><rect x="0" y="-30" width="34" height="4" fill="#8A6A4A"/><rect x="0" y="-18" width="34" height="4" fill="#8A6A4A"/></g>` },
-    stump: { w: 26, h: 24, draw: (x) => `<g transform="translate(${x} ${GROUND})"><path d="M0,0 L3,-22 Q13,-27 23,-22 L26,0 Z" fill="#5A4430"/><ellipse cx="13" cy="-22" rx="10" ry="3" fill="#A78960"/></g>` },
-    rock: { w: 32, h: 18, draw: (x) => `<g transform="translate(${x} ${GROUND})"><path d="M0,0 Q2,-14 12,-18 Q26,-20 32,-6 L32,0 Z" fill="#6F7B80"/><path d="M8,-12 Q14,-16 20,-14" stroke="#98A4A8" stroke-width="2" fill="none"/></g>` },
-    hay: { w: 40, h: 40, draw: (x) => `<g transform="translate(${x} ${GROUND})"><path d="M0,0 Q-2,-34 20,-40 Q42,-34 40,0 Z" fill="#B8913E"/><path d="M8,-6 L10,-28 M20,-4 L20,-34 M32,-6 L30,-28" stroke="#8C6B2A" stroke-width="1.5"/></g>` },
-    brook: { w: 62, h: 0, gap: true, draw: (x) => `<g transform="translate(${x} ${GROUND})"><rect x="0" y="0" width="62" height="44" fill="#2A4656"/><path d="M6,10 q8,-3 16,0 M30,18 q8,-3 16,0 M10,26 q8,-3 16,0" stroke="#6E8FA0" stroke-width="1.5" fill="none"/></g>` },
-  };
-  const ORDER = relax ? ['stump', 'rock', 'fence', 'brook'] : ['stump', 'rock', 'fence', 'hay', 'brook'];
-  // build the course: first few are easy, then a mix
-  const obs = []; let x = 620;
-  for (let i = 0; i < COUNT; i++) {
-    const kind = i < 2 ? ['rock', 'stump'][i] : ORDER[Math.floor(Math.random() * ORDER.length)];
-    obs.push({ kind, x, w: KINDS[kind].w, h: KINDS[kind].h, gap: !!KINDS[kind].gap, hit: false, passed: false });
-    const spread = relax ? [330, 470] : [280, 420];
-    x += KINDS[kind].w + spread[0] + Math.random() * (spread[1] - spread[0]);
-  }
-  const WOODS = x + 120, LEN = WOODS + 200;
-
-  // far trees for the parallax layer
-  let far = ''; for (let fx = -40; fx < LEN * 0.35 + W; fx += 34 + (fx * 7919 % 23)) { const th = 40 + (fx * 31 % 34); far += `<path d="M${fx},150 L${fx + 14},${150 - th} L${fx + 28},150 Z"/>`; }
-  let stars = ''; for (let i = 0; i < 24; i++) stars += `<circle cx="${(i * 97) % 600}" cy="${10 + (i * 53) % 70}" r="${i % 3 ? 0.9 : 1.4}"/>`;
-  let woods = ''; for (let i = 0; i < 12; i++) { const wx = WOODS + i * 26, th = 90 + (i * 37 % 40); woods += `<path d="M${wx},${GROUND} L${wx + 18},${GROUND - th} L${wx + 36},${GROUND} Z" fill="${i % 2 ? '#1F3326' : '#263D2D'}"/>`; }
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'gsvg'); svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'A farm at night. You run toward the woods, jumping over fences, stumps, rocks, haystacks and brooks.');
-  svg.style.cursor = 'pointer';
-  svg.innerHTML = `<defs><linearGradient id="jsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101A26"/><stop offset="1" stop-color="#2E4052"/></linearGradient>
-      <radialGradient id="jlamp"><stop offset="0" stop-color="#F2B24C" stop-opacity="0.55"/><stop offset="1" stop-color="#F2B24C" stop-opacity="0"/></radialGradient></defs>
-    <rect width="${W}" height="${H}" fill="url(#jsky)"/>
-    <g fill="#DCE3EA">${stars}</g><circle cx="520" cy="38" r="16" fill="#EDE6CF"/><circle cx="527" cy="33" r="15" fill="#13202C"/>
-    <g id="jfar" fill="#1A2A33">${far}</g>
-    <rect x="0" y="${GROUND}" width="${W}" height="${H - GROUND}" fill="#2C4227"/><rect x="0" y="${GROUND}" width="${W}" height="3" fill="#4E6B3E"/>
-    <g id="jworld">
-      <g transform="translate(40 ${GROUND})"><rect x="0" y="-46" width="58" height="46" fill="#3B3029"/><path d="M-6,-46 L29,-70 L64,-46 Z" fill="#2B231E"/><rect x="22" y="-24" width="12" height="24" fill="#1B1512"/><rect x="40" y="-38" width="10" height="9" fill="#F2B24C" opacity="0.8"/></g>
-      ${obs.map((o) => KINDS[o.kind].draw(o.x)).join('')}
-      ${woods}
-      <text x="${WOODS + 40}" y="${GROUND - 110}" font-family="sans-serif" font-size="13" fill="#E9E1CC">the woods</text>
-    </g>
-    <g id="jpatrol" transform="translate(-10 ${GROUND})"><circle cx="0" cy="-30" r="46" fill="url(#jlamp)"/><rect x="-4" y="-44" width="9" height="12" rx="2" fill="#F2B24C"/><path d="M-30,0 L-26,-40 Q-20,-52 -12,-40 L-8,0 Z" fill="#0E151B"/><rect x="-26" y="-40" width="18" height="16" fill="#7A2A24" opacity="0.8"/></g>
-    <g id="jme"><g id="jrun1"><circle cx="11" cy="-40" r="6"/><path d="M5,-33 L17,-33 L18,-16 L4,-16 Z"/><path d="M6,-17 L0,-6 L-4,0 M15,-17 L19,-7 L24,-1" stroke="#E3D3AE" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M6,-30 L-2,-22 M16,-30 L23,-24" stroke="#E3D3AE" stroke-width="3.5" stroke-linecap="round"/></g>
-      <g id="jrun2" style="display:none"><circle cx="11" cy="-40" r="6"/><path d="M5,-33 L17,-33 L18,-16 L4,-16 Z"/><path d="M7,-17 L9,-7 L7,0 M14,-17 L12,-7 L16,-1" stroke="#E3D3AE" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M6,-30 L2,-20 M16,-30 L19,-20" stroke="#E3D3AE" stroke-width="3.5" stroke-linecap="round"/></g>
-      <g id="jair" style="display:none"><circle cx="11" cy="-40" r="6"/><path d="M5,-33 L17,-33 L18,-16 L4,-16 Z"/><path d="M6,-17 L1,-11 L5,-4 M15,-17 L22,-13 L26,-8" stroke="#E3D3AE" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M6,-30 L-2,-38 M16,-30 L24,-37" stroke="#E3D3AE" stroke-width="3.5" stroke-linecap="round"/></g></g>
-    <rect x="16" y="12" width="200" height="8" rx="4" fill="#0B1116" opacity="0.7"/><rect id="jprog" x="16" y="12" width="0" height="8" rx="4" fill="#A8BE84"/>
-    <text x="222" y="20" font-family="sans-serif" font-size="11" fill="#E9E1CC">🌲</text>
-    <g id="jstart"><rect x="150" y="80" width="300" height="56" rx="12" fill="#0B1116" opacity="0.8"/><text x="300" y="104" text-anchor="middle" font-family="sans-serif" font-size="17" font-weight="700" fill="#FFFFFF">Tap here or press Space to start</text><text x="300" y="124" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#E9E1CC">Hold longer to jump higher</text></g>`;
-  const $ = (s) => svg.querySelector(s);
-  const me = $('#jme'), world = $('#jworld'), farL = $('#jfar'), prog = $('#jprog'), patrol = $('#jpatrol');
-  me.setAttribute('fill', '#E3D3AE');
-  const stat = el('p', { class: 'readable gstat' }); const msg = gmsg();
-  let started = false, over = false, scroll = 0, y = 0, vy = 0, onGround = true, held = false, buffer = 0, coyote = 0, hurt = 0, lives = LIVES, cleared = 0, last = 0, legT = 0, leg = false;
-  const showStat = () => { stat.textContent = `Chances left: ${'🤫'.repeat(lives)}${'·'.repeat(LIVES - lives)}   ·   Jumps cleared: ${cleared} of ${obs.length}`; };
-  const press = () => {
-    if (over) return;
-    if (!started) { started = true; $('#jstart').style.display = 'none'; last = performance.now(); requestAnimationFrame(frame); return; }
-    held = true; buffer = 0.14;
-  };
-  const release = () => { held = false; if (vy < -CUT) vy = -CUT; };
-  svg.addEventListener('pointerdown', (e) => { e.preventDefault(); press(); });
-  svg.addEventListener('pointerup', release); svg.addEventListener('pointerleave', release); svg.addEventListener('pointercancel', release);
-  const jumpBtn = gbtn('⬆️ Jump (Space)', () => {}, 'primary');
-  jumpBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); press(); });
-  jumpBtn.addEventListener('pointerup', release); jumpBtn.addEventListener('pointerleave', release);
-  jumpBtn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); press(); setTimeout(release, 160); } });
-  const JKEYS = ['Space', 'ArrowUp', 'KeyW'];
-  gameKeys(box, (e) => { if (!JKEYS.includes(e.code) || (e.target.closest && e.target.closest('input,textarea'))) return; e.preventDefault(); if (!e.repeat) press(); });
-  const ku = (e) => { if (!box.isConnected) { document.removeEventListener('keyup', ku); return; } if (JKEYS.includes(e.code)) release(); };
-  document.addEventListener('keyup', ku);
-  const end = (won) => {
-    over = true; document.removeEventListener('keyup', ku);
-    if (won) {
-      box.append(winBox(lives === LIVES ? '🌲 You reached the woods, and nobody heard a thing!' : '🌲 You made it to the woods!', ['In the story, some Acadians escaped the soldiers by slipping away at night and hiding in the woods, often with help from Mi’kmaw friends who knew the land.', 'Running at night, over fences and brooks, with soldiers and lanterns behind you, was terrifying and dangerous. Families who escaped often hid for months, through the winter.']));
-      win();
-    } else {
-      msg.textContent = '🏮 The patrol heard you and turned their lanterns your way. Try again! Tip: jump a little before you reach each thing, and hold the jump longer for the haystacks.';
-      box.append(gbtn('Try again', () => gPatrol(box, win), 'primary'));
-    }
-  };
-  const frame = (now) => {
-    if (!box.isConnected || over) return;
-    const dt = Math.min(0.04, (now - last) / 1000); last = now;
-    const speed = SPEED0 + (SPEED1 - SPEED0) * Math.min(1, scroll / WOODS);
-    scroll += speed * dt;
-    // jumping: buffered press, a little grace after running off an edge, shorter hop on early release
-    buffer -= dt; coyote = onGround ? 0.09 : coyote - dt;
-    if (buffer > 0 && coyote > 0) { vy = -JUMP; onGround = false; coyote = 0; buffer = 0; if (!held) vy = -CUT * 1.4; }
-    if (!onGround) { vy += GRAV * dt; y += vy * dt; }
-    const wx = scroll + PX + 4, ww = 14; // the runner's feet in world coordinates
-    const overBrook = obs.find((o) => o.gap && wx + ww > o.x + 6 && wx < o.x + o.w - 6);
-    if (y >= 0 && !overBrook) { y = 0; vy = 0; onGround = true; } else if (y >= 0 && overBrook) { onGround = false; }
-    // collisions
-    if (hurt > 0) hurt -= dt;
-    for (const o of obs) {
-      if (o.hit || o.passed) continue;
-      if (o.x + o.w < wx) { o.passed = true; cleared++; showStat(); continue; }
-      const touching = o.gap ? (overBrook === o && y > 6) : (wx + ww > o.x + 4 && wx < o.x + o.w - 4 && -y < o.h - 3);
-      if (touching && hurt <= 0) {
-        o.hit = true; hurt = 1.1; lives--; showStat();
-        msg.textContent = o.gap ? '💦 Splash! You land in the brook. Somewhere behind you, a dog barks.' : o.kind === 'fence' ? '🪵 Crack! You catch your foot on the fence rail.' : '😬 You stumble and almost fall. The lanterns stop moving…';
-        if (o.gap) { y = 0; vy = 0; onGround = true; scroll = o.x + o.w - PX - 2; }
-        if (lives <= 0) return end(false);
-      }
-    }
-    // draw
-    world.setAttribute('transform', `translate(${-scroll} 0)`);
-    farL.setAttribute('transform', `translate(${-scroll * 0.35} 0)`);
-    me.setAttribute('transform', `translate(${PX} ${GROUND + y})`);
-    me.style.opacity = hurt > 0 && Math.floor(hurt * 10) % 2 ? 0.35 : 1;
-    legT += dt; if (legT > 0.11) { legT = 0; leg = !leg; }
-    $('#jair').style.display = onGround ? 'none' : ''; $('#jrun1').style.display = onGround && leg ? '' : 'none'; $('#jrun2').style.display = onGround && !leg ? '' : 'none';
-    patrol.setAttribute('transform', `translate(${-10 + (hurt > 0 ? 34 : 0)} ${GROUND})`);
-    prog.setAttribute('width', 200 * Math.min(1, scroll / (WOODS - PX)));
-    if (scroll + PX > WOODS + 20) return end(true);
-    requestAnimationFrame(frame);
-  };
-  showStat();
-  box.append(relaxedToggle(box, () => gPatrol(box, win)),
-    el('p', { class: 'readable', text: 'It is night, and a British patrol is coming down the road with lanterns. Run from the farm to the woods! Jump over fences, stumps, rocks, haystacks and brooks. Press Space (or the up arrow), tap the picture, or use the Jump button. Hold it longer to jump higher.' }),
-    svg, el('div', { class: 'row tight' }, [jumpBtn]), stat, msg);
-}
-
 // ---------- 6. Who wrote this? ----------
 function gWho(box, win) {
   const WHO = (d) => /Winslow/.test(d.doc) ? 'winslow' : /Lawrence/.test(d.doc) ? 'lawrence' : 'treaty';
@@ -6923,7 +6793,9 @@ function gForestRun(box, win) {
   const MOOSE = ['M-44,-42 Q-46,-56 -28,-56 L2,-58 Q14,-68 28,-60 L36,-52 Q46,-50 54,-44 L62,-37 Q64,-31 57,-31 L50,-33 Q46,-31 44,-27 L42,-21 L39,-27 L34,-36 Q30,-30 20,-30 L-28,-30 Q-42,-30 -44,-42 Z', 'M16,-32 L18,0 L22,0 L22,-32 Z M24,-32 L27,0 L31,0 L29,-32 Z M-32,-32 L-31,0 L-27,0 L-26,-32 Z M-24,-32 L-21,0 L-17,0 L-18,-32 Z', 'M36,-55 Q28,-60 22,-70 L26,-69 L25,-75 L29,-70 L30,-77 L34,-70 Q37,-63 40,-57 Z M41,-57 Q48,-64 56,-67 L55,-72 L60,-69 L61,-75 L64,-69 L66,-63 Q57,-56 44,-54 Z'];
 
   const heroKeys = Object.keys(T.heroes).filter((k) => HEROES[k]);
-  let heroKey = T.heroes[PROG.frunHero] && HEROES[PROG.frunHero] ? PROG.frunHero : heroKeys[0];
+  // start with the character whose story is open, if there is one; otherwise the last runner chosen
+  let nowKey = null; try { if (typeof current !== 'undefined' && current) nowKey = Object.keys(HEROES).find((k) => HEROES[k] === heroOf(current)) || null; } catch (e) { nowKey = null; }
+  let heroKey = nowKey && T.heroes[nowKey] ? nowKey : T.heroes[PROG.frunHero] && HEROES[PROG.frunHero] ? PROG.frunHero : heroKeys[0];
   let stopRun = null;
   const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
   const list = (a) => (a.length > 1 ? a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1] : a[0]);
@@ -7559,7 +7431,8 @@ function gApples(box, win) {
     M: { head: -90, cap: 'M-13,-95 L13,-95 L13,-92 L-13,-92 Z M-8,-95 L-7,-104 L7,-104 L8,-95 Z', body: 'M-10,-81 L10,-81 L13,-38 L-13,-38 Z', sh: -78, legs: true },
   };
   const heroKeys = Object.keys(CFG.heroes).filter((k) => HEROES[k]);
-  let heroKey = CFG.heroes[PROG.applesHero] && HEROES[PROG.applesHero] ? PROG.applesHero : heroKeys[0];
+  let nowKey = null; try { if (typeof current !== 'undefined' && current) nowKey = Object.keys(HEROES).find((k) => HEROES[k] === heroOf(current)) || null; } catch (e) { nowKey = null; }
+  let heroKey = nowKey && CFG.heroes[nowKey] ? nowKey : CFG.heroes[PROG.applesHero] && HEROES[PROG.applesHero] ? PROG.applesHero : heroKeys[0];
   let stopRun = null;
   const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
   const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
@@ -7903,7 +7776,6 @@ const GAMES = {
   coffre: { icon: '📦', name: 'Pack the coffre', blurb: 'The ships are waiting. What will your family bring?', where: 'Before the ships, in Anne’s and Pierre’s stories', run: gCoffre },
   eel: { icon: '🔥', name: 'Eel fishing by torchlight', blurb: 'Spear eels in the light of the torch with Muin and Kloqoej.', where: 'The start of Muin’s story', run: gEel },
   route: { icon: '🛶', name: 'Find the route', blurb: 'Read the river and the land to reach the winter camp.', where: 'Muin’s journey inland', run: gRoute },
-  patrol: { icon: '🏃', name: 'Run for the woods', blurb: 'Jump over fences, stumps, haystacks and brooks to reach the woods before the patrol hears you.', where: 'Anne and Pierre hiding from patrols', run: gPatrol },
   who: { icon: '📜', name: 'Who wrote this?', blurb: 'Match real words from the 1750s to the people who wrote them.', where: 'After the real documents', run: gWho },
   decode: { icon: '🔐', name: 'Decode the message', blurb: 'Crack a coded note from the fighters’ camp.', where: 'Beausoleil’s camp', run: gDecode },
   timeline: { icon: '🗓️', name: 'Put it in order', blurb: 'Arrange real events from 1604 to today.', where: 'At the endings', run: gTimeline },
@@ -7915,7 +7787,7 @@ const GAMES = {
   apples: { icon: '🍎', name: 'Apples in the wind', blurb: 'The wind is shaking the ripe apples loose. Catch them in your basket, and let the wormy ones fall.', where: 'The orchard at Grand-Pré', run: gApples },
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
-const GAME_AT = { 756: ['morse'], 54: ['aboiteau'], 204: ['aboiteau'], 5: ['coffre'], 206: ['coffre'], 501: ['eel'], 511: ['route'], 6: ['patrol'], 225: ['patrol'], 209: ['who'], 250: ['decode'], 565: ['truck'], 577: ['truck'] };
+const GAME_AT = { 756: ['morse'], 54: ['aboiteau'], 204: ['aboiteau'], 5: ['coffre'], 206: ['coffre'], 501: ['eel'], 511: ['route'], 209: ['who'], 250: ['decode'], 565: ['truck'], 577: ['truck'] };
 // ================= GAME TIME =================
 // Each student gets 10 minutes of mini-games a day, so that games do not take over the class.
 // The count is kept in this browser and is shared by all four story games on this site, so switching

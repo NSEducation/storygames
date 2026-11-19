@@ -5257,38 +5257,6 @@ function gRoute(box, win) {
   };
   draw();
 }
-// ---------- 5. Beat the squall home ----------
-function gPatrol(box, win) {
-  box.innerHTML = '';
-  const C = 7, Rr = 6;
-  const BUSH = new Set(['4,6', '2,0', '3,3']);
-  const lanterns = [{ row: 4, len: 4, pos: 0, dir: 1 }, { row: 3, len: 3, pos: 4, dir: -1 }, { row: 2, len: 4, pos: 3, dir: -1 }, { row: 1, len: 4, pos: 0, dir: 1 }];
-  let px = 3, py = 5, turns = 0, over = false;
-  const msg = gmsg(); const grid = el('div', { class: 'pgrid', role: 'grid', 'aria-label': 'A snowy clearing with gusts of wind' });
-  const step = (L) => { const n = L.pos + L.dir; if (n < 0 || n + L.len > C) { L.dir *= -1; } L.pos += L.dir; };
-  const lit = (r, c, ls) => !BUSH.has(`${r},${c}`) && ls.some((L) => L.row === r && c >= L.pos && c < L.pos + L.len);
-  const peek = () => lanterns.map((L) => { const M = { ...L }; step(M); return M; });
-  const draw = () => {
-    grid.innerHTML = ''; const nxt = peek();
-    for (let r = 0; r < Rr; r++) for (let c = 0; c < C; c++) {
-      const isP = r === py && c === px, isLit = lit(r, c, lanterns), isNext = lit(r, c, nxt), bush = BUSH.has(`${r},${c}`), goal = r === 0;
-      grid.append(el('div', { class: `pcell${isLit ? ' lit' : ''}${isNext && !isLit ? ' next' : ''}${bush ? ' bush' : ''}${goal ? ' goal' : ''}`, role: 'gridcell' }, [el('span', { text: isP ? '🧑🏾' : bush ? '🌲' : goal ? '🏚️' : lanterns.some((L) => L.row === r && c === L.pos + (L.dir > 0 ? L.len - 1 : 0)) ? '🌬️' : '' })]));
-    }
-  };
-  const move = (dx, dy) => {
-    if (over) return;
-    const nx = px + dx, ny = py + dy; if (nx < 0 || nx >= C || ny < 0 || ny >= Rr) return;
-    px = nx; py = ny; turns++; lanterns.forEach(step);
-    if (lit(py, px, lanterns)) { msg.textContent = '🌬️ A gust knocks you back and you drop your armful of firewood. Back to the woodpile to start again! Watch the faint squares: that is where the wind goes next.'; px = 3; py = 5; }
-    else msg.textContent = '';
-    if (py === 0) { over = true; draw(); box.append(winBox('🏚️ Home with the firewood!', ['You made it to the pit house with your arms full. The first Black Loyalist winters at Birchtown were bitterly cold. Families gathered wood together, shared what they had, and the spruce trees gave shelter from the wind.'])); win(); return; }
-    draw();
-  };
-  gameKeys(box, (e) => { const k = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key]; if (k) { e.preventDefault(); move(...k); } else if (e.key === ' ' && !e.target.closest('input,textarea')) { e.preventDefault(); move(0, 0); } });
-  const pad = el('div', { class: 'ppad' }, [el('span'), gbtn('⬆️', () => move(0, -1)), el('span'), gbtn('⬅️', () => move(-1, 0)), gbtn('⏸ Wait', () => move(0, 0), 'secondary'), gbtn('➡️', () => move(1, 0)), el('span'), gbtn('⬇️', () => move(0, 1)), el('span')]);
-  box.append(el('p', { class: 'readable', text: 'Carry firewood from the woodpile (bottom) to the pit house (top) without stepping into a gust of wind. Every time you move or wait, the gusts move too. Faint squares show where the wind goes next. Spruce trees 🌲 always shelter you. Use the arrow keys or the buttons.' }), grid, pad, msg);
-  draw();
-}
 // ---------- 6. Who wrote this? ----------
 function gWho(box, win) {
   const LABEL = { british: 'British officers and officials', blackns: 'A Black Loyalist, in his own words', company: 'The Sierra Leone Company', white: 'Reverend William A. White, chaplain of No. 2', treaty: 'A treaty between Mi’kmaw leaders and the British', city: 'The City of Halifax, or the expert it hired', canada: 'The Government of Canada' };
@@ -5506,7 +5474,9 @@ function gForestRun(box, win) {
   const MOOSE = ['M-44,-42 Q-46,-56 -28,-56 L2,-58 Q14,-68 28,-60 L36,-52 Q46,-50 54,-44 L62,-37 Q64,-31 57,-31 L50,-33 Q46,-31 44,-27 L42,-21 L39,-27 L34,-36 Q30,-30 20,-30 L-28,-30 Q-42,-30 -44,-42 Z', 'M16,-32 L18,0 L22,0 L22,-32 Z M24,-32 L27,0 L31,0 L29,-32 Z M-32,-32 L-31,0 L-27,0 L-26,-32 Z M-24,-32 L-21,0 L-17,0 L-18,-32 Z', 'M36,-55 Q28,-60 22,-70 L26,-69 L25,-75 L29,-70 L30,-77 L34,-70 Q37,-63 40,-57 Z M41,-57 Q48,-64 56,-67 L55,-72 L60,-69 L61,-75 L64,-69 L66,-63 Q57,-56 44,-54 Z'];
 
   const heroKeys = Object.keys(T.heroes).filter((k) => HEROES[k]);
-  let heroKey = T.heroes[PROG.frunHero] && HEROES[PROG.frunHero] ? PROG.frunHero : heroKeys[0];
+  // start with the character whose story is open, if there is one; otherwise the last runner chosen
+  let nowKey = null; try { if (typeof current !== 'undefined' && current) nowKey = Object.keys(HEROES).find((k) => HEROES[k] === heroOf(current)) || null; } catch (e) { nowKey = null; }
+  let heroKey = nowKey && T.heroes[nowKey] ? nowKey : T.heroes[PROG.frunHero] && HEROES[PROG.frunHero] ? PROG.frunHero : heroKeys[0];
   let stopRun = null;
   const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
   const list = (a) => (a.length > 1 ? a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1] : a[0]);
@@ -6118,7 +6088,6 @@ function gForestRun(box, win) {
 
 const GAMES = {
   aboiteau: { icon: '🔥', name: 'Keep the pit house warm', blurb: 'Open and close the smoke hole with the wind to keep the fire going.', where: 'Sam’s first winter at Birchtown', run: gAboiteau },
-  squall: { icon: '🌬️', name: 'Beat the gusts home', blurb: 'Carry firewood to the pit house without getting caught in the wind.', where: 'Sam at Birchtown', run: gPatrol },
   wages: { icon: '⚖️', name: 'Spend your wages', blurb: 'Choose what your family needs for winter, and learn why fair pay mattered.', where: 'Sam in Shelburne, 1783', run: gTruck },
   coffre: { icon: '📦', name: 'Pack the sea chest', blurb: 'The ships for Freetown are waiting. What will your family bring?', where: 'Sam in 1792', run: (b, w) => gCoffre(b, w, 'freetown') },
   route: { icon: '🚂', name: 'The little railway', blurb: 'Plan a narrow-gauge railway through the mountain forest.', where: 'Isaac at La Joux, 1917', run: gRoute },
@@ -6132,7 +6101,7 @@ const GAMES = {
   kitchen: { icon: '👩‍🍳', name: 'Kitchen mix-up', blurb: 'Put a recipe’s steps back in order.', where: 'The Kitchen', run: gKitchen },
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
-const GAME_AT = { 6: ['aboiteau'], 11: ['squall'], 7: ['wages'], 38: ['coffre'], 34: ['coffre'], 218: ['route'], 221: ['who'], 507: ['who'], 501: ['eel'], 519: ['eel'], 509: ['decode'], 520: ['keepsake'], 522: ['keepsake'] };
+const GAME_AT = { 6: ['aboiteau'], 7: ['wages'], 38: ['coffre'], 34: ['coffre'], 218: ['route'], 221: ['who'], 507: ['who'], 501: ['eel'], 519: ['eel'], 509: ['decode'], 520: ['keepsake'], 522: ['keepsake'] };
 // ================= GAME TIME =================
 // Each student gets 10 minutes of mini-games a day, so that games do not take over the class.
 // The count is kept in this browser and is shared by all four story games on this site, so switching
