@@ -679,6 +679,10 @@
   .cloudbox:has(.poppanel), .cloudbox:has(select), .cloudbox:has(input) { border-radius: 12px !important; padding: 0.7rem 0.9rem !important; font-size: 0.9rem; }
   .cloudbox h2 { font-size: 1rem; margin: 0 0 0.4rem; }
   @media (max-width: 600px) { .cloudbox { border-radius: 12px !important; } .cloudbox .cloudlbl { flex-basis: 100%; } }
+
+  .pick-h { font-size: clamp(1.6rem, 3.2vw, 2.1rem) !important; margin: 0.2rem 0 0.2rem !important; }
+  .fold-sub { font-weight: 700; margin-top: 1rem; }
+  .sheet section.context { border: 0 !important; padding: 0 !important; margin-left: 0 !important; background: transparent !important; }
 </style>
 </head>
 <body>
@@ -4030,7 +4034,6 @@ function cover() {
   undoBtn.hidden = true;
   const found = load(KEY_FOUND, []);
   const nodes = [
-    gamePicture(ART.cover(), 'cover'),
     el('div', { class: 'cover' }, [
       el('h1', { text: 'The Day the Soldiers Came' }),
       el('p', { class: 'where', text: 'Grand-Pré, Nova Scotia, 1755' }),
@@ -4057,16 +4060,13 @@ function cover() {
       el('p', { class: 'hint', text: '💡 Think about it: each group wanted something different. As you play, notice what each person wants, and what they are afraid of.' }),
     ]),
     el('div', { class: 'row' }, [
-      el('button', { class: 'primary', type: 'button', text: 'Play as Anne, age 14', onclick: () => go('1', false) }),
-      el('button', { class: 'primary', type: 'button', text: 'Play as Pierre, age 17', onclick: () => go('201', false) }),
-      el('button', { class: 'primary', type: 'button', text: 'Play as Muin, age 16', onclick: () => go('501', false) }),
-      el('button', { class: 'primary', type: 'button', text: 'Play as Émile, age 18 (1916)', onclick: () => go('701', false) }),
+      el('button', { class: 'primary', type: 'button', text: 'Play as Anne, 14 · 1755', onclick: () => go('1', false) }),
+      el('button', { class: 'primary', type: 'button', text: 'Play as Pierre, 17 · 1755', onclick: () => go('201', false) }),
+      el('button', { class: 'primary', type: 'button', text: 'Play as Muin, 16 · 1755', onclick: () => go('501', false) }),
+      el('button', { class: 'primary', type: 'button', text: 'Play as Émile, 18 · 1916', onclick: () => go('701', false) }),
     ]),
     el('div', { class: 'row' }, [
       el('button', { class: 'secondary', type: 'button', text: '🗺️ Watch the ships sail: Acadian voyages, 1604 to 1785', onclick: () => openVoyages(cover) }),
-      el('button', { class: 'secondary', type: 'button', text: '💬 Big Questions', onclick: () => bigQuestions(cover) }),
-      el('button', { class: 'secondary', type: 'button', text: '🌱 Today', onclick: () => todayPage(cover) }),
-      el('button', { class: 'secondary', type: 'button', text: '📚 Sources', onclick: () => sourcesPage(cover) }),
       el('button', { class: 'secondary', type: 'button', text: '🏠 Home', onclick: homePage }),
     ]),
     el('div', { style: 'margin-top:2rem' }, [
@@ -6019,7 +6019,6 @@ function homePage() {
     el('span', { class: 'hp-icon', 'aria-hidden': 'true', text: icon }),
     el('span', { class: 'hp-tt' }, [el('strong', { text: title }), el('span', { text })]),
   ]);
-  const who = (name, line) => el('li', {}, [el('strong', { text: name }), el('span', { text: line })]);
   show([
     el('div', { class: 'cover hp-hero' }, [
       el('div', { class: 'hp-pic' }, [gamePicture(ART.cover(), 'cover')]),
@@ -6028,12 +6027,6 @@ function homePage() {
         el('h1', { text: 'The Day the Soldiers Came' }),
         el('p', { class: 'hp-lede', text: 'Live through the deportation of the Acadians, and choose what happens next.' }),
         el('button', { class: 'primary hp-play', type: 'button', text: '▶ Start the story', onclick: cover }),
-        el('ul', { class: 'hp-who' }, [
-          who('Anne, 14', 'Acadian, Grand-Pré, 1755'),
-          who('Pierre, 17', 'Acadian, Grand-Pré, 1755'),
-          who('Muin, 16', 'Mi’kmaw, by the river, 1755'),
-          who('Émile, 18', 'Acadian, Pubnico, 1916'),
-        ]),
         playCountEl(),
       ]),
     ]),
@@ -7936,6 +7929,23 @@ function heroIntro(id) {
 // fold the long parts of the character page behind arrows
 function foldCover() {
   const sheet = document.querySelector('.sheet'); if (!sheet) return;
+  const h1 = sheet.querySelector('.cover h1'); if (h1) { h1.textContent = 'Choose your character'; h1.classList.add('pick-h'); }
+  const wh = sheet.querySelector('.cover .where'); if (wh) wh.textContent = document.title;
+  setTimeout(() => {
+    const ctx2 = sheet.querySelector('section.context');
+    sheet.querySelectorAll('details:not(.fold)').forEach((d) => {
+      const t = (d.querySelector('summary') || {}).textContent || '';
+      if (/words/i.test(t)) { d.remove(); return; }
+      if (/^Who’s who/.test(t) && ctx2) {
+        const twin = [...ctx2.querySelectorAll('details.fold')].find((f) => /^Who’s who/.test(f.querySelector('summary').textContent));
+        const rest = [...d.children].filter((k) => k.tagName !== 'SUMMARY');
+        if (twin) { twin.querySelector('summary').textContent = 'Who’s who'; twin.append(el('p', { class: 'fold-sub', text: 'The people in the stories' }), ...rest); d.remove(); }
+        else { d.classList.add('fold'); const hint = ctx2.querySelector(':scope > p.hint'); if (hint) hint.before(d); else ctx2.append(d); }
+        return;
+      }
+      d.classList.add('fold');
+    });
+  }, 0);
   const fold = (title, nodes, open) => { const d = el('details', { class: 'fold' }); if (open) d.open = true; d.append(el('summary', { text: title }), ...nodes); return d; };
   sheet.querySelectorAll('section.fact').forEach((sec) => {
     const h = sec.querySelector(':scope > h2'); if (!h || !/How to play/.test(h.textContent)) return;
@@ -7954,7 +7964,7 @@ function foldCover() {
 (function () {
   const baseCover = cover, baseHome = homePage, baseRender = render;
   const addPanel = () => { const c = document.querySelector('.cover'); if (c && !document.querySelector('.cloudbox')) c.after(cloudPanel()); };
-  cover = function () { const r = baseCover.apply(this, arguments); foldCover(); addPanel(); return r; };
+  cover = function () { const r = baseCover.apply(this, arguments); foldCover(); return r; };
   homePage = function () { const r = baseHome.apply(this, arguments); addPanel(); return r; };
   render = function (id) {
     const r = baseRender.apply(this, arguments);

@@ -660,6 +660,33 @@
   .cloudbox:has(.poppanel), .cloudbox:has(select), .cloudbox:has(input) { border-radius: 12px !important; padding: 0.7rem 0.9rem !important; font-size: 0.9rem; }
   .cloudbox h2 { font-size: 1rem; margin: 0 0 0.4rem; }
   @media (max-width: 600px) { .cloudbox { border-radius: 12px !important; } .cloudbox .cloudlbl { flex-basis: 100%; } }
+
+  /* start page */
+  .hp-hero { display: grid; gap: 1.2rem 2rem; align-items: center; margin: 0 0 1.5rem; padding: 0; border: 0; }
+  .hp-pic .art-wrap { margin: 0 !important; border: 0; background: transparent; padding: 0 !important; }
+  .hp-pic .art { width: 100% !important; border-radius: 12px; }
+  .hp-text h1 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 1.1; margin: 0.2rem 0 0.6rem; border: 0; padding: 0; }
+  .hp-kicker { margin: 0; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem; color: var(--muted); }
+  .hp-lede { font-size: 1.1rem; margin: 0 0 1rem; }
+  .hp-play { font-size: 1.25rem; padding: 0.85rem 1.6rem; border-radius: 12px; }
+  .hp-who { list-style: none; padding: 0; margin: 1rem 0 0.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1rem; font-size: 0.92rem; }
+  .hp-who li { display: flex; flex-direction: column; border-left: 3px solid var(--rule); padding-left: 0.6rem; }
+  .hp-who span { color: var(--muted); }
+  .hp-h { font-size: 1.25rem; margin: 2rem 0 0.8rem; padding-top: 1.2rem; border-top: 2px solid var(--rule); }
+  .hp-grid { display: grid; gap: 0.8rem; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .hp-grid { grid-template-columns: 1fr 1fr; } }
+  .hp-tile { display: flex; gap: 0.8rem; align-items: center; text-align: left; font: inherit; color: var(--ink); background: var(--paper);
+    border: 2px solid var(--rule); border-radius: 12px; padding: 0.8rem 1rem; cursor: pointer; min-height: 4.6rem; }
+  .hp-tile:hover, .hp-tile:focus-visible { border-color: var(--sea); background: var(--sea-tint); }
+  .hp-icon { font-size: 1.9rem; line-height: 1; flex: 0 0 auto; }
+  .hp-tt { display: flex; flex-direction: column; }
+  .hp-tt strong { font-size: 1.02rem; }
+  .hp-tt span { font-size: 0.88rem; color: var(--muted); }
+  .hp-hero + .cloudbox { margin-top: 0; }
+
+  .pick-h { font-size: clamp(1.6rem, 3.2vw, 2.1rem) !important; margin: 0.2rem 0 0.2rem !important; }
+  .fold-sub { font-weight: 700; margin-top: 1rem; }
+  .sheet section.context { border: 0 !important; padding: 0 !important; margin-left: 0 !important; background: transparent !important; }
 </style>
 </head>
 <body>
@@ -2841,7 +2868,6 @@ function cover() {
   const found = load(KEY_FOUND, []);
   const dl = (rows) => el('dl', {}, rows.flatMap(([a, b]) => [el('dt', { text: a }), el('dd', { text: b })]));
   const nodes = [
-    gamePicture(ART.cover(), 'cover'),
     el('div', { class: 'cover' }, [
       el('h1', { text: GAME_TITLE }),
       el('p', { class: 'where', text: 'One Gaelic family in Mi’kma’ki, from 1773 to today' }),
@@ -2873,16 +2899,12 @@ function cover() {
       el('p', { class: 'hint', text: '💡 Think about it: as you play, notice who helps whom, who remembers it, and who forgets.' }),
     ]),
     el('div', { class: 'row' }, [
-      el('button', { class: 'primary', type: 'button', text: 'Play as Kirsty, 1773', onclick: () => go('1', false) }),
-      el('button', { class: 'primary', type: 'button', text: 'Play as Angus, 1826', onclick: () => go('201', false) }),
-      el('button', { class: 'primary', type: 'button', text: 'Play as Mary, 1916', onclick: () => go('501', false) }),
+      el('button', { class: 'primary', type: 'button', text: 'Play as Kirsty, 12 · 1773', onclick: () => go('1', false) }),
+      el('button', { class: 'primary', type: 'button', text: 'Play as Angus, 13 · 1826', onclick: () => go('201', false) }),
+      el('button', { class: 'primary', type: 'button', text: 'Play as Mary, 23 · 1916', onclick: () => go('501', false) }),
     ]),
     el('div', { class: 'row' }, [
-      el('button', { class: 'secondary', type: 'button', text: '🕯️ Epilogue: 2026', onclick: () => epiloguePage(cover) }),
       el('button', { class: 'secondary', type: 'button', text: '🗺️ Watch the journeys', onclick: () => openVoyages(cover) }),
-      el('button', { class: 'secondary', type: 'button', text: '💬 Big Questions', onclick: () => bigQuestions(cover) }),
-      el('button', { class: 'secondary', type: 'button', text: '🌱 The Gaels Today', onclick: () => todayPage(cover) }),
-      el('button', { class: 'secondary', type: 'button', text: '📚 Sources', onclick: () => sourcesPage(cover) }),
       el('button', { class: 'secondary', type: 'button', text: '🏠 Home', onclick: homePage }),
     ]),
     el('div', { style: 'margin-top:2rem' }, [
@@ -4394,31 +4416,33 @@ const GARDEN_SVG = `<svg class="kart" viewBox="0 0 600 200" role="img" aria-labe
 function homePage() {
   clearKitchenTimers();
   trail = []; current = null; undoBtn.hidden = true;
-  const door = (icon, title, text, fn) => el('button', { class: 'door', type: 'button', onclick: fn }, [
-    el('span', { class: 'big', 'aria-hidden': 'true', text: icon }), el('h2', { text: title }), el('p', { text }),
+  const tile = (icon, title, text, fn) => el('button', { class: 'hp-tile', type: 'button', onclick: fn }, [
+    el('span', { class: 'hp-icon', 'aria-hidden': 'true', text: icon }),
+    el('span', { class: 'hp-tt' }, [el('strong', { text: title }), el('span', { text })]),
   ]);
   show([
-    gamePicture(ART.cover(), 'cover'),
-    el('div', { class: 'cover' }, [
-      el('h1', { text: 'The Gaels of Nova Scotia' }),
-      el('p', { class: 'where', text: 'Loch Broom · Piktuk · Rum · Unama’ki · Port Hood · Mi’kma’ki' }),
-      playCountEl(),
+    el('div', { class: 'cover hp-hero' }, [
+      el('div', { class: 'hp-pic' }, [gamePicture(ART.cover(), 'cover')]),
+      el('div', { class: 'hp-text' }, [
+        el('p', { class: 'hp-kicker', text: 'Loch Broom · Piktuk · Rum · Unama’ki · Port Hood · Mi’kma’ki' }),
+        el('h1', { text: GAME_TITLE }),
+        el('p', { class: 'hp-lede', text: 'Live the history of one Gaelic family, and choose what happens next.' }),
+        el('button', { class: 'primary hp-play', type: 'button', text: '▶ Start the story', onclick: cover }),
+        playCountEl(),
+      ]),
     ]),
-    el('p', { class: 'readable', text: 'What would you like to do today?' }),
-    el('div', { class: 'doors' }, [
-      door('📖', 'Play the story', `${GAME_TITLE}: live the history of one Gaelic family as Kirsty, Angus or Mary, and choose what happens next.`, cover),
-      door('💬', 'Big Questions', 'Questions with no one right answer, to think, talk and write about as a class.', () => bigQuestions()),
-      door('🥣', 'The Kitchen', 'Make oatcakes and oatmeal porridge, and learn the stories that go with them.', mikmawKitchen),
-      door('🧶', 'The Milling Frolic', 'From a sheep’s back to a warm coat: how Gaelic neighbours made cloth together, and where you can still join in.', gardenPage),
-      door('🎨', 'Show Ideas Through Art', 'Paint, build, stitch, film or perform what you learned. Pick a project and see what supplies to bring.', () => artPage()),
-      door('🌱', 'The Gaels Today', 'Gaelic in Nova Scotia now: where it is spoken and taught, dates to remember, and where to find out more.', () => todayPage()),
-    ]),
-    el('div', { class: 'row' }, [
-      el('button', { class: 'secondary', type: 'button', text: '🎮 Games', onclick: () => gamesHub() }),
-      el('button', { class: 'secondary', type: 'button', text: '🗣️ Gaelic words to carry', onclick: () => wordsPage(homePage) }),
-      el('button', { class: 'secondary', type: 'button', text: '🕯️ Epilogue: 2026', onclick: () => epiloguePage(homePage) }),
-      el('button', { class: 'secondary', type: 'button', text: '🔦 Hidden Ink: a school challenge', onclick: () => hiddenInk() }),
-      el('button', { class: 'secondary', type: 'button', text: '📚 Where does this history come from? (Sources)', onclick: () => sourcesPage() }),
+    el('h2', { class: 'hp-h', text: '🧭 Learn more and make something' }),
+    el('div', { class: 'hp-grid' }, [
+      tile('💬', 'Big Questions', 'Think, talk and write as a class', () => bigQuestions()),
+      tile('🌱', 'The Gaels Today', 'Where Gaelic is spoken and taught now', () => todayPage()),
+      tile('🗣️', 'Gaelic words to carry', 'Gaelic words, and how to say them', () => wordsPage(homePage)),
+      tile('🥣', 'The Kitchen', 'Oatcakes, porridge and their stories', mikmawKitchen),
+      tile('🧶', 'The Milling Frolic', 'How neighbours made cloth together', gardenPage),
+      tile('🎨', 'Show Ideas Through Art', 'Pick a project and see what to bring', () => artPage()),
+      tile('🕯️', 'Epilogue: 2026', 'After the three stories', () => epiloguePage(homePage)),
+      tile('🎮', 'Games', 'Quick games about the story', () => gamesHub()),
+      tile('🔦', 'Hidden Ink', 'A challenge hidden around the school', () => hiddenInk()),
+      tile('📚', 'Sources', 'Where does this history come from?', () => sourcesPage()),
     ]),
   ]);
 }
@@ -6131,6 +6155,23 @@ function heroIntro(id) {
 // fold the long parts of the character page behind arrows
 function foldCover() {
   const sheet = document.querySelector('.sheet'); if (!sheet) return;
+  const h1 = sheet.querySelector('.cover h1'); if (h1) { h1.textContent = 'Choose your character'; h1.classList.add('pick-h'); }
+  const wh = sheet.querySelector('.cover .where'); if (wh) wh.textContent = document.title;
+  setTimeout(() => {
+    const ctx2 = sheet.querySelector('section.context');
+    sheet.querySelectorAll('details:not(.fold)').forEach((d) => {
+      const t = (d.querySelector('summary') || {}).textContent || '';
+      if (/words/i.test(t)) { d.remove(); return; }
+      if (/^Who’s who/.test(t) && ctx2) {
+        const twin = [...ctx2.querySelectorAll('details.fold')].find((f) => /^Who’s who/.test(f.querySelector('summary').textContent));
+        const rest = [...d.children].filter((k) => k.tagName !== 'SUMMARY');
+        if (twin) { twin.querySelector('summary').textContent = 'Who’s who'; twin.append(el('p', { class: 'fold-sub', text: 'The people in the stories' }), ...rest); d.remove(); }
+        else { d.classList.add('fold'); const hint = ctx2.querySelector(':scope > p.hint'); if (hint) hint.before(d); else ctx2.append(d); }
+        return;
+      }
+      d.classList.add('fold');
+    });
+  }, 0);
   const fold = (title, nodes, open) => { const d = el('details', { class: 'fold' }); if (open) d.open = true; d.append(el('summary', { text: title }), ...nodes); return d; };
   sheet.querySelectorAll('section.fact').forEach((sec) => {
     const h = sec.querySelector(':scope > h2'); if (!h || !/How to play/.test(h.textContent)) return;
@@ -6149,7 +6190,7 @@ function foldCover() {
 (function () {
   const baseCover = cover, baseHome = homePage, baseRender = render;
   const addPanel = () => { const c = document.querySelector('.cover'); if (c && !document.querySelector('.cloudbox')) c.after(cloudPanel()); };
-  cover = function () { const r = baseCover.apply(this, arguments); foldCover(); addPanel(); return r; };
+  cover = function () { const r = baseCover.apply(this, arguments); foldCover(); return r; };
   homePage = function () { const r = baseHome.apply(this, arguments); addPanel(); return r; };
   render = function (id) {
     const r = baseRender.apply(this, arguments);
