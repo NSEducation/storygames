@@ -3830,24 +3830,17 @@ function startForest(id) {
       escaped ? cfg.goalText : how === 'caught' ? 'You stop to rest and catch your breath, then carry on more slowly. The story goes on.' : 'You run out of time, but you make it back in the end. The story goes on.',
       got.length ? `You kept: ${got.map((k) => `${GAME.items[k].icon} ${GAME.items[k].name}`).join(', ')}.` : 'You didn’t pick anything up this time.',
     ];
-    const nameIn = el('input', { type: 'text', maxlength: '20', placeholder: 'First name or nickname', 'aria-label': 'Your name for the leaderboard', autocomplete: 'off' });
-    const msg = el('p', { class: 'hint', 'aria-live': 'polite' });
-    const add = el('button', { class: 'gamebtn secret', type: 'button', text: 'Add to the leaderboard' });
-    add.onclick = async () => {
-      const n = cleanName(nameIn.value);
-      if (!n) { msg.textContent = 'Type a first name or nickname first.'; return; }
-      add.disabled = true; nameIn.disabled = true;
-      const where = await submitScore(n, score, hero);
-      msg.textContent = where === 'shared' ? 'Added to the class leaderboard!' : 'Added to the leaderboard on this computer!';
-      document.querySelectorAll('[data-board]').forEach((nd) => nd.replaceWith(boardView()));
-    };
-    nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') add.click(); });
+    // the chase score joins the class leaderboard under the student's animal name
+    const best = Math.max(PROG.chase || 0, score); PROG.chase = best; saveProg(); cloudSend(true);
+    const backHere = () => render(current);
+    const lbBox = el('section', { class: 'riddle' }, CLOUD_ME
+      ? [el('h2', { text: `🏆 Saved for ${CLOUD_ME.name}` }), el('p', { class: 'hint', text: `Your best chase score is ${best}. It can take up to 5 minutes to show on the class leaderboard.` }), el('button', { class: 'gamebtn secret', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(backHere) })]
+      : [el('h2', { text: '🏆 Want this score on the class leaderboard?' }), el('p', { class: 'hint', text: `Your best chase score on this Chromebook is ${best}. Sign in on the start page with your animal, and it will be added.` }), el('button', { class: 'gamebtn secret', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(backHere) })]);
     show([
       el('p', { class: 'the-end', text: title }),
       ...lines.map((t) => el('p', { class: 'readable', text: t })),
       el('section', { class: 'fact' }, [el('h2', { text: `Score: ${score}` }), el('p', { text: `Items ${got.length} × 100  +  health ${Math.round(player.hp)}${escaped ? `  +  escape 300  +  time bonus ${timeBonus}` : ''}` })]),
-      el('section', { class: 'riddle' }, [el('h2', { text: 'Add your name to the leaderboard' }), el('p', { class: 'hint', text: 'Use your first name or a nickname only.' }), el('div', { class: 'row tight' }, [nameIn, add]), msg]),
-      boardView(),
+      lbBox,
       el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: 'Back to the story', onclick: () => render(current) })]),
     ]);
     undoBtn.hidden = true;
@@ -6533,6 +6526,7 @@ function cloudStats() {
     c: n('items') + n('docs') + n('riddles') + n('secrets') + n('doors') + n('forest') + n('chicks') + n('games') + n('ink'),
     d: n('docs'),
     h: n('doors'),
+    f: P.chase || 0,
   };
 }
 function cloudPacket() {
@@ -6611,6 +6605,7 @@ async function cloudPull() {
   CLOUD.lists.forEach((k) => { (p[k] || []).forEach((v) => { if (!PROG[k]) PROG[k] = []; if (!PROG[k].includes(v)) { PROG[k].push(v); added++; } }); });
   PROG.tr = PROG.tr || {};
   Object.entries(mine.d.tr || {}).forEach(([k, v]) => { if ((PROG.tr[k] || 0) < v) { PROG.tr[k] = v; added++; } });
+  const cf = (mine.d.st || {}).f || 0; if (cf > (PROG.chase || 0)) { PROG.chase = cf; added++; }
   const found = load(KEY_FOUND, []);
   (mine.d.f || []).forEach((e) => { if (!found.includes(e)) { found.push(e); added++; } });
   save(KEY_FOUND, found); saveProg();
@@ -6705,6 +6700,7 @@ const BOARDS = [
   ['c', '🔎 Most clues found'],
   ['d', '📜 Most real documents read'],
   ['h', '🔓 Most hidden paths opened'],
+  ['f', '🏃 Best chase score'],
 ];
 function topTrait(tr) {
   const t = Object.entries(tr || {}).filter(([k, v]) => v > 0 && LEARN.traits[k]).sort((a, b) => b[1] - a[1])[0];

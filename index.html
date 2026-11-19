@@ -291,7 +291,7 @@
         box: { kindness: ['💛', 'Kindness'], courage: ['🦁', 'Courage'], loyalty: ['🤝', 'Community'], caution: ['🛡️', 'Caution'], self: ['🌱', 'Hope'] },
         all: { kindness: ['💛', 'Kindness'], courage: ['🦁', 'Courage'], loyalty: ['🤝', 'Community and loyalty'], caution: ['🧠', 'Caution and remembering'], self: ['🌱', 'Hope and self-protection'] }
       };
-      var BOARDS = [['e', '🏁 Most endings found'], ['c', '🔎 Most clues found'], ['d', '📜 Most real documents read'], ['h', '🔓 Most hidden paths opened']];
+      var BOARDS = [['e', '🏁 Most endings found'], ['c', '🔎 Most clues found'], ['d', '📜 Most real documents read'], ['h', '🔓 Most hidden paths opened'], ['f', '🏃 Best chase score']];
       var rows = null, tab = 'all', out = document.getElementById('lbOut');
       function parse(text) {
         var res = [], row = [], f = '', q = false;
@@ -311,9 +311,10 @@
         var by = {};
         rows.forEach(function (r) {
           if (g !== 'all' && r.kind !== g) return;
-          var p = by[r.player] || (by[r.player] = { name: r.name, st: { e: 0, c: 0, d: 0, h: 0 }, tr: {} });
+          var p = by[r.player] || (by[r.player] = { name: r.name, st: { e: 0, c: 0, d: 0, h: 0, f: 0 }, tr: {} });
           p.name = r.name;
           ['e', 'c', 'd', 'h'].forEach(function (k) { p.st[k] += (r.d.st || {})[k] || 0; });
+          p.st.f = Math.max(p.st.f, (r.d.st || {}).f || 0);
           Object.keys(r.d.tr || {}).forEach(function (k) { p.tr[k] = (p.tr[k] || 0) + r.d.tr[k]; });
         });
         return Object.keys(by).map(function (k) { return by[k]; });
