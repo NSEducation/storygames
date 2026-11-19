@@ -652,20 +652,24 @@
 
   /* pop-up History Notes and riddles */
   .poprow { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.2rem 0; }
-  .popwrap { position: relative; display: inline-block; margin: 0.6rem 0.4rem 0.6rem 0; }
+  .popwrap { position: static; display: inline-block; margin: 0.6rem 0.4rem 0.6rem 0; }
+  .poprow { position: relative; }
   .poprow .popwrap { margin: 0; }
   .popchip { font: inherit; font-weight: 700; font-size: 0.98rem; cursor: pointer; border-radius: 999px; padding: 0.55rem 1rem; border: 2px solid; }
   .pop-note .popchip { background: #FBF5E8; border-color: #A8771F; color: #5C3F0A; }
   .pop-riddle .popchip { background: #F3EEF8; border-color: #6A4C6E; color: #45304A; }
   .popwrap.open .popchip { box-shadow: 0 0 0 3px rgba(0,0,0,0.12); }
-  .poppanel { display: none; position: absolute; left: 0; top: calc(100% + 8px); z-index: 60; width: min(36rem, 88vw); max-height: 60vh; overflow: auto;
+  .poppanel { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 60; width: auto; max-height: 60vh; overflow: auto; box-sizing: border-box;
     padding: 0.9rem 1.1rem 1rem; border-radius: 12px; border: 2px solid; box-shadow: 0 8px 24px rgba(0,0,0,0.22); }
   .popwrap.open .poppanel { display: block; }
   .pop-note .poppanel { background: #FBF5E8; border-color: #A8771F; }
   .pop-riddle .poppanel { background: #F7F3FA; border-color: #6A4C6E; }
+  .pop-doc .popchip { background: #FBF6EC; border-color: #7A5230; color: #4A2F18; }
+  .pop-doc .poppanel { background: #FBF6EC; border-color: #7A5230; }
+  .poppanel blockquote { margin: 0.6rem 0; padding-left: 0.8rem; border-left: 3px solid #A8771F; font-style: italic; }
   .popclose { float: right; font: inherit; background: transparent; border: 0; font-size: 1.1rem; cursor: pointer; padding: 0 0.2rem; margin: -0.3rem -0.4rem 0 0.5rem; color: inherit; }
   .poppanel p { margin: 0.4rem 0; }
-  @media (prefers-color-scheme: dark) { .pop-note .popchip, .pop-note .poppanel { background: #2A2416; color: inherit; } .pop-riddle .popchip, .pop-riddle .poppanel { background: #241B26; color: inherit; } .wordpop { background: #3A3216 !important; } }
+  @media (prefers-color-scheme: dark) { .pop-note .popchip, .pop-note .poppanel { background: #2A2416; color: inherit; } .pop-riddle .popchip, .pop-riddle .poppanel { background: #241B26; color: inherit; } .pop-doc .popchip, .pop-doc .poppanel { background: #261F17; color: inherit; } .wordpop { background: #3A3216 !important; } }
   /* slim sign-in bar */
   .cloudbox { padding: 0.35rem 0.7rem !important; margin: 0.6rem 0 !important; border: 1px solid var(--rule) !important; border-radius: 999px !important;
     background: var(--paper) !important; font-size: 0.82rem; box-shadow: none !important; }
@@ -4432,9 +4436,7 @@ function render(id) {
   if (srcs.length) {
     const holder = el('div');
     srcs.forEach(([k, src]) => {
-      const sb = el('button', { class: 'gamebtn secret', type: 'button', text: `📜 Read a real document from ${src.year}` });
-      sb.onclick = () => { const card = sourceCard(k); holder.appendChild(card); sb.disabled = true; card.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-      tools.appendChild(sb);
+      holder.appendChild(el('div', { class: 'source-lazy', 'data-k': k, 'data-year': String(src.year) }));
     });
     nodes.push(holder);
   }
@@ -7895,13 +7897,35 @@ function makePop(sec, kind) {
 }
 document.addEventListener('click', () => { if (POP_OPEN) { delete POP_OPEN.dataset.pinned; closePop(); } });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && POP_OPEN) { const c = POP_OPEN.querySelector('.popchip'); delete POP_OPEN.dataset.pinned; closePop(); c.focus(); } });
+function makeLazyPop(ph, kind, label, build) {
+  const wrap = el('div', { class: `popwrap pop-${kind}` });
+  const chip = el('button', { class: 'popchip', type: 'button', 'aria-expanded': 'false', text: label });
+  const panel = el('div', { class: 'poppanel', role: 'dialog', 'aria-label': label });
+  let built = false;
+  const fill = () => { if (built) return; built = true; const sec = build(); const h = sec.querySelector(':scope > h2'); if (h) h.remove(); panel.append(el('button', { class: 'popclose', type: 'button', 'aria-label': 'Close', text: '✕', onclick: (e) => { e.stopPropagation(); closePop(); } }), ...sec.childNodes); };
+  wrap.append(chip, panel);
+  let t = null;
+  const open = () => { fill(); clearTimeout(t); if (POP_OPEN && POP_OPEN !== wrap) closePop(); wrap.classList.add('open'); chip.setAttribute('aria-expanded', 'true'); POP_OPEN = wrap; };
+  const later = () => { clearTimeout(t); t = setTimeout(() => { if (wrap.dataset.pinned || panel.contains(document.activeElement)) return; if (POP_OPEN === wrap) closePop(); }, 300); };
+  wrap.addEventListener('mouseenter', open); wrap.addEventListener('mouseleave', later);
+  chip.addEventListener('focus', open);
+  chip.addEventListener('click', (e) => { e.stopPropagation(); if (wrap.dataset.pinned && wrap.classList.contains('open')) { delete wrap.dataset.pinned; closePop(); } else { wrap.dataset.pinned = '1'; open(); } });
+  panel.addEventListener('click', (e) => e.stopPropagation());
+  ph.replaceWith(wrap);
+}
 function popifyScene() {
   POP_OPEN = null;
   const sheet = document.querySelector('.sheet'); if (!sheet) return;
   sheet.querySelectorAll('section.note').forEach((sec) => { const h = sec.querySelector(':scope > h2'); if (h && h.textContent.startsWith('📘')) makePop(sec, 'note'); });
   sheet.querySelectorAll('section.riddle').forEach((sec) => { const h = sec.querySelector(':scope > h2'); if (h && h.textContent.startsWith('🧩')) makePop(sec, 'riddle'); });
+  sheet.querySelectorAll('.source-lazy').forEach((ph) => makeLazyPop(ph, 'doc', `📜 Real document, ${ph.dataset.year}: ${(SOURCES[ph.dataset.k] || {}).title || ''}`, () => sourceCard(ph.dataset.k)));
   const pops = [...sheet.querySelectorAll('.popwrap')];
-  if (pops.length > 1) { const row = el('div', { class: 'poprow' }); pops[0].before(row); pops.forEach((w) => row.appendChild(w)); }
+  if (pops.length) {
+    const row = el('div', { class: 'poprow' });
+    const story = sheet.querySelector('.story');
+    if (story) story.after(row); else pops[0].before(row);
+    pops.forEach((w) => row.appendChild(w));
+  }
 }
 const HERO_INTRO = {"1": "In 1755, British soldiers are removing every Acadian family from Grand-Pré. The soldiers are at your door, and Grand-mère can’t walk.", "201": "In 1755, British soldiers are removing every Acadian family from Grand-Pré. Tomorrow, every man and boy must go to the church to hear the King’s orders.", "501": "Your Mi’kmaw family, the family of Kitpu, has lived beside the Acadian Landrys for years. From the river, you watch the lanterns around the church, and wonder what the British will do next, to the Acadians and to your own people.", "701": "This story jumps ahead 161 years, to 1916. You are a fisherman’s son from Pubnico, a descendant of Pierre Landry. Canada is at war, and recruiters have come to the village asking Acadian men to fight for the British Empire, the empire that once deported your ancestors."};
 function heroIntro(id) {
