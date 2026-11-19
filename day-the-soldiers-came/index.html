@@ -839,7 +839,7 @@ const ART = (() => {
   };
   const ambientFront = (sky, seed) => {
     const r = seeded(seed + 11);
-    if (sky === SKY.room || sky === SKY.hold) {
+    if (sky === SKY.room || sky === SKY.hold || sky === SKY.hall || sky === SKY.ward || sky === SKY.nave) {
       let m = ''; for (let i = 0; i < 10; i++) m += `<circle class="anim-mote" style="animation-delay:-${(r() * 11).toFixed(1)}s" cx="${(30 + r() * 540).toFixed(0)}" cy="${(40 + r() * 160).toFixed(0)}" r="${(0.9 + r() * 1).toFixed(1)}"/>`;
       return `<g fill="#EFE6CC">${m}</g>`;
     }
