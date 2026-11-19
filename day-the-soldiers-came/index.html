@@ -683,6 +683,10 @@
   .pick-h { font-size: clamp(1.6rem, 3.2vw, 2.1rem) !important; margin: 0.2rem 0 0.2rem !important; }
   .fold-sub { font-weight: 700; margin-top: 1rem; }
   .sheet section.context { border: 0 !important; padding: 0 !important; margin-left: 0 !important; background: transparent !important; }
+  /* pop-up chips: same size as the Search button, at the top of the page */
+  .poprow { position: relative; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.8rem 0; }
+  .poprow .popwrap { margin: 0; }
+  .popchip { font-size: 0.85rem; font-weight: 600; padding: 0.35rem 0.8rem; border-width: 1px; }
 </style>
 </head>
 <body>
@@ -7914,9 +7918,10 @@ function popifyScene() {
   sheet.querySelectorAll('.source-lazy').forEach((ph) => makeLazyPop(ph, 'doc', `📜 Real document, ${ph.dataset.year}: ${(SOURCES[ph.dataset.k] || {}).title || ''}`, () => sourceCard(ph.dataset.k)));
   const pops = [...sheet.querySelectorAll('.popwrap')];
   if (pops.length) {
-    const row = el('div', { class: 'poprow' });
-    const story = sheet.querySelector('.story');
-    if (story) story.after(row); else pops[0].before(row);
+    // at the top of the page, beside "Search this place"
+    let row = sheet.querySelector('.gamebar');
+    if (row) row.classList.add('poprow');
+    else { row = el('div', { class: 'poprow' }); const first = sheet.querySelector('.hero-intro, .place, .story'); if (first) first.before(row); else pops[0].before(row); }
     pops.forEach((w) => row.appendChild(w));
   }
 }
