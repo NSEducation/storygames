@@ -634,6 +634,31 @@
   @media (prefers-color-scheme: dark) {
     .sheet .fact { background: #17242D; } .sheet .note { background: #2A2416; } .sheet .ffbox { background: #1A2716; } .sheet .runsum { background: #241B26; } .sheet .source { background: #261F17; }
   }
+
+  /* start page */
+  .hp-hero { display: grid; gap: 1.2rem 2rem; align-items: center; margin: 0 0 1.5rem; padding: 0; border: 0; }
+  @media (min-width: 900px) { .hp-hero { grid-template-columns: 1.15fr 1fr; } }
+  .hp-pic .art-wrap { margin: 0 !important; border: 0; background: transparent; padding: 0 !important; }
+  .hp-pic .art { width: 100% !important; border-radius: 12px; }
+  .hp-text h1 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 1.1; margin: 0.2rem 0 0.6rem; border: 0; padding: 0; }
+  .hp-kicker { margin: 0; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem; color: var(--muted); }
+  .hp-lede { font-size: 1.1rem; margin: 0 0 1rem; }
+  .hp-play { font-size: 1.25rem; padding: 0.85rem 1.6rem; border-radius: 12px; }
+  .hp-who { list-style: none; padding: 0; margin: 1rem 0 0.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1rem; font-size: 0.92rem; }
+  .hp-who li { display: flex; flex-direction: column; border-left: 3px solid var(--rule); padding-left: 0.6rem; }
+  .hp-who span { color: var(--muted); }
+  .hp-h { font-size: 1.25rem; margin: 2rem 0 0.8rem; padding-top: 1.2rem; border-top: 2px solid var(--rule); }
+  .hp-grid { display: grid; gap: 0.8rem; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .hp-grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1000px) { .hp-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  .hp-tile { display: flex; gap: 0.8rem; align-items: center; text-align: left; font: inherit; color: var(--ink); background: var(--paper);
+    border: 2px solid var(--rule); border-radius: 12px; padding: 0.8rem 1rem; cursor: pointer; min-height: 4.6rem; }
+  .hp-tile:hover, .hp-tile:focus-visible { border-color: var(--sea); background: var(--sea-tint); }
+  .hp-icon { font-size: 1.9rem; line-height: 1; flex: 0 0 auto; }
+  .hp-tt { display: flex; flex-direction: column; }
+  .hp-tt strong { font-size: 1.02rem; }
+  .hp-tt span { font-size: 0.88rem; color: var(--muted); }
+  .hp-hero + .cloudbox { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -5951,30 +5976,39 @@ const GARDEN_SVG = `<svg class="kart" viewBox="0 0 600 200" role="img" aria-labe
 function homePage() {
   clearKitchenTimers();
   trail = []; current = null; undoBtn.hidden = true;
-  const door = (icon, title, text, fn) => el('button', { class: 'door', type: 'button', onclick: fn }, [
-    el('span', { class: 'big', 'aria-hidden': 'true', text: icon }), el('h2', { text: title }), el('p', { text }),
+  const tile = (icon, title, text, fn) => el('button', { class: 'hp-tile', type: 'button', onclick: fn }, [
+    el('span', { class: 'hp-icon', 'aria-hidden': 'true', text: icon }),
+    el('span', { class: 'hp-tt' }, [el('strong', { text: title }), el('span', { text })]),
   ]);
+  const who = (name, line) => el('li', {}, [el('strong', { text: name }), el('span', { text: line })]);
   show([
-    gamePicture(ART.cover(), 'cover'),
-    el('div', { class: 'cover' }, [
-      el('h1', { text: 'Acadie and Mi’kma’ki, 1755' }),
-      el('p', { class: 'where', text: 'Grand-Pré, Nova Scotia' }),
-      playCountEl(),
+    el('div', { class: 'cover hp-hero' }, [
+      el('div', { class: 'hp-pic' }, [gamePicture(ART.cover(), 'cover')]),
+      el('div', { class: 'hp-text' }, [
+        el('p', { class: 'hp-kicker', text: 'Grand-Pré, Nova Scotia · 1755' }),
+        el('h1', { text: 'The Day the Soldiers Came' }),
+        el('p', { class: 'hp-lede', text: 'Live through the deportation of the Acadians, and choose what happens next.' }),
+        el('button', { class: 'primary hp-play', type: 'button', text: '▶ Start the story', onclick: cover }),
+        el('ul', { class: 'hp-who' }, [
+          who('Anne, 14', 'Acadian, Grand-Pré, 1755'),
+          who('Pierre, 17', 'Acadian, Grand-Pré, 1755'),
+          who('Muin, 16', 'Mi’kmaw, by the river, 1755'),
+          who('Émile, 18', 'Acadian, Pubnico, 1916'),
+        ]),
+        playCountEl(),
+      ]),
     ]),
-    el('p', { class: 'readable', text: 'What would you like to do today?' }),
-    el('div', { class: 'doors' }, [
-      door('📖', 'Play the story', 'The Day the Soldiers Came: live through 1755 as Anne, Pierre or Muin, and choose what happens next.', cover),
-      door('💬', 'Big Questions', 'Questions with no one right answer, to think, talk and write about as a class.', () => bigQuestions()),
-      door('🍲', 'Acadian Kitchen', 'Cook traditional Acadian meals and sweets, and grow the herbs for them under our classroom grow lights.', kitchenHome),
-      door('🦌', 'Mi’kmaw Kitchen', 'Cook foods that Mi’kmaw families have shared for generations, from lusgnign (bannock) to wild blueberries.', mikmawKitchen),
-      door('🎨', 'Show Ideas Through Art', 'Paint, build, stitch, film or perform what you learned. Pick a project and see what supplies to bring.', () => artPage()),
-      door('🌱', 'Acadie and Mi’kma’ki Today', 'Mi’kmaw and Acadian communities, languages and celebrations today, with maps and dates to remember.', () => todayPage()),
-    ]),
-    el('div', { class: 'row' }, [
-      el('button', { class: 'secondary', type: 'button', text: '🎮 Games', onclick: () => gamesHub() }),
-      el('button', { class: 'secondary', type: 'button', text: '🗣️ Words in this game', onclick: () => wordsPage(cover) }),
-      el('button', { class: 'secondary', type: 'button', text: '🔦 Hidden Ink: a school challenge', onclick: () => hiddenInk() }),
-      el('button', { class: 'secondary', type: 'button', text: '📚 Where does this history come from? (Sources)', onclick: () => sourcesPage() }),
+    el('h2', { class: 'hp-h', text: '🧭 Learn more and make something' }),
+    el('div', { class: 'hp-grid' }, [
+      tile('💬', 'Big Questions', 'Think, talk and write as a class', () => bigQuestions()),
+      tile('🌱', 'Acadie and Mi’kma’ki Today', 'Communities, languages and celebrations now', () => todayPage()),
+      tile('🗣️', 'Words in this game', 'Acadian and Mi’kmaw words, and how to say them', () => wordsPage(homePage)),
+      tile('🍲', 'Acadian Kitchen', 'Traditional meals, sweets and herbs', kitchenHome),
+      tile('🦌', 'Mi’kmaw Kitchen', 'From lusgnign (bannock) to wild blueberries', mikmawKitchen),
+      tile('🎨', 'Show Ideas Through Art', 'Pick a project and see what to bring', () => artPage()),
+      tile('🎮', 'Games', 'Quick games about the story', () => gamesHub()),
+      tile('🔦', 'Hidden Ink', 'A challenge hidden around the school', () => hiddenInk()),
+      tile('📚', 'Sources', 'Where does this history come from?', () => sourcesPage()),
     ]),
   ]);
 }
@@ -7725,7 +7759,7 @@ function cloudPanel() {
     box.appendChild(el('h2', { text: '👤 Sign in to save your progress' }));
     box.appendChild(el('p', { class: 'hint', text: 'Sign in to keep your progress on any Chromebook and join the class leaderboard. Your nickname is a Canadian animal.' }));
     box.appendChild(el('div', { class: 'row tight' }, [
-      el('button', { class: 'primary', type: 'button', text: '🆕 I’m new: give me an animal', onclick: showNew }),
+      el('button', { class: 'primary', type: 'button', text: '🆕 I’m new: pick my animal', onclick: showNew }),
       el('button', { class: 'primary', type: 'button', text: '🔑 I already have an animal', onclick: showBack }),
     ]));
     box.appendChild(el('button', { class: 'secondary', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }));

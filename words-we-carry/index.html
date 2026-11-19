@@ -6530,7 +6530,7 @@ function cloudPanel() {
     box.appendChild(el('h2', { text: '👤 Sign in to save your progress' }));
     box.appendChild(el('p', { class: 'hint', text: 'Sign in to keep your progress on any Chromebook and join the class leaderboard. Your nickname is a Canadian animal.' }));
     box.appendChild(el('div', { class: 'row tight' }, [
-      el('button', { class: 'primary', type: 'button', text: '🆕 I’m new: give me an animal', onclick: showNew }),
+      el('button', { class: 'primary', type: 'button', text: '🆕 I’m new: pick my animal', onclick: showNew }),
       el('button', { class: 'primary', type: 'button', text: '🔑 I already have an animal', onclick: showBack }),
     ]));
     box.appendChild(el('button', { class: 'secondary', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }));
