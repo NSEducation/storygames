@@ -642,23 +642,15 @@
   .popclose { float: right; font: inherit; background: transparent; border: 0; font-size: 1.1rem; cursor: pointer; padding: 0 0.2rem; margin: -0.3rem -0.4rem 0 0.5rem; color: inherit; }
   .poppanel p { margin: 0.4rem 0; }
   @media (prefers-color-scheme: dark) { .pop-note .popchip, .pop-note .poppanel { background: #2A2416; color: inherit; } .pop-riddle .popchip, .pop-riddle .poppanel { background: #241B26; color: inherit; } .wordpop { background: #3A3216 !important; } }
-  /* compact sign-in bar */
-  .cloudbox { padding: 0.55rem 0.9rem !important; margin: 0.8rem 0 !important; }
-  .cloudbox .cloudrow { align-items: center; margin: 0; }
-  .cloudbox .cloudlbl { font-weight: 700; margin-right: 0.3rem; }
-  .cloudbox .cloudrow button { padding: 0.35rem 0.8rem; font-size: 0.92rem; }
-
-  /* fold-out sections on the character page */
-  details.fold { border: 2px solid var(--rule); border-radius: 12px; margin: 0.7rem 0; background: var(--paper); }
-  details.fold > summary { cursor: pointer; padding: 0.7rem 1rem; font-weight: 700; font-size: 1.05rem; list-style: none; display: flex; align-items: center; gap: 0.6rem; }
-  details.fold > summary::-webkit-details-marker { display: none; }
-  details.fold > summary::before { content: '▶'; font-size: 0.8rem; transition: transform 0.15s; color: var(--sea); }
-  details.fold[open] > summary::before { transform: rotate(90deg); }
-  details.fold[open] > summary { border-bottom: 1px solid var(--rule); }
-  details.fold > :not(summary) { margin-left: 1rem; margin-right: 1rem; }
-  details.fold > :last-child { margin-bottom: 0.9rem; }
-  section.context { border: 0; padding: 0; background: transparent; }
-  .hero-intro { background: var(--sea-tint, #E2EBEF); border-left: 5px solid var(--sea); border-radius: 8px; padding: 0.7rem 1rem; margin: 0 0 1rem; line-height: 1.5; }
+  /* slim sign-in bar */
+  .cloudbox { padding: 0.35rem 0.7rem !important; margin: 0.6rem 0 !important; border: 1px solid var(--rule) !important; border-radius: 999px !important;
+    background: var(--paper) !important; font-size: 0.82rem; box-shadow: none !important; }
+  .cloudbox .cloudrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: 0; }
+  .cloudbox .cloudlbl { font-weight: 700; margin-right: auto; padding-left: 0.2rem; }
+  .cloudbox .cloudrow button { padding: 0.2rem 0.65rem; font-size: 0.8rem; border-radius: 999px; min-height: 0; line-height: 1.4; }
+  .cloudbox:has(.poppanel), .cloudbox:has(select), .cloudbox:has(input) { border-radius: 12px !important; padding: 0.7rem 0.9rem !important; font-size: 0.9rem; }
+  .cloudbox h2 { font-size: 1rem; margin: 0 0 0.4rem; }
+  @media (max-width: 600px) { .cloudbox { border-radius: 12px !important; } .cloudbox .cloudlbl { flex-basis: 100%; } }
 </style>
 </head>
 <body>
@@ -6511,7 +6503,7 @@ function cloudPanel() {
     box.textContent = '';
     if (CLOUD_ME) {
       box.appendChild(el('div', { class: 'row tight cloudrow' }, [
-        el('span', { class: 'cloudlbl', text: `👤 Signed in as ${CLOUD_ME.name}. Your progress is saving.` }),
+        el('span', { class: 'cloudlbl', text: `👤 ${CLOUD_ME.name} · saving` }),
         el('button', { class: 'secondary', type: 'button', text: '🏆 Leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }),
         el('button', { class: 'secondary', type: 'button', text: 'Sign out', onclick: () => { cloudSend(true); cloudSetMe(null); fill(); } }),
       ]));
@@ -6576,8 +6568,8 @@ function cloudPanel() {
       box.appendChild(el('button', { class: 'secondary', type: 'button', text: '← Back', onclick: fill }));
     };
     box.appendChild(el('div', { class: 'row tight cloudrow' }, [
-      el('span', { class: 'cloudlbl', text: '👤 Save your progress:' }),
-      el('button', { class: 'secondary', type: 'button', text: '🆕 I’m new: pick my animal', onclick: showNew }),
+      el('span', { class: 'cloudlbl', text: '👤 Save your progress' }),
+      el('button', { class: 'secondary', type: 'button', text: '🆕 I’m new', onclick: showNew }),
       el('button', { class: 'secondary', type: 'button', text: '🔑 I have an animal', onclick: showBack }),
       el('button', { class: 'secondary', type: 'button', text: '🏆 Leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }),
     ]));
