@@ -671,6 +671,18 @@
   .cloudbox .cloudrow { align-items: center; margin: 0; }
   .cloudbox .cloudlbl { font-weight: 700; margin-right: 0.3rem; }
   .cloudbox .cloudrow button { padding: 0.35rem 0.8rem; font-size: 0.92rem; }
+
+  /* fold-out sections on the character page */
+  details.fold { border: 2px solid var(--rule); border-radius: 12px; margin: 0.7rem 0; background: var(--paper); }
+  details.fold > summary { cursor: pointer; padding: 0.7rem 1rem; font-weight: 700; font-size: 1.05rem; list-style: none; display: flex; align-items: center; gap: 0.6rem; }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary::before { content: '▶'; font-size: 0.8rem; transition: transform 0.15s; color: var(--sea); }
+  details.fold[open] > summary::before { transform: rotate(90deg); }
+  details.fold[open] > summary { border-bottom: 1px solid var(--rule); }
+  details.fold > :not(summary) { margin-left: 1rem; margin-right: 1rem; }
+  details.fold > :last-child { margin-bottom: 0.9rem; }
+  section.context { border: 0; padding: 0; background: transparent; }
+  .hero-intro { background: var(--sea-tint, #E2EBEF); border-left: 5px solid var(--sea); border-radius: 8px; padding: 0.7rem 1rem; margin: 0 0 1rem; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -4028,15 +4040,12 @@ function cover() {
       el('p', { class: 'where', text: 'Grand-Pré, Nova Scotia, 1755' }),
       playCountEl(),
     ]),
-    el('p', { class: 'readable', text: 'In 1755, British soldiers removed every Acadian family from Grand-Pré. This is the story of two families who had lived side by side for years: the Acadian Landrys and the Mi’kmaw family of Kitpu. You choose whose story to live.' }),
-    el('p', { class: 'readable', text: 'Anne Landry, 14: the soldiers are at the door, and Grand-mère can’t walk. Pierre Landry, 17: tomorrow, every man and boy must go to the church to hear the King’s orders. Muin, 16: from the river, he watches the lanterns around the church, and wonders what the British will do next, to the Acadians and to his own people.' }),
-    el('p', { class: 'readable', text: 'A fourth story jumps ahead 161 years. Émile Landry, 18, is a fisherman’s son from Pubnico, a descendant of Pierre. It is 1916, Canada is at war, and recruiters have come to the village asking Acadian men to fight for the British Empire, the empire that once deported their ancestors.' }),
-    el('p', { class: 'readable', text: `Every choice you make changes what happens. Between them, Anne, Pierre, Muin and Émile have ${ENDINGS.length} different endings, and not all of them are happy. In some, they do not survive, just as thousands of real Acadians and Mi’kmaq did not survive these years, and tens of thousands of Canadians did not survive the First World War. Each ending finishes with a History Note about what really happened. When you reach an ending, try again and make different choices.` }),
     el('section', { class: 'fact' }, [
       el('h2', { text: 'How to play' }),
       el('p', { text: '🔍 Search every scene. 🎒 Collect items: some of them could save your life. 🧩 Solve riddles, including devinettes, the riddles Acadians told at a veillée. ✨ Watch for things glinting in the pictures: they lead to secret locations.' }),
+      el('p', { class: 'readable', text: `Every choice you make changes what happens. Between them, Anne, Pierre, Muin and Émile have ${ENDINGS.length} different endings, and not all of them are happy. In some, they do not survive, just as thousands of real Acadians and Mi’kmaq did not survive these years, and tens of thousands of Canadians did not survive the First World War. Each ending finishes with a History Note about what really happened. When you reach an ending, try again and make different choices.` }),
+      el('p', { class: 'hint', text: 'Tap any underlined Acadian or Mi’kmaw word to see what it means and how to say it. Mi’kmaw pronunciations are approximate. To hear real speakers, visit the Mi’gmaq-Mi’kmaq Online Talking Dictionary at mikmaqonline.org.' }),
     ]),
-    el('p', { class: 'hint', text: 'Tap any underlined Acadian or Mi’kmaw word to see what it means and how to say it. Mi’kmaw pronunciations are approximate. To hear real speakers, visit the Mi’gmaq-Mi’kmaq Online Talking Dictionary at mikmaqonline.org.' }),
     el('p', { class: 'hint', text: 'This story is fiction, but it is built on real events: the deportation of the Acadians, and the history of the Mi’kmaq during those same years.' }),
     el('p', { class: 'content-note', text: 'A note before you start: This story includes war, death, sickness and families being separated, because these things really happened to the Acadians and the Mi’kmaq, and to Nova Scotians in the First World War. If any part feels too hard, you can stop at any time or talk to your teacher.' }),
     el('section', { class: 'context' }, [
@@ -7902,15 +7911,38 @@ function popifyScene() {
   const pops = [...sheet.querySelectorAll('.popwrap')];
   if (pops.length > 1) { const row = el('div', { class: 'poprow' }); pops[0].before(row); pops.forEach((w) => row.appendChild(w)); }
 }
+const HERO_INTRO = {"1": "In 1755, British soldiers are removing every Acadian family from Grand-Pré. The soldiers are at your door, and Grand-mère can’t walk.", "201": "In 1755, British soldiers are removing every Acadian family from Grand-Pré. Tomorrow, every man and boy must go to the church to hear the King’s orders.", "501": "Your Mi’kmaw family, the family of Kitpu, has lived beside the Acadian Landrys for years. From the river, you watch the lanterns around the church, and wonder what the British will do next, to the Acadians and to your own people.", "701": "This story jumps ahead 161 years, to 1916. You are a fisherman’s son from Pubnico, a descendant of Pierre Landry. Canada is at war, and recruiters have come to the village asking Acadian men to fight for the British Empire, the empire that once deported your ancestors."};
+function heroIntro(id) {
+  if (!HERO_INTRO[id]) return;
+  const place = document.querySelector('.sheet .place'); if (!place || document.querySelector('.hero-intro')) return;
+  place.before(el('section', { class: 'hero-intro' }, [el('strong', { text: '📖 Your story: ' }), document.createTextNode(HERO_INTRO[id])]));
+}
+// fold the long parts of the character page behind arrows
+function foldCover() {
+  const sheet = document.querySelector('.sheet'); if (!sheet) return;
+  const fold = (title, nodes, open) => { const d = el('details', { class: 'fold' }); if (open) d.open = true; d.append(el('summary', { text: title }), ...nodes); return d; };
+  sheet.querySelectorAll('section.fact').forEach((sec) => {
+    const h = sec.querySelector(':scope > h2'); if (!h || !/How to play/.test(h.textContent)) return;
+    h.remove(); sec.replaceWith(fold('🎮 How to play', [...sec.childNodes]));
+  });
+  const ctx = sheet.querySelector('section.context'); if (!ctx) return;
+  const kids = [...ctx.children], out = []; let cur = null;
+  kids.forEach((k) => {
+    if (k.tagName === 'H2' || k.tagName === 'H3') { cur = { title: k.textContent, nodes: [] }; out.push(cur); return; }
+    if (k.matches('p.hint') && /Think about it/.test(k.textContent)) { out.push(k); cur = null; return; }
+    if (cur) cur.nodes.push(k); else out.push(k);
+  });
+  ctx.replaceChildren(...out.map((o) => (o.nodes ? fold(o.title, o.nodes) : o)));
+}
 // ---- hook into the game ----
 (function () {
   const baseCover = cover, baseHome = homePage, baseRender = render;
   const addPanel = () => { const c = document.querySelector('.cover'); if (c && !document.querySelector('.cloudbox')) c.after(cloudPanel()); };
-  cover = function () { const r = baseCover.apply(this, arguments); addPanel(); return r; };
+  cover = function () { const r = baseCover.apply(this, arguments); foldCover(); addPanel(); return r; };
   homePage = function () { const r = baseHome.apply(this, arguments); addPanel(); return r; };
   render = function (id) {
     const r = baseRender.apply(this, arguments);
-    popifyScene();
+    popifyScene(); heroIntro(id);
     const s = STORY[id];
     if (s && s.end) {
       if (!RUN.trDone) { RUN.trDone = true; PROG.tr = PROG.tr || {}; Object.entries(TRAITS).forEach(([k, v]) => { PROG.tr[k] = (PROG.tr[k] || 0) + v; }); saveProg(); }

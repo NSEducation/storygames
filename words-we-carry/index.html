@@ -647,6 +647,18 @@
   .cloudbox .cloudrow { align-items: center; margin: 0; }
   .cloudbox .cloudlbl { font-weight: 700; margin-right: 0.3rem; }
   .cloudbox .cloudrow button { padding: 0.35rem 0.8rem; font-size: 0.92rem; }
+
+  /* fold-out sections on the character page */
+  details.fold { border: 2px solid var(--rule); border-radius: 12px; margin: 0.7rem 0; background: var(--paper); }
+  details.fold > summary { cursor: pointer; padding: 0.7rem 1rem; font-weight: 700; font-size: 1.05rem; list-style: none; display: flex; align-items: center; gap: 0.6rem; }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary::before { content: '▶'; font-size: 0.8rem; transition: transform 0.15s; color: var(--sea); }
+  details.fold[open] > summary::before { transform: rotate(90deg); }
+  details.fold[open] > summary { border-bottom: 1px solid var(--rule); }
+  details.fold > :not(summary) { margin-left: 1rem; margin-right: 1rem; }
+  details.fold > :last-child { margin-bottom: 0.9rem; }
+  section.context { border: 0; padding: 0; background: transparent; }
+  .hero-intro { background: var(--sea-tint, #E2EBEF); border-left: 5px solid var(--sea); border-radius: 8px; padding: 0.7rem 1rem; margin: 0 0 1rem; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -3154,14 +3166,12 @@ function cover() {
       el('p', { class: 'where', text: 'One Mi’kmaw family, from long before the ships to today' }),
       playCountEl(),
     ]),
-    el('p', { class: 'readable', text: 'About 600 years ago, a girl called Chickadee sits behind her grandmother at a summer council and is told to remember exactly who promised what. In 2026, a boy called Muin stands beside his grandmother on Treaty Day and is told to say a line back, word for word. These are the stories of one Mi’kmaw family, and of the habit that ties them together.' }),
-    el('p', { class: 'readable', text: 'Chickadee, about 600 years ago: a whole life, from eight to sixty-five, between the lakes and the Narrows of Kjipuktuk. Lizzie, 12, in 1916: she counts the basket money at Kepe’kek, until the Halifax Explosion takes her village. Frank, 22, in 1915: Lizzie’s uncle leaves his father’s fishing boat for the army, and goes all the way to the trenches of Belgium and France. Theresa, 7, in 1959: her grandmother hides her in the woods, and her best friend is taken to residential school. Muin, 13, in 2026: hockey, a school project, and a cove that is coming home.' }),
-    el('p', { class: 'readable', text: `Every choice you make changes what happens. Between them, the five have ${ENDINGS.length} different endings. Nobody you play dies. The stories are linked: what you learn in one can open a hidden path in another. You can play them in any order.` }),
     el('section', { class: 'fact' }, [
       el('h2', { text: 'How to play' }),
       el('p', { text: '🔍 Search every scene. 🎒 Collect items: one or two could get you through a hard time. 🧩 Answer the questions characters ask you. ✨ Watch for things glinting in the pictures: they lead to secret locations. 🐾 Look for animals hiding in the pictures, and tap them. 📜 Read real documents. 🔓 Some hidden choices only open when you have learned something in another story.' }),
+      el('p', { class: 'readable', text: `Every choice you make changes what happens. Between them, the five have ${ENDINGS.length} different endings. Nobody you play dies. The stories are linked: what you learn in one can open a hidden path in another. You can play them in any order.` }),
+      el('p', { class: 'hint', text: 'Hover over or tap any underlined word to see how to say it and what it means. Mi’kmaw pronunciations here are only approximate. To hear fluent speakers, visit the Mi’gmaq-Mi’kmaq Online Talking Dictionary at mikmaqonline.org.' }),
     ]),
-    el('p', { class: 'hint', text: 'Hover over or tap any underlined word to see how to say it and what it means. Mi’kmaw pronunciations here are only approximate. To hear fluent speakers, visit the Mi’gmaq-Mi’kmaq Online Talking Dictionary at mikmaqonline.org.' }),
     el('p', { class: 'hint', text: 'The family is made up. The events around them really happened, and so did some of the people they meet.' }),
     el('p', { class: 'content-note', text: 'A note before you start: These stories include the loss of a home, racism, and children being taken to residential school, because these things really happened to Mi’kmaw families. They are told honestly and gently, and nothing is shown inside the school. You can skip that part of Theresa’s story. Frank’s story goes to the First World War, where soldiers were hurt and killed. It is told without gory detail, and the hardest scenes are quiet. The stories also include skill, jokes, good food, hockey, stubborn grandmothers and a nation that is still here, because those are just as true. If anything in the game is hard for you, talk to an adult you trust or to your school’s Mi’kmaw student support worker. Kids Help Phone is open 24 hours a day: call 1-800-668-6868 or text CONNECT to 686868.' }),
     el('section', { class: 'context' }, [
@@ -6676,15 +6686,38 @@ function popifyScene() {
   const pops = [...sheet.querySelectorAll('.popwrap')];
   if (pops.length > 1) { const row = el('div', { class: 'poprow' }); pops[0].before(row); pops.forEach((w) => row.appendChild(w)); }
 }
+const HERO_INTRO = {"701": "About 600 years ago. Yours is a whole life, from eight to sixty-five, between the lakes and the Narrows of Kjipuktuk. One summer, your grandmother will tell you to remember exactly who promised what.", "1": "1916. You count the basket money at Kepe’kek, until the Halifax Explosion takes your village.", "900": "1915. You are Lizzie’s uncle. You leave your father’s fishing boat for the army, and go all the way to the trenches of Belgium and France.", "201": "1959. Your grandmother hides you in the woods, and your best friend is taken to residential school.", "501": "2026. Hockey, a school project, and a cove that is coming home. On Treaty Day, your grandmother will ask you to say a line back, word for word."};
+function heroIntro(id) {
+  if (!HERO_INTRO[id]) return;
+  const place = document.querySelector('.sheet .place'); if (!place || document.querySelector('.hero-intro')) return;
+  place.before(el('section', { class: 'hero-intro' }, [el('strong', { text: '📖 Your story: ' }), document.createTextNode(HERO_INTRO[id])]));
+}
+// fold the long parts of the character page behind arrows
+function foldCover() {
+  const sheet = document.querySelector('.sheet'); if (!sheet) return;
+  const fold = (title, nodes, open) => { const d = el('details', { class: 'fold' }); if (open) d.open = true; d.append(el('summary', { text: title }), ...nodes); return d; };
+  sheet.querySelectorAll('section.fact').forEach((sec) => {
+    const h = sec.querySelector(':scope > h2'); if (!h || !/How to play/.test(h.textContent)) return;
+    h.remove(); sec.replaceWith(fold('🎮 How to play', [...sec.childNodes]));
+  });
+  const ctx = sheet.querySelector('section.context'); if (!ctx) return;
+  const kids = [...ctx.children], out = []; let cur = null;
+  kids.forEach((k) => {
+    if (k.tagName === 'H2' || k.tagName === 'H3') { cur = { title: k.textContent, nodes: [] }; out.push(cur); return; }
+    if (k.matches('p.hint') && /Think about it/.test(k.textContent)) { out.push(k); cur = null; return; }
+    if (cur) cur.nodes.push(k); else out.push(k);
+  });
+  ctx.replaceChildren(...out.map((o) => (o.nodes ? fold(o.title, o.nodes) : o)));
+}
 // ---- hook into the game ----
 (function () {
   const baseCover = cover, baseHome = homePage, baseRender = render;
   const addPanel = () => { const c = document.querySelector('.cover'); if (c && !document.querySelector('.cloudbox')) c.after(cloudPanel()); };
-  cover = function () { const r = baseCover.apply(this, arguments); addPanel(); return r; };
+  cover = function () { const r = baseCover.apply(this, arguments); foldCover(); addPanel(); return r; };
   homePage = function () { const r = baseHome.apply(this, arguments); addPanel(); return r; };
   render = function (id) {
     const r = baseRender.apply(this, arguments);
-    popifyScene();
+    popifyScene(); heroIntro(id);
     const s = STORY[id];
     if (s && s.end) {
       if (!RUN.trDone) { RUN.trDone = true; PROG.tr = PROG.tr || {}; Object.entries(TRAITS).forEach(([k, v]) => { PROG.tr[k] = (PROG.tr[k] || 0) + v; }); saveProg(); }

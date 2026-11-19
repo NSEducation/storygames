@@ -652,6 +652,18 @@
   .cloudbox .cloudrow { align-items: center; margin: 0; }
   .cloudbox .cloudlbl { font-weight: 700; margin-right: 0.3rem; }
   .cloudbox .cloudrow button { padding: 0.35rem 0.8rem; font-size: 0.92rem; }
+
+  /* fold-out sections on the character page */
+  details.fold { border: 2px solid var(--rule); border-radius: 12px; margin: 0.7rem 0; background: var(--paper); }
+  details.fold > summary { cursor: pointer; padding: 0.7rem 1rem; font-weight: 700; font-size: 1.05rem; list-style: none; display: flex; align-items: center; gap: 0.6rem; }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary::before { content: '▶'; font-size: 0.8rem; transition: transform 0.15s; color: var(--sea); }
+  details.fold[open] > summary::before { transform: rotate(90deg); }
+  details.fold[open] > summary { border-bottom: 1px solid var(--rule); }
+  details.fold > :not(summary) { margin-left: 1rem; margin-right: 1rem; }
+  details.fold > :last-child { margin-bottom: 0.9rem; }
+  section.context { border: 0; padding: 0; background: transparent; }
+  .hero-intro { background: var(--sea-tint, #E2EBEF); border-left: 5px solid var(--sea); border-radius: 8px; padding: 0.7rem 1rem; margin: 0 0 1rem; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -2839,14 +2851,12 @@ function cover() {
       el('p', { class: 'where', text: 'One Gaelic family in Mi’kma’ki, from 1773 to today' }),
       playCountEl(),
     ]),
-    el('p', { class: 'readable', text: 'In 1773, a girl called Kirsty carries her grandmother’s spindle across the ocean on the ship Hector. In 1830, a boy called Angus helps make a long wooden board for milling cloth, and the whole neighbourhood comes to sing around it. In 1916, his great-granddaughter Mary is a nurse in a war hospital, speaking Gaelic to a feverish brother. These are the stories of one Gaelic family, and of the language, the songs and the work that tie them together.' }),
-    el('p', { class: 'readable', text: 'Kirsty, 12, in 1773: she sails on the Hector and lives through the first winter at Piktuk (Pictou), where Mi’kmaw families help the newcomers survive. Angus, 13, in 1826: his whole island in Scotland is emptied for sheep, and his family must start again on the back land of Cape Breton. Mary, 23, in 1916: a nursing sister with the hospital unit from St. Francis Xavier University, in England and France in the First World War.' }),
-    el('p', { class: 'readable', text: `Every choice you make changes what happens. Between them, the three have ${ENDINGS.length} different endings. Nobody you play dies. The stories are linked: what you learn in one can open a hidden path in another. You can play them in any order. When you finish, read the short epilogue set in 2026.` }),
     el('section', { class: 'fact' }, [
       el('h2', { text: 'How to play' }),
       el('p', { text: '🔍 Search every scene. 🎒 Collect items: one could get you through a hard time. 🧩 Answer the questions characters ask you. ✨ Watch for things glinting in the pictures: they lead to secret locations. 🐾 Look for animals hiding in the pictures, and tap them. 📜 Read real documents. 🔓 Some hidden choices only open when you have learned something in another story. 🗣️ Tap the underlined words to learn some Gaelic.' }),
+      el('p', { class: 'readable', text: `Every choice you make changes what happens. Between them, the three have ${ENDINGS.length} different endings. Nobody you play dies. The stories are linked: what you learn in one can open a hidden path in another. You can play them in any order. When you finish, read the short epilogue set in 2026.` }),
+      el('p', { class: 'hint', text: 'Hover over or tap any underlined word to see how to say it and what it means. The Gaelic pronunciations here are only rough guides. To hear Nova Scotia Gaelic speakers, visit Cainnt mo Mhàthar (cainntmomhathar.com). The few Mi’kmaw words come from The Words We Carry. To hear fluent Mi’kmaw speakers, visit mikmaqonline.org.' }),
     ]),
-    el('p', { class: 'hint', text: 'Hover over or tap any underlined word to see how to say it and what it means. The Gaelic pronunciations here are only rough guides. To hear Nova Scotia Gaelic speakers, visit Cainnt mo Mhàthar (cainntmomhathar.com). The few Mi’kmaw words come from The Words We Carry. To hear fluent Mi’kmaw speakers, visit mikmaqonline.org.' }),
     el('p', { class: 'hint', text: 'The family is made up. The events around them really happened, and so did some of the people they meet.' }),
     el('p', { class: 'content-note', text: 'A note before you start: These stories include people being forced from their homes, sickness and death on a voyage, hunger, war, and children being shamed for speaking their language, because these things really happened. They are told honestly and gently. The stories also include skill, jokes, music, dancing, storytelling grandmothers and good neighbours, because those are just as true. If anything in the game is hard for you, talk to an adult you trust. Kids Help Phone is open 24 hours a day: call 1-800-668-6868 or text CONNECT to 686868.' }),
     el('section', { class: 'context' }, [
@@ -6096,15 +6106,38 @@ function popifyScene() {
   const pops = [...sheet.querySelectorAll('.popwrap')];
   if (pops.length > 1) { const row = el('div', { class: 'poprow' }); pops[0].before(row); pops.forEach((w) => row.appendChild(w)); }
 }
+const HERO_INTRO = {"1": "1773. You carry your grandmother’s spindle across the ocean on the ship Hector, and live through the first winter at Piktuk (Pictou), where Mi’kmaw families help the newcomers survive.", "201": "1826. Your whole island in Scotland is emptied for sheep, and your family must start again on the back land of Cape Breton.", "501": "1916. You are a nursing sister with the hospital unit from St. Francis Xavier University, in England and France in the First World War."};
+function heroIntro(id) {
+  if (!HERO_INTRO[id]) return;
+  const place = document.querySelector('.sheet .place'); if (!place || document.querySelector('.hero-intro')) return;
+  place.before(el('section', { class: 'hero-intro' }, [el('strong', { text: '📖 Your story: ' }), document.createTextNode(HERO_INTRO[id])]));
+}
+// fold the long parts of the character page behind arrows
+function foldCover() {
+  const sheet = document.querySelector('.sheet'); if (!sheet) return;
+  const fold = (title, nodes, open) => { const d = el('details', { class: 'fold' }); if (open) d.open = true; d.append(el('summary', { text: title }), ...nodes); return d; };
+  sheet.querySelectorAll('section.fact').forEach((sec) => {
+    const h = sec.querySelector(':scope > h2'); if (!h || !/How to play/.test(h.textContent)) return;
+    h.remove(); sec.replaceWith(fold('🎮 How to play', [...sec.childNodes]));
+  });
+  const ctx = sheet.querySelector('section.context'); if (!ctx) return;
+  const kids = [...ctx.children], out = []; let cur = null;
+  kids.forEach((k) => {
+    if (k.tagName === 'H2' || k.tagName === 'H3') { cur = { title: k.textContent, nodes: [] }; out.push(cur); return; }
+    if (k.matches('p.hint') && /Think about it/.test(k.textContent)) { out.push(k); cur = null; return; }
+    if (cur) cur.nodes.push(k); else out.push(k);
+  });
+  ctx.replaceChildren(...out.map((o) => (o.nodes ? fold(o.title, o.nodes) : o)));
+}
 // ---- hook into the game ----
 (function () {
   const baseCover = cover, baseHome = homePage, baseRender = render;
   const addPanel = () => { const c = document.querySelector('.cover'); if (c && !document.querySelector('.cloudbox')) c.after(cloudPanel()); };
-  cover = function () { const r = baseCover.apply(this, arguments); addPanel(); return r; };
+  cover = function () { const r = baseCover.apply(this, arguments); foldCover(); addPanel(); return r; };
   homePage = function () { const r = baseHome.apply(this, arguments); addPanel(); return r; };
   render = function (id) {
     const r = baseRender.apply(this, arguments);
-    popifyScene();
+    popifyScene(); heroIntro(id);
     const s = STORY[id];
     if (s && s.end) {
       if (!RUN.trDone) { RUN.trDone = true; PROG.tr = PROG.tr || {}; Object.entries(TRAITS).forEach(([k, v]) => { PROG.tr[k] = (PROG.tr[k] || 0) + v; }); saveProg(); }

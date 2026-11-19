@@ -647,6 +647,18 @@
   .cloudbox .cloudrow { align-items: center; margin: 0; }
   .cloudbox .cloudlbl { font-weight: 700; margin-right: 0.3rem; }
   .cloudbox .cloudrow button { padding: 0.35rem 0.8rem; font-size: 0.92rem; }
+
+  /* fold-out sections on the character page */
+  details.fold { border: 2px solid var(--rule); border-radius: 12px; margin: 0.7rem 0; background: var(--paper); }
+  details.fold > summary { cursor: pointer; padding: 0.7rem 1rem; font-weight: 700; font-size: 1.05rem; list-style: none; display: flex; align-items: center; gap: 0.6rem; }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary::before { content: '▶'; font-size: 0.8rem; transition: transform 0.15s; color: var(--sea); }
+  details.fold[open] > summary::before { transform: rotate(90deg); }
+  details.fold[open] > summary { border-bottom: 1px solid var(--rule); }
+  details.fold > :not(summary) { margin-left: 1rem; margin-right: 1rem; }
+  details.fold > :last-child { margin-bottom: 0.9rem; }
+  section.context { border: 0; padding: 0; background: transparent; }
+  .hero-intro { background: var(--sea-tint, #E2EBEF); border-left: 5px solid var(--sea); border-radius: 8px; padding: 0.7rem 1rem; margin: 0 0 1rem; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -2963,14 +2975,12 @@ function cover() {
       el('p', { class: 'where', text: 'One African Nova Scotian family, 1783 to today' }),
       playCountEl(),
     ]),
-    el('p', { class: 'readable', text: 'In 1783, a young Black Loyalist carpenter named Sam Ward carves a small pine box in a pit house at Birchtown. 180 years later, a girl in the same family, Ruth Ward, opens it on her kitchen table in Africville. These are the stories of the Ward family, and of the box that remembers them. You choose whose story to live.' }),
-    el('p', { class: 'readable', text: 'Sam Ward, 19: free at last, he sails from New York to Nova Scotia, where the land he was promised is not waiting. Isaac Ward, 19: in 1915 he tries to join the army, and is told it is a white man’s war. Ruth Ward, 12: in 1964 the City of Halifax announces that it will tear down Africville, her home.' }),
-    el('p', { class: 'readable', text: `Every choice you make changes what happens. Between them, Sam, Isaac and Ruth have ${ENDINGS.length} different endings, and not all of them are happy. The stories are linked: what one character does, or leaves behind, can open a path for another.` }),
     el('section', { class: 'fact' }, [
       el('h2', { text: 'How to play' }),
       el('p', { text: '🔍 Search every scene. 🎒 Collect items: some of them could save your life. 🧩 Solve riddles. ✨ Watch for things glinting in the pictures: they lead to secret locations. 📜 Read real documents from the time. 🔓 Some hidden choices only open when you have learned something, maybe in another character’s story. 🐦 A small bird hides in some of the pictures. 🔊 Sound is off until you turn it on.' }),
+      el('p', { class: 'readable', text: `Every choice you make changes what happens. Between them, Sam, Isaac and Ruth have ${ENDINGS.length} different endings, and not all of them are happy. The stories are linked: what one character does, or leaves behind, can open a path for another.` }),
+      el('p', { class: 'hint', text: 'Hover over or tap any underlined word to see how to say it and what it means. Mi’kmaw pronunciations are approximate. To hear real speakers, visit the Mi’gmaq-Mi’kmaq Online Talking Dictionary at mikmaqonline.org.' }),
     ]),
-    el('p', { class: 'hint', text: 'Hover over or tap any underlined word to see how to say it and what it means. Mi’kmaw pronunciations are approximate. To hear real speakers, visit the Mi’gmaq-Mi’kmaq Online Talking Dictionary at mikmaqonline.org.' }),
     el('p', { class: 'hint', text: 'The Ward family is made up, but the events around them really happened, and so did many of the people they meet.' }),
     el('p', { class: 'content-note', text: 'A note before you start: These stories include racism, broken promises, war, sickness, death and the loss of a home, because these things really happened to African Nova Scotians. They also include faith, music, family, friendship, humour and courage, because those are true too. Nothing in the game is shown in a graphic way. If any part feels too hard, you can stop at any time and talk to your teacher or someone you trust.' }),
     el('section', { class: 'context' }, [
@@ -6766,15 +6776,38 @@ function popifyScene() {
   const pops = [...sheet.querySelectorAll('.popwrap')];
   if (pops.length > 1) { const row = el('div', { class: 'poprow' }); pops[0].before(row); pops.forEach((w) => row.appendChild(w)); }
 }
+const HERO_INTRO = {"1": "1783. Free at last, you sail from New York to Nova Scotia, where the land you were promised is not waiting. In a pit house at Birchtown, you will carve a small pine box.", "201": "1915. You try to join the army, and are told it is a white man’s war.", "501": "1964. The City of Halifax announces that it will tear down Africville, your home. On your kitchen table, you will open a small pine box that your family has kept for 180 years."};
+function heroIntro(id) {
+  if (!HERO_INTRO[id]) return;
+  const place = document.querySelector('.sheet .place'); if (!place || document.querySelector('.hero-intro')) return;
+  place.before(el('section', { class: 'hero-intro' }, [el('strong', { text: '📖 Your story: ' }), document.createTextNode(HERO_INTRO[id])]));
+}
+// fold the long parts of the character page behind arrows
+function foldCover() {
+  const sheet = document.querySelector('.sheet'); if (!sheet) return;
+  const fold = (title, nodes, open) => { const d = el('details', { class: 'fold' }); if (open) d.open = true; d.append(el('summary', { text: title }), ...nodes); return d; };
+  sheet.querySelectorAll('section.fact').forEach((sec) => {
+    const h = sec.querySelector(':scope > h2'); if (!h || !/How to play/.test(h.textContent)) return;
+    h.remove(); sec.replaceWith(fold('🎮 How to play', [...sec.childNodes]));
+  });
+  const ctx = sheet.querySelector('section.context'); if (!ctx) return;
+  const kids = [...ctx.children], out = []; let cur = null;
+  kids.forEach((k) => {
+    if (k.tagName === 'H2' || k.tagName === 'H3') { cur = { title: k.textContent, nodes: [] }; out.push(cur); return; }
+    if (k.matches('p.hint') && /Think about it/.test(k.textContent)) { out.push(k); cur = null; return; }
+    if (cur) cur.nodes.push(k); else out.push(k);
+  });
+  ctx.replaceChildren(...out.map((o) => (o.nodes ? fold(o.title, o.nodes) : o)));
+}
 // ---- hook into the game ----
 (function () {
   const baseCover = cover, baseHome = homePage, baseRender = render;
   const addPanel = () => { const c = document.querySelector('.cover'); if (c && !document.querySelector('.cloudbox')) c.after(cloudPanel()); };
-  cover = function () { const r = baseCover.apply(this, arguments); addPanel(); return r; };
+  cover = function () { const r = baseCover.apply(this, arguments); foldCover(); addPanel(); return r; };
   homePage = function () { const r = baseHome.apply(this, arguments); addPanel(); return r; };
   render = function (id) {
     const r = baseRender.apply(this, arguments);
-    popifyScene();
+    popifyScene(); heroIntro(id);
     const s = STORY[id];
     if (s && s.end) {
       if (!RUN.trDone) { RUN.trDone = true; PROG.tr = PROG.tr || {}; Object.entries(TRAITS).forEach(([k, v]) => { PROG.tr[k] = (PROG.tr[k] || 0) + v; }); saveProg(); }
