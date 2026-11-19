@@ -6820,10 +6820,14 @@ function hiddenInk(back) {
     el('h1', { text: '🔦 Hidden Ink' }),
     el('p', { class: 'readable', text: 'Secret words are hidden around the school. Each riddle leads you to one. Type each word here to unlock a piece of hidden history and your next riddle.' }),
     el('p', { class: 'readable inktaunt', text: 'Fair warning: these words are very well hidden. Most people walk right past them every day and never notice. Honestly, you probably won’t find even one. But you’re welcome to try.' }),
+    el('section', { class: 'note inkprize' }, [
+      el('h2', { class: 'readable', text: '🍨 The prize' }),
+      el('p', { class: 'readable', text: 'Work in a group of up to 5 students. The first group to solve all eight stations wins a hot fudge sundae!' }),
+    ]),
     el('section', { class: 'note' }, [
       el('h2', { class: 'readable', text: 'Before you go' }),
       el('ul', {}, [
-        'Work with your group, and share the searching.',
+        'Work with your group (up to 5 students), and share the searching.',
         'Write each secret word in your notebook. If this page closes, type the words again in order to get back to where you were.',
         'Walk quietly, and don’t disturb other classes.',
       ].map((t) => el('li', { class: 'readable', text: t }))),
