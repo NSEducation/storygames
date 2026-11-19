@@ -729,6 +729,16 @@
   .hp-tile { background: var(--paper); border-color: var(--rule); }
   .hp-tile:hover, .hp-tile:focus-visible { border-color: var(--sea); background: var(--sea-tint); }
 </style>
+<style id="trailcss">
+  .trailwrap { border-radius: 14px; overflow: hidden; border: 2px solid var(--rule); background: #1B2529; line-height: 0; margin: 0.25rem 0 0.75rem; }
+  .trailcv { width: 100%; height: auto; display: block; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+  .trailcv:focus-visible { outline: 3px solid var(--sea); outline-offset: -3px; }
+  .trail-opts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.25rem 0 1rem; }
+  .trail-courses { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem; margin: 0.25rem 0 0.75rem; }
+  .trail-title { font-size: 1.7rem; text-align: center; margin: 0.75rem 0 0; }
+  .trail-stars { font-size: 2.2rem; letter-spacing: 0.25rem; margin: 0.1rem 0 0.5rem; color: var(--ochre); text-align: center; }
+  .trail-jump { min-width: 9rem; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+</style>
 <style id="artfx">
   /* extra picture movement (clouds, water shimmer, flags, lantern swing, sparks, oars, chimney smoke) */
   @media (prefers-reduced-motion: no-preference) {
@@ -4931,6 +4941,647 @@ function gKitchen(box, win, rid) {
   draw();
 }
 // ---------- framework ----------
+const TRAIL = {"season": "winter", "seed": 9, "items": [["wood", "sticks of firewood"], ["cone", "pine cones"]], "facts": ["helped", "ceilidh", "spinning", "treaties"], "heroes": {"kirsty": {"size": 0.95, "head": "tied", "skirt": "long", "cape": 1, "goal": "cabin", "season": "winter", "items": [["wood", "sticks of firewood"], ["cone", "pine cones"]]}, "angus": {"size": 0.97, "head": "bonnet", "coat": 1, "goal": "cabin", "season": "fall", "items": [["wood", "sticks of firewood"], ["cone", "pine cones"]]}, "mary": {"head": "bun", "skirt": "mid", "coat": 1, "goal": "house", "season": "winter", "items": [["wood", "sticks of firewood"], ["cone", "pine cones"]], "moose": 0}}};
+// ================= THE TRAIL HOME =================
+// A side-scrolling run through the woods. Nobody is chasing you: the only clock is the daylight.
+// There is no way to lose. A stumble or a splash costs a little time and a little of what you carry.
+// The basket holds only what you need. When it is full, the rest stays on the trail.
+function gForestRun(box, win) {
+  const T = TRAIL, H = 320;
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const mulb = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const hsh = (i, s) => { let t = Math.imul((i | 0) * 374761393 + s * 668265263, 1274126177); t ^= t >>> 13; t = Math.imul(t, 1274126177); return ((t ^ (t >>> 16)) >>> 0) / 4294967296; };
+  const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join(''); };
+  const INK = '#1B2529', INKF = '#3B4B54';   // the same ink as the story pictures; the far arm and leg are a little lighter
+
+  const SEASONS = {
+    summer: { sky: [['#9FD3E8', '#E6F3E2'], ['#F3CF8A', '#FAEBCB'], ['#E0875E', '#F2C39A'], ['#17233F', '#39406A']], hill: '#A8C9BC', far: '#7DAA98', near: '#295241', canopy: ['#5C9A55', '#6FAE62', '#4F8A5A'], ground: '#6C8A47', path: '#B39A6B', soil: ['#6E563B', '#3B2D21'], tuft: '#3E6B38', water: '#4F8FA6', foam: '#CFE8EE', fleck: ['#F4E7A1', '#FFFFFF', '#E9A7B8'] },
+    fall: { sky: [['#A9D4E6', '#F1EFD9'], ['#F2C77A', '#FBE9C4'], ['#DD7F52', '#F3C294'], ['#1A2340', '#3D3F66']], hill: '#C2B98E', far: '#A3A871', near: '#33503C', canopy: ['#C8612A', '#DDA032', '#A8432F', '#7E8E3E'], ground: '#8A8644', path: '#B89B69', soil: ['#6E563B', '#3B2D21'], tuft: '#6C7A34', water: '#4E8597', foam: '#D5E6E6', fleck: ['#C8612A', '#DDA032', '#A8432F'] },
+    winter: { sky: [['#BFD6E6', '#F1F5F7'], ['#EFD3B0', '#F8ECDD'], ['#C58C8C', '#EBC9BB'], ['#14213A', '#313C60']], hill: '#D3DEE6', far: '#A7BCC9', near: '#2F4C59', canopy: ['#5E5148', '#6B5B4E'], ground: '#FFFFFF', path: '#DDE7EE', soil: ['#EEF3F6', '#B4C4D0'], tuft: '#7F8F99', water: '#35576B', foam: '#F4FAFC', fleck: ['#FFFFFF'], snow: true },
+  };
+  const COURSES = [
+    { n: 1, icon: '🌤️', name: 'Afternoon trail', tag: 'A gentle start', len: 11500, seed: 11, dens: 0.82, v0: 232, v1: 282, slack: 1.3, mult: 1 },
+    { n: 2, icon: '🌇', name: 'Golden hour', tag: 'Longer, with stepping stones', len: 16500, seed: 23, dens: 1.0, v0: 248, v1: 308, slack: 1.16, mult: 1.25 },
+    { n: 3, icon: '🌙', name: 'Race the sunset', tag: 'The long way home', len: 22500, seed: 37, dens: 1.16, v0: 262, v1: 332, slack: 1.09, mult: 1.5 },
+  ];
+
+  // ---------- things to gather (small canvas drawings, about 16 px across) ----------
+  const ITEM = {
+    apple: (c) => { c.fillStyle = '#C0392B'; c.beginPath(); c.arc(0, 1, 6.5, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.45)'; c.beginPath(); c.arc(-2.2, -1.2, 2, 0, 7); c.fill(); c.strokeStyle = '#4A3320'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(0, -5); c.lineTo(1, -8.5); c.stroke(); c.fillStyle = '#5E9A44'; c.beginPath(); c.ellipse(4, -8, 3.6, 1.8, -0.5, 0, 7); c.fill(); },
+    berryR: (c) => { c.fillStyle = '#5E9A44'; c.beginPath(); c.ellipse(0, -5, 5, 2.2, 0.3, 0, 7); c.fill(); [[-3.5, 1], [3.5, 1.5], [0, -2.5], [0, 4.5]].forEach(([x, y]) => { c.fillStyle = '#B5262E'; c.beginPath(); c.arc(x, y, 3.3, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.5)'; c.beginPath(); c.arc(x - 1, y - 1, 1, 0, 7); c.fill(); }); },
+    berryB: (c) => { c.fillStyle = '#5E9A44'; c.beginPath(); c.ellipse(0, -5, 5, 2.2, 0.3, 0, 7); c.fill(); [[-3.5, 1], [3.5, 1.5], [0, -2.5], [0, 4.5]].forEach(([x, y]) => { c.fillStyle = '#3F5FA8'; c.beginPath(); c.arc(x, y, 3.3, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.5)'; c.beginPath(); c.arc(x - 1, y - 1, 1, 0, 7); c.fill(); }); },
+    bough: (c) => { c.strokeStyle = '#3E3024'; c.lineWidth = 1.5; c.lineCap = 'round'; c.beginPath(); c.moveTo(-8, 5); c.lineTo(8, -5); c.stroke(); c.strokeStyle = '#2F7048'; c.lineWidth = 2; for (let i = -6; i <= 6; i += 3) { const y = -i * 0.62; c.beginPath(); c.moveTo(i, y); c.lineTo(i - 1, y - 6); c.moveTo(i, y); c.lineTo(i + 3, y + 5.5); c.stroke(); } },
+    moss: (c) => { c.fillStyle = '#6E9A3E'; c.beginPath(); c.arc(-3.5, 2, 5, Math.PI, 0); c.arc(3.5, 2, 5.5, Math.PI, 0); c.lineTo(9, 5); c.lineTo(-8.5, 5); c.closePath(); c.fill(); c.fillStyle = '#8FBF52'; c.beginPath(); c.arc(-1, 0, 3, Math.PI, 0); c.fill(); },
+    wood: (c) => { c.lineCap = 'round'; [[-8, 4, 8, -1, '#7A5632'], [-8, -1, 8, 4, '#8A6238'], [-7, -5, 7, -4, '#96703F']].forEach(([a, b, d, e, col]) => { c.strokeStyle = col; c.lineWidth = 3.6; c.beginPath(); c.moveTo(a, b); c.lineTo(d, e); c.stroke(); c.fillStyle = '#E3CFA0'; c.beginPath(); c.arc(d, e, 1.5, 0, 7); c.fill(); }); },
+    cone: (c) => { c.fillStyle = '#7A5230'; c.beginPath(); c.ellipse(0, 0.5, 5, 7.6, 0, 0, 7); c.fill(); c.strokeStyle = '#4A3320'; c.lineWidth = 1.1; for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(-4.4, i * 3 + 1.4); c.quadraticCurveTo(0, i * 3 - 1.2, 4.4, i * 3 + 1.4); c.stroke(); } c.fillStyle = '#A9824F'; c.beginPath(); c.ellipse(-1.4, -3, 1.3, 2.2, 0.3, 0, 7); c.fill(); },
+  };
+  const ITEMCOL = { apple: '#C0392B', berryR: '#B5262E', berryB: '#3F5FA8', bough: '#2F7048', moss: '#6E9A3E', wood: '#8A6238', cone: '#7A5230' };
+  // The moose is the same silhouette the story pictures use.
+  const MOOSE = ['M-44,-42 Q-46,-56 -28,-56 L2,-58 Q14,-68 28,-60 L36,-52 Q46,-50 54,-44 L62,-37 Q64,-31 57,-31 L50,-33 Q46,-31 44,-27 L42,-21 L39,-27 L34,-36 Q30,-30 20,-30 L-28,-30 Q-42,-30 -44,-42 Z', 'M16,-32 L18,0 L22,0 L22,-32 Z M24,-32 L27,0 L31,0 L29,-32 Z M-32,-32 L-31,0 L-27,0 L-26,-32 Z M-24,-32 L-21,0 L-17,0 L-18,-32 Z', 'M36,-55 Q28,-60 22,-70 L26,-69 L25,-75 L29,-70 L30,-77 L34,-70 Q37,-63 40,-57 Z M41,-57 Q48,-64 56,-67 L55,-72 L60,-69 L61,-75 L64,-69 L66,-63 Q57,-56 44,-54 Z'];
+
+  const heroKeys = Object.keys(T.heroes).filter((k) => HEROES[k]);
+  let heroKey = T.heroes[PROG.frunHero] && HEROES[PROG.frunHero] ? PROG.frunHero : heroKeys[0];
+  let stopRun = null;
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const list = (a) => (a.length > 1 ? a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1] : a[0]);
+  const itemsOf = (k) => (T.heroes[k] && T.heroes[k].items) || T.items;
+  const HOME = {
+    house: ['🏡 Home before dark!', 'There is a light in the window, and you are home with time to spare.', 'It was dark when you came in, but the light in the window showed you the way.'],
+    cabin: ['🏡 Home before dark!', 'There is a light in the window, and you are home with time to spare.', 'It was dark when you came in, but the light in the window showed you the way.'],
+    camp: ['🔥 Back at camp before dark!', 'Smoke is rising from the wikuom, and you are back with time to spare.', 'It was dark when you came in, but the glow at the door showed you the way.'],
+    pithouse: ['🏡 Home before dark!', 'There is a glow at the door of the pit house, and you are home with time to spare.', 'It was dark when you came in, but the glow at the door showed you the way.'],
+  };
+
+  // ---------- quiet sound effects: only when the Sound button at the top is on ----------
+  const sfx = (() => {
+    let nb = null;
+    const A = () => { try { if (typeof SND === 'undefined' || !SND.on) return null; const a = SND._audio(); return a && a.ctx && a.master ? a : null; } catch (e) { return null; } };
+    const tone = (a, type, f0, f1, dur, vol, delay) => {
+      const t = a.ctx.currentTime + (delay || 0), o = a.ctx.createOscillator(), g = a.ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.03);
+    };
+    const hiss = (a, freq, dur, vol) => {
+      if (!nb) { nb = a.ctx.createBuffer(1, Math.floor(a.ctx.sampleRate * 0.5), a.ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      const t = a.ctx.currentTime, s = a.ctx.createBufferSource(), f = a.ctx.createBiquadFilter(), g = a.ctx.createGain();
+      s.buffer = nb; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      s.connect(f); f.connect(g); g.connect(a.master); s.start(t); s.stop(t + dur + 0.03);
+    };
+    const STEPS = [0, 2, 4, 7, 9, 12, 14, 16];
+    return (kind, n) => {
+      const a = A(); if (!a) return;
+      try {
+        if (kind === 'jump') tone(a, 'sine', 300, 540, 0.1, 0.05);
+        else if (kind === 'land') tone(a, 'sine', 150, 80, 0.07, 0.06);
+        else if (kind === 'get') { const f = 784 * Math.pow(2, STEPS[(n || 0) % STEPS.length] / 12); tone(a, 'triangle', f, f, 0.11, 0.045); }
+        else if (kind === 'full') { tone(a, 'triangle', 784, 784, 0.14, 0.05); tone(a, 'triangle', 1047, 1047, 0.22, 0.05, 0.12); }
+        else if (kind === 'splash') { hiss(a, 900, 0.3, 0.12); tone(a, 'sine', 240, 120, 0.12, 0.04); }
+        else if (kind === 'trip') { tone(a, 'triangle', 190, 85, 0.16, 0.08); hiss(a, 300, 0.12, 0.05); }
+        else if (kind === 'bird') SND.chickadee();
+        else if (kind === 'home') [523, 659, 784].forEach((f, i) => tone(a, 'triangle', f, f, 0.26, 0.05, i * 0.13));
+      } catch (e) { /* sound is a nicety; never let it stop the run */ }
+    };
+  })();
+
+  function menu(focusKey) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    const itemText = list(itemsOf(heroKey).map((x) => x[1]));
+    const best = PROG.frun || 0, bs = PROG.frunStars || {};
+    const heroRow = el('div', { class: 'trail-opts', role: 'group', 'aria-label': 'Who is running?' }, heroKeys.map((k) => {
+      const b = el('button', { type: 'button', class: 'seg', text: HEROES[k].name, onclick: () => { heroKey = k; PROG.frunHero = k; saveProg(); menu(k); } });
+      b.setAttribute('aria-pressed', String(k === heroKey)); if (k === focusKey) setTimeout(() => b.focus({ preventScroll: true }), 0); return b;
+    }));
+    box.append(
+      el('p', { class: 'readable', text: `The day is ending, and it is time to head home through the woods. Nobody is chasing you. Jump the logs, rocks and brooks, fill your basket with ${itemText} on the way, and get home before dark.` }),
+      el('p', { class: 'readable', text: 'Your basket holds what you need. When it is full, leave the rest.' }),
+      el('p', { class: 'hint', text: 'Press Space or tap to jump. Hold it down to jump farther. If you trip, you lose a little time and drop a little, then carry on.' }),
+      el('h2', { class: 'readable', text: 'Who is running?' }), heroRow,
+      el('h2', { class: 'readable', text: 'Choose a trail' }),
+      el('div', { class: 'trail-courses' }, COURSES.map((C) => el('button', { type: 'button', class: 'ghcard' + (bs[C.n] ? ' done' : ''), onclick: () => play(C) }, [
+        el('span', { class: 'ghicon', text: C.icon }), el('strong', { text: C.name }), el('span', { text: C.tag }),
+        el('span', { class: 'ghwhere', text: bs[C.n] ? `Best: ${stars(bs[C.n])}` : 'Not run yet' }),
+      ]))),
+      el('label', { class: 'grelax' }, [
+        el('input', { type: 'checkbox', checked: RELAXED ? 'checked' : null, onchange: (e) => { RELAXED = e.target.checked; } }),
+        document.createTextNode(' Relaxed mode (slower and easier, and it scores a little less)'),
+      ]),
+      el('p', { class: 'hint', text: best ? `Your best trail score: ${best}` : 'Finish a trail to set your first score.' }),
+    );
+  }
+
+  function play(C) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    const W = (box.clientWidth || 720) < 520 ? 560 : 720, CAMX = Math.round(W * 0.236);
+    const relaxed = !!RELAXED;
+    const cv = document.createElement('canvas'); cv.className = 'trailcv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`;
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'The trail home. Press Space or tap to jump over logs, rocks and brooks.');
+    let dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr;
+    const mainCtx = cv.getContext('2d'); let c = mainCtx; c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const rcv = document.createElement('canvas'); rcv.width = 150 * dpr; rcv.height = 150 * dpr; const rctx = rcv.getContext('2d');
+    const live = el('p', { class: 'hint', 'aria-live': 'polite', text: '' });
+    const jumpBtn = el('button', { class: 'gamebtn trail-jump', type: 'button', text: '⤴ Jump' });
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' });
+    box.append(el('div', { class: 'trailwrap' }, [cv]), el('div', { class: 'row tight' }, [jumpBtn, pauseBtn, el('button', { class: 'gamebtn', type: 'button', text: '↩ Choose a trail', onclick: () => menu() })]), live);
+    const look = T.heroes[heroKey] || {}, goalKind = look.goal || 'house', season = look.season || T.season || 'summer', S = SEASONS[season] || SEASONS.summer, ITEMS = itemsOf(heroKey);
+    const firstRuns = (PROG.frunN || 0) < 2;
+
+    // ---------- the course (the same for everyone, so scores are fair) ----------
+    const R = mulb(C.seed * 7919 + (T.seed || 1));
+    const obs = [], items = [], brooks = [], birds = [], hints = [];
+    const kinds = ITEMS.map((x) => x[0]);
+    const put = (x, y) => items.push({ x, y, k: kinds[Math.floor(R() * kinds.length)], ph: R() * 6 });
+    const arc = (cx, span, top) => { for (let i = -1; i <= 1; i++) put(cx + i * span * 0.3, -(top - Math.abs(i) * 20)); };
+    const seen = {}; const hint = (key, x, y, text) => { if (!seen[key] && (C.n === 1 || firstRuns)) hints.push({ x, y, text }); seen[key] = 1; };
+    let px = 640, sinceBird = 2;
+    while (px < C.len - 760) {
+      const r = R(); let k = r < 0.27 ? 'log' : r < 0.47 ? 'rock' : r < 0.6 ? 'stump' : r < 0.72 ? 'roots' : r < 0.9 ? 'brook' : 'stones';
+      if (px < 1700 && k !== 'log' && k !== 'roots' && k !== 'rock') k = 'log';
+      if (k === 'stones' && C.n === 1) k = R() < 0.5 ? 'brook' : 'log';
+      if (k === 'brook') { const w = 86 + R() * 30 * C.dens; brooks.push({ x: px, w, stones: [] }); arc(px + w / 2, w + 60, 62); hint('brook', px + w / 2, -92, 'Jump across!'); px += w; }
+      else if (k === 'stones') { const gap = 146 + R() * 14, b = { x: px, w: gap * 3, stones: [px + gap, px + gap * 2] }; brooks.push(b); b.stones.forEach((s) => put(s, -44)); put(px + gap * 1.5, -70); hint('stones', px + gap, -98, 'Hop from stone to stone'); px += b.w; }
+      else { const d = { log: [50, 22], rock: [38, 26], stump: [28, 36], roots: [60, 13] }[k]; obs.push({ k, x: px, w: d[0], h: d[1], v: Math.floor(R() * 3) }); arc(px + d[0] / 2, d[0] + 96, k === 'stump' ? 74 : 60); hint('jump', px + d[0] / 2, -92, 'Jump!'); px += d[0]; }
+      const gap = (310 + R() * 250) / C.dens;
+      sinceBird++;
+      if (gap >= 380 && sinceBird >= 4 && R() < 0.75) { const bx = px + gap * 0.45; birds.push({ x: bx, y: -100, sing: 0, met: false, ph: R() * 6 }); hint('bird', bx, -132, 'Jump up to say hello'); sinceBird = 0; put(px + 76, -13); put(px + 110, -13); }
+      else if (R() < 0.62) { const n = Math.min(5, Math.floor((gap - 130) / 34)); for (let i = 0; i < n; i++) put(px + 80 + i * 34, -13); }
+      px += gap;
+    }
+    const total = items.length, need = Math.max(5, Math.round(total * 0.7 / 5) * 5);
+    const homeX = C.len + 190;
+    const expect = C.len / ((C.v0 + C.v1) / 2), dayDur = expect * C.slack * (relaxed ? 1.25 : 1);
+
+    // ---------- pictures drawn once ----------
+    const sprite = (w, h, fn) => { const s = document.createElement('canvas'); s.width = w; s.height = h; fn(s.getContext('2d')); return s; };
+    const conifer = (w, h, col) => sprite(w, h, (g) => {
+      g.fillStyle = mix(col, '#2A1E16', 0.5); g.fillRect(w / 2 - w * 0.03, h * 0.8, w * 0.06, h * 0.2);
+      for (let i = 0; i < 7; i++) {
+        const y0 = h * 0.015 + i * h * 0.112, hw = w * (0.09 + i * 0.064), y1 = y0 + h * 0.21;
+        g.fillStyle = col; g.beginPath(); g.moveTo(w / 2, y0); g.lineTo(w / 2 + hw, y1); g.lineTo(w / 2 + hw * 0.56, y1 - h * 0.03); g.lineTo(w / 2 + hw * 0.2, y1 + h * 0.012); g.lineTo(w / 2 - hw * 0.2, y1 + h * 0.012); g.lineTo(w / 2 - hw * 0.56, y1 - h * 0.03); g.lineTo(w / 2 - hw, y1); g.closePath(); g.fill();
+        g.fillStyle = S.snow ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.07)'; g.beginPath(); g.moveTo(w / 2, y0); g.lineTo(w / 2 + hw * 0.66, y0 + (y1 - y0) * 0.66); g.quadraticCurveTo(w / 2 + hw * 0.2, y0 + (y1 - y0) * 0.5, w / 2, y0 + (y1 - y0) * 0.62); g.quadraticCurveTo(w / 2 - hw * 0.25, y0 + (y1 - y0) * 0.46, w / 2 - hw * 0.66, y0 + (y1 - y0) * 0.66); g.closePath(); g.fill();
+      }
+    });
+    const leafy = (w, h, col, trunk, white) => sprite(w, h, (g) => {
+      g.lineCap = 'round'; g.strokeStyle = trunk; g.lineWidth = w * (white ? 0.055 : 0.075); g.beginPath(); g.moveTo(w / 2, h); g.lineTo(w / 2 + w * 0.02, h * 0.3); g.stroke();
+      g.lineWidth = w * 0.03; g.beginPath(); g.moveTo(w / 2, h * 0.62); g.lineTo(w * 0.27, h * 0.36); g.moveTo(w / 2, h * 0.54); g.lineTo(w * 0.75, h * 0.32); g.moveTo(w / 2, h * 0.44); g.lineTo(w * 0.4, h * 0.2); g.stroke();
+      if (white) { g.strokeStyle = '#2B2622'; g.lineWidth = 1.4; for (let i = 0; i < 9; i++) { const y = h * (0.36 + i * 0.07); g.beginPath(); g.moveTo(w / 2 - w * 0.02, y); g.lineTo(w / 2 + w * 0.012 + (i % 2) * w * 0.012, y + 1); g.stroke(); } }
+      if (S.snow) {
+        g.strokeStyle = trunk; g.lineWidth = 1.4;
+        [[0.27, 0.36, 0.16, 0.24], [0.27, 0.36, 0.3, 0.2], [0.75, 0.32, 0.86, 0.2], [0.75, 0.32, 0.68, 0.16], [0.4, 0.2, 0.33, 0.07], [0.4, 0.2, 0.5, 0.06], [0.52, 0.3, 0.6, 0.12]].forEach(([a, b, d, e]) => { g.beginPath(); g.moveTo(w * a, h * b); g.lineTo(w * d, h * e); g.stroke(); });
+        g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 2; g.beginPath(); g.moveTo(w * 0.27, h * 0.355); g.lineTo(w * 0.5, h * 0.61); g.moveTo(w * 0.75, h * 0.315); g.lineTo(w * 0.52, h * 0.53); g.stroke();
+        return;
+      }
+      const hi = mix(col, '#FFFFFF', 0.22), lo = mix(col, '#1B2529', 0.22);
+      [[0.5, 0.25, 0.3, lo], [0.28, 0.34, 0.22, lo], [0.73, 0.32, 0.24, lo], [0.5, 0.2, 0.27, col], [0.3, 0.3, 0.2, col], [0.7, 0.28, 0.21, col], [0.42, 0.4, 0.19, col], [0.62, 0.42, 0.17, col], [0.5, 0.1, 0.17, col], [0.4, 0.13, 0.12, hi], [0.27, 0.25, 0.1, hi], [0.63, 0.2, 0.11, hi]].forEach(([x, y, r, cc]) => { g.fillStyle = cc; g.beginPath(); g.arc(w * x, h * y, w * r, 0, 7); g.fill(); });
+    });
+    const haze = (col, t) => mix(col, S.hill, t);
+    const midSet = [conifer(84, 196, haze(S.near, 0.42)), conifer(66, 156, haze(S.near, 0.5)), conifer(96, 216, haze(S.near, 0.36)), ...S.canopy.slice(0, 3).map((cc, i) => leafy(118, 188 + i * 10, haze(cc, 0.36), haze('#4A3B2C', 0.4), false))];
+    const nearSet = [conifer(128, 300, S.near), conifer(104, 250, mix(S.near, '#1B2529', 0.12)), ...S.canopy.map((cc) => leafy(170, 290, cc, '#3B2F28', false)), leafy(120, 300, S.snow ? S.canopy[0] : mix(S.canopy[S.canopy.length - 1], '#E3C54A', 0.3), '#E9E5D8', true)];
+    const moose = look.moose === 0 || typeof Path2D === 'undefined' ? null : sprite(150, 100, (g) => { g.translate(75, 96); g.scale(-1, 1); g.fillStyle = haze(S.near, 0.22); try { MOOSE.forEach((d) => g.fill(new Path2D(d))); } catch (e) { /* older browsers: no moose */ } });
+    const fern = sprite(120, 60, (g) => {
+      g.strokeStyle = S.snow ? '#5A4A3E' : mix(S.near, '#101A14', 0.2); g.lineCap = 'round';
+      for (let i = 0; i < 7; i++) {
+        const a = -1.25 + i * 0.42, len = 46 + (i % 3) * 8;
+        g.lineWidth = 2; g.beginPath(); g.moveTo(60, 60); g.quadraticCurveTo(60 + Math.sin(a) * len * 0.5, 60 - len * 0.75, 60 + Math.sin(a) * len, 60 - Math.cos(a) * len * 0.8); g.stroke();
+        if (!S.snow) for (let j = 2; j < 8; j++) { const t = j / 8, fx = 60 + Math.sin(a) * len * t * (0.5 + t * 0.5), fy = 60 - len * 0.78 * t; g.lineWidth = 1.4; g.beginPath(); g.moveTo(fx - 5 * (1 - t) - 2, fy - 2); g.lineTo(fx, fy); g.lineTo(fx + 5 * (1 - t) + 2, fy - 2); g.stroke(); }
+      }
+    });
+
+    // ---------- the run ----------
+    const gAt = (x) => 250 - 9 * Math.sin(x / 310) - 5 * Math.sin(x / 123 + 1.3);
+    const st = { x: 90, y: gAt(90), vy: 0, on: true, v: 0, t: 0, day: 0, got: 0, bag: {}, trips: 0, hello: 0, inv: 0, stum: 0, done: 0, doneT: 0, paused: false, hold: false, buf: 0, coy: 0, sq: 0, ph: 0, wet: false, jumps: 0, ended: false, cam: 90 - CAMX, shake: 0, msg: [], started: false, streak: 0, lastGet: -9, wasFull: false, low: false, obs, items, brooks, birds, total, need, C, W };
+    box._trail = st;
+    const parts = []; const spawn = (o) => { if (parts.length < (RM || st.low ? 50 : 170)) parts.push(o); };
+    const say = (text, x, y, col) => st.msg.push({ text, x, y, t: 0, col: col || '#FFFFFF' });
+    const brookAt = (x) => { for (const b of brooks) if (x > b.x + 4 && x < b.x + b.w - 4) return b; return null; };
+    const onStone = (b, x) => b.stones.some((s) => Math.abs(x - s) < 23);
+    const JV = 525, GUP = 1480, GDN = 2650;
+    const lose = (n) => {
+      for (let i = 0; i < n && st.got > 0; i++) {
+        const ks = Object.keys(st.bag).filter((k) => st.bag[k] > 0); if (!ks.length) break;
+        const k = ks[Math.floor(Math.random() * ks.length)]; st.bag[k]--; st.got--;
+        spawn({ x: st.x, y: st.y - 30, vx: -60 - Math.random() * 120, vy: -220 - Math.random() * 120, g: 900, life: 0.9, kind: 'item', k });
+      }
+    };
+    const trip = (o) => {
+      o.hit = true; st.trips++; st.v *= 0.4; st.inv = 1.05; st.stum = 0.55; if (!RM) st.shake = 0.25; lose(2); sfx('trip');
+      say('Oops!', st.x, st.y - 66, '#FFE3B0');
+      for (let i = 0; i < 8; i++) spawn({ x: st.x + 6, y: st.y - 4, vx: (Math.random() - 0.3) * 160, vy: -60 - Math.random() * 140, g: 700, life: 0.5, kind: S.snow ? 'snowpuff' : 'dust' });
+    };
+    const splash = (b) => {
+      b.wet = true; st.trips++; st.v *= 0.6; st.stum = 0.3; lose(1); sfx('splash');
+      say('Splash!', st.x, st.y - 66, '#D7F0F7');
+      for (let i = 0; i < 14; i++) spawn({ x: st.x + (Math.random() - 0.5) * 16, y: st.y, vx: (Math.random() - 0.5) * 220, vy: -160 - Math.random() * 200, g: 900, life: 0.7, kind: 'drop' });
+    };
+    function step(dt) {
+      st.t += dt; st.ph += dt * (st.v / 22);
+      st.msg.forEach((m) => { m.t += dt; }); st.msg = st.msg.filter((m) => m.t < 1.4);
+      for (const p of parts) { p.life -= dt; p.vy = (p.vy || 0) + (p.g || 0) * dt; p.x += (p.vx || 0) * dt; p.y += p.vy * dt; }
+      for (let i = parts.length - 1; i >= 0; i--) if (parts[i].life <= 0) parts.splice(i, 1);
+      birds.forEach((b) => { if (b.sing > 0) b.sing -= dt; });
+      st.shake = Math.max(0, st.shake - dt); st.sq += (0 - st.sq) * Math.min(1, dt * 9);
+      if (st.done) {
+        st.doneT += dt;
+        const stopX = homeX - (goalKind === 'camp' ? 50 : goalKind === 'pithouse' ? 34 : 52);
+        st.v = Math.max(0, Math.min(st.v, (stopX - st.x) * 3)); st.x += st.v * dt;
+        if (!st.on) { st.vy += GDN * dt; st.y += st.vy * dt; if (st.y >= gAt(st.x)) { st.y = gAt(st.x); st.on = true; st.sq = 1; } } else st.y = gAt(st.x);
+        st.cam += (Math.max(st.cam, homeX - W * 0.6) - st.cam) * Math.min(1, dt * 3);
+        if (st.doneT > 2.3 && !st.ended) { st.ended = true; finish(); }
+        return;
+      }
+      st.day = st.t / dayDur;
+      const b = brookAt(st.x), solid = !b || onStone(b, st.x);
+      st.wet = !!(b && !solid && st.on);
+      st.stum -= dt;
+      const target = lerp(C.v0, C.v1, clamp(st.x / C.len, 0, 1)) * (relaxed ? 0.8 : 1) * (st.wet ? 0.58 : 1) * (st.stum > 0 ? 0.4 : 1);
+      st.v += (target - st.v) * Math.min(1, dt * 1.9); st.x += st.v * dt;
+      st.buf -= dt; st.inv -= dt; st.coy = st.on ? 0.09 : st.coy - dt;
+      const gy = gAt(st.x) + (b && !solid ? 8 : 0);
+      if (st.buf > 0 && st.coy > 0) {
+        st.vy = -JV; st.on = false; st.buf = 0; st.coy = 0; st.jumps++; st.sq = -0.7; sfx('jump');
+        for (let i = 0; i < 4; i++) spawn({ x: st.x - 4, y: st.y, vx: -40 - Math.random() * 60, vy: -30 - Math.random() * 40, g: 200, life: 0.35, kind: S.snow ? 'snowpuff' : 'dust' });
+      }
+      if (!st.on) {
+        st.vy += (st.hold && st.vy < 0 ? GUP : GDN) * dt; st.y += st.vy * dt;
+        if (st.y >= gy && st.vy > 0) {
+          st.y = gy; st.on = true; st.sq = 1;
+          const bb = brookAt(st.x);
+          if (bb && !onStone(bb, st.x)) { if (!bb.wet) splash(bb); }
+          else { sfx('land'); for (let i = 0; i < 5; i++) spawn({ x: st.x + (Math.random() - 0.5) * 14, y: st.y, vx: (Math.random() - 0.5) * 90, vy: -30 - Math.random() * 50, g: 260, life: 0.4, kind: S.snow ? 'snowpuff' : 'dust' }); }
+        }
+      } else { st.y = gy; if (b && !solid && !b.wet) splash(b); }
+      for (const o of obs) {
+        if (o.hit || o.x > st.x + 30) continue; if (o.x + o.w < st.x - 30) continue;
+        const m = o.k === 'roots' ? 10 : 5;   // a little forgiveness at the edges
+        if (st.x + 8 > o.x + m && st.x - 8 < o.x + o.w - m && st.y > gAt(o.x + o.w / 2) - o.h + 6) trip(o);
+      }
+      const full = st.got >= need;
+      if (full && !st.wasFull) { say('Basket full! Leave the rest.', st.x + 40, st.y - 84, '#FFF3B8'); sfx('full'); live.textContent = 'Your basket is full. You have what you need.'; }
+      st.wasFull = full;
+      if (!full) for (const it of items) {
+        if (it.got || Math.abs(it.x - st.x) > 18) continue;
+        const iy = gAt(it.x) + it.y;
+        if (Math.abs(iy - (st.y - 24)) < 29) {
+          it.got = true; st.got++; st.bag[it.k] = (st.bag[it.k] || 0) + 1;
+          st.streak = st.t - st.lastGet < 0.9 ? st.streak + 1 : 0; st.lastGet = st.t; sfx('get', st.streak);
+          for (let i = 0; i < 5; i++) spawn({ x: it.x, y: iy, vx: (Math.random() - 0.5) * 120, vy: (Math.random() - 0.5) * 120, life: 0.45, kind: 'spark', col: ITEMCOL[it.k] });
+          if (st.got >= need) break;
+        }
+      }
+      for (const bd of birds) {
+        if (bd.met || Math.abs(bd.x - st.x) > 22) continue;
+        if (gAt(st.x) - st.y >= 30) { bd.met = true; bd.sing = 1.6; st.hello++; say('chick-a-dee-dee!  +50', bd.x + 10, gAt(bd.x) + bd.y - 22, '#FFF3B8'); sfx('bird'); }
+      }
+      st.cam = st.x - CAMX;
+      if (st.x >= C.len) { st.done = 1; live.textContent = 'You are home.'; sfx('home'); }
+      // weather
+      if (!st.low && (!RM || Math.random() < 0.3)) {
+        if (S.snow && Math.random() < dt * 30) spawn({ x: st.cam + Math.random() * (W + 200), y: -6, vx: -30 - Math.random() * 30, vy: 40 + Math.random() * 50, life: 7, kind: 'snow', s: 1 + Math.random() * 1.6 });
+        if (season === 'fall' && Math.random() < dt * 5) spawn({ x: st.cam + Math.random() * (W + 260), y: -8, vx: -50 - Math.random() * 40, vy: 34 + Math.random() * 30, life: 8, kind: 'leaf', col: S.fleck[Math.floor(Math.random() * S.fleck.length)], r: Math.random() * 6 });
+        if (season === 'summer' && st.day > 0.5 && Math.random() < dt * 5) spawn({ x: st.cam + Math.random() * (W + 200), y: 120 + Math.random() * 120, vx: -10 + Math.random() * 20, vy: -8 + Math.random() * 16, life: 3.5, kind: 'fly' });
+      }
+    }
+
+    // ---------- drawing ----------
+    const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
+    function layer(set, par, base, spacing, seed, scale) {
+      const cx = st.cam * par, i0 = Math.floor((cx - 220) / spacing), i1 = Math.ceil((cx + W + 220) / spacing);
+      for (let i = i0; i <= i1; i++) {
+        const h1 = hsh(i, seed), h2 = hsh(i, seed + 7); if (h1 < 0.12) continue;
+        const sp = set[Math.floor(h2 * set.length)], sc = scale * (0.82 + hsh(i, seed + 3) * 0.36), x = i * spacing + (h1 - 0.5) * spacing * 0.7 - cx;
+        c.drawImage(sp, x - sp.width * sc / 2, base - sp.height * sc, sp.width * sc, sp.height * sc);
+      }
+    }
+    function drawObstacle(o, x, y) {
+      const sn = S.snow;
+      if (o.k === 'log') {
+        c.fillStyle = '#5B4030'; rr(x, y - o.h, o.w, o.h, 9); c.fill();
+        c.fillStyle = 'rgba(0,0,0,.18)'; rr(x, y - o.h * 0.45, o.w, o.h * 0.45, 8); c.fill();
+        c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x + 14, y - o.h + 7); c.lineTo(x + 30, y - o.h + 8); c.moveTo(x + 20, y - 8); c.lineTo(x + 38, y - 9); c.stroke();
+        c.fillStyle = '#C9A877'; c.beginPath(); c.ellipse(x + o.w - 4, y - o.h / 2, 5, o.h / 2 - 1, 0, 0, 7); c.fill();
+        c.strokeStyle = '#8A6A44'; c.lineWidth = 1; c.beginPath(); c.ellipse(x + o.w - 4, y - o.h / 2, 2.6, o.h / 4, 0, 0, 7); c.stroke();
+        c.fillStyle = sn ? '#FFFFFF' : '#6E9A3E'; rr(x + 4, y - o.h - 2, o.w - 14, sn ? 7 : 5, 3); c.fill();
+      } else if (o.k === 'rock') {
+        c.fillStyle = '#6F757A'; c.beginPath(); c.moveTo(x, y); c.lineTo(x + 5, y - o.h * 0.7); c.lineTo(x + o.w * 0.4, y - o.h); c.lineTo(x + o.w * 0.78, y - o.h * 0.82); c.lineTo(x + o.w, y - o.h * 0.3); c.lineTo(x + o.w, y); c.closePath(); c.fill();
+        c.fillStyle = '#9AA1A5'; c.beginPath(); c.moveTo(x + 5, y - o.h * 0.7); c.lineTo(x + o.w * 0.4, y - o.h); c.lineTo(x + o.w * 0.78, y - o.h * 0.82); c.lineTo(x + o.w * 0.5, y - o.h * 0.55); c.closePath(); c.fill();
+        c.fillStyle = sn ? '#FFFFFF' : '#6E9A3E'; c.beginPath(); c.ellipse(x + o.w * 0.42, y - o.h + 1, o.w * 0.3, sn ? 5 : 3, -0.15, Math.PI, 0); c.fill();
+      } else if (o.k === 'stump') {
+        c.fillStyle = '#4E382B'; c.beginPath(); c.moveTo(x - 5, y); c.quadraticCurveTo(x + 3, y - 8, x + 3, y - o.h + 8); c.lineTo(x + 7, y - o.h - 2); c.lineTo(x + 11, y - o.h + 6); c.lineTo(x + 15, y - o.h - 6); c.lineTo(x + 19, y - o.h + 5); c.lineTo(x + 23, y - o.h); c.lineTo(x + o.w - 3, y - o.h + 9); c.quadraticCurveTo(x + o.w - 3, y - 8, x + o.w + 5, y); c.closePath(); c.fill();
+        c.strokeStyle = 'rgba(0,0,0,.28)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x + 9, y - 6); c.lineTo(x + 9, y - o.h + 12); c.moveTo(x + 18, y - 4); c.lineTo(x + 18, y - o.h + 14); c.stroke();
+        if (sn) { c.fillStyle = '#FFFFFF'; c.beginPath(); c.ellipse(x + o.w / 2, y - o.h + 6, o.w / 2 - 2, 4, 0, Math.PI, 0); c.fill(); }
+      } else {
+        c.strokeStyle = '#3F2E24'; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(x - 2, y + 2); c.quadraticCurveTo(x + 14, y - o.h - 8, x + 28, y + 2); c.moveTo(x + 22, y + 2); c.quadraticCurveTo(x + 40, y - o.h - 3, x + o.w + 2, y + 2); c.stroke();
+        if (sn) { c.strokeStyle = '#FFFFFF'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 6, y - o.h + 3); c.quadraticCurveTo(x + 14, y - o.h - 6, x + 21, y - o.h + 3); c.stroke(); }
+      }
+    }
+    // The runner is an ink silhouette, like the people in the story pictures. Only the basket has colour.
+    function drawRunner(x, y) {
+      const L = look, ph = st.ph, air = !st.on, up = st.vy < 0, moving = st.v > 14, k = L.size || 1;
+      const sway = moving && !air ? Math.sin(ph) : 0;
+      c.save(); c.translate(x, y + (st.wet ? 5 : 0));
+      c.scale(k * (1 + st.sq * 0.08), k * (1 - st.sq * 0.1));
+      if (st.inv > 0.5) c.rotate(0.3 * Math.sin((1.05 - st.inv) * 13));
+      if (moving && !air) c.translate(0, -Math.abs(Math.sin(ph)) * 1.8);
+      c.lineCap = 'round'; c.lineJoin = 'round';
+      const leg = (p, far) => {
+        let th, kn;
+        if (air) { th = far ? (up ? -0.55 : -0.25) : (up ? 1.05 : 0.55); kn = far ? (up ? 1.0 : 0.5) : (up ? 1.45 : 0.25); }
+        else if (!moving) { th = far ? -0.07 : 0.07; kn = 0.04; }
+        else { th = 0.86 * Math.sin(p); kn = 0.12 + 1.2 * Math.pow(Math.max(0, Math.sin(p - 3.95)), 1.2); }
+        const kx = 12 * Math.sin(th), ky = -24 + 12 * Math.cos(th), fx = kx + 12.5 * Math.sin(th - kn), fy = ky + 12.5 * Math.cos(th - kn);
+        c.strokeStyle = far ? INKF : INK; c.lineWidth = 5.2; c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke();
+        const toe = air ? 0.5 : clamp(kn * 0.7, 0, 0.9);   // the toe drops as the heel lifts
+        c.lineWidth = 4.4; c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx + 5.6 * Math.cos(toe), fy + 5.6 * Math.sin(toe)); c.stroke();
+      };
+      const fl = 2.4 * Math.sin(ph * 0.7) + (air ? 4 : 0) + (moving ? 0 : -3), bob = moving ? Math.sin(ph * 2 + 1) : 0;
+      // far arm, holding the basket out in front
+      const bu = 0.5 + 0.12 * sway, bex = 3.6 + 9 * Math.sin(bu), bey = -41.5 + 9 * Math.cos(bu), bhx = bex + 8 * Math.sin(bu + 0.9), bhy = bey + 8 * Math.cos(bu + 0.9);
+      c.strokeStyle = INKF; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(bex, bey); c.lineTo(bhx, bhy); c.stroke();
+      c.save(); c.translate(bhx, bhy); c.rotate(0.12 * sway - (air ? 0.25 : 0));
+      c.strokeStyle = '#7A5A30'; c.lineWidth = 1.6; c.beginPath(); c.arc(0, 4, 6.5, Math.PI, 0); c.stroke();
+      const shown = Math.min(5, Math.ceil(5 * st.got / need)), kk = Object.keys(st.bag).filter((q) => st.bag[q] > 0);
+      for (let i = 0; i < shown; i++) { c.fillStyle = ITEMCOL[kk[i % Math.max(1, kk.length)]] || ITEMCOL[kinds[0]]; c.beginPath(); c.arc(-4.6 + i * 2.3, 3.4 - (i % 2) * 1.7, 2.5, 0, 7); c.fill(); }
+      c.fillStyle = '#B98A4E'; c.beginPath(); c.moveTo(-7.5, 4); c.lineTo(7.5, 4); c.lineTo(5.5, 12.5); c.lineTo(-5.5, 12.5); c.closePath(); c.fill();
+      c.strokeStyle = '#8A6234'; c.lineWidth = 1; c.beginPath(); c.moveTo(-6.8, 7); c.lineTo(6.8, 7); c.moveTo(-6, 10); c.lineTo(6, 10); c.moveTo(-2.5, 4); c.lineTo(-2, 12.5); c.moveTo(2.5, 4); c.lineTo(2, 12.5); c.stroke();
+      c.restore();
+      leg(ph + Math.PI, true);
+      c.fillStyle = INK; c.strokeStyle = INK;
+      // a short cape or shawl, lifting behind
+      if (L.cape) { c.beginPath(); c.moveTo(7, -46); c.quadraticCurveTo(-8 - fl, -44, -13.5 - fl * 1.2, -25 + (air ? -4 : 0)); c.lineTo(-3, -26); c.lineTo(0, -44); c.closePath(); c.fill(); }
+      // body
+      c.lineWidth = L.coat ? 10.8 : 10; c.beginPath(); c.moveTo(0, -25.5); c.lineTo(4.4, -42.5); c.stroke();
+      c.lineWidth = 5; c.beginPath(); c.moveTo(4.6, -43); c.lineTo(6, -47.5); c.stroke();
+      if (L.coat) { c.beginPath(); c.moveTo(-5.4, -31); c.lineTo(6.4, -31); c.lineTo(8, -21.5 - (air ? 1.5 : 0)); c.lineTo(-7 - fl * 0.3, -21.5); c.closePath(); c.fill(); }
+      if (L.skirt) {
+        const hem = { long: -5.5, mid: -10, knee: -14.5, tunic: -15.5 }[L.skirt] || -10, tun = L.skirt === 'tunic';
+        const sw = moving && !air ? 2.4 * Math.sin(ph) : 0, lift = air ? 4.5 : 0, wf = tun ? 8.2 : 11.5, wb = tun ? 7.6 : 10.5;
+        c.beginPath(); c.moveTo(-5.6, -29); c.lineTo(6.2, -29); c.lineTo(wf + sw + lift, hem - lift * 0.5); c.quadraticCurveTo(1, hem + 3.5, -wb + sw - lift - fl * 0.4, hem + 1 - lift); c.closePath(); c.fill();
+      }
+      leg(ph, false);
+      // near arm
+      const u = air ? -1.15 : moving ? -0.95 * Math.sin(ph + Math.PI) : 0.1, e = air ? 1.0 : 1.35;
+      const ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u);
+      c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(ex, ey); c.lineTo(ex + 8.5 * Math.sin(u + e), ey + 8.5 * Math.cos(u + e)); c.stroke();
+      // head: hair that trails goes first, then the head, then a hat
+      const hx = 6.6, hy = -52, hr = 6.4;
+      c.fillStyle = INK;
+      if (L.head === 'long') { c.beginPath(); c.moveTo(hx + 1.5, hy - hr - 0.8); c.quadraticCurveTo(hx - hr - 4.5, hy - hr + 0.5, hx - hr - 3, hy + 5); c.quadraticCurveTo(hx - 12 - fl, hy + 11, hx - 16.5 - fl * 1.6, hy + 19 + bob); c.quadraticCurveTo(hx - 7.5, hy + 16, hx - 1.5, hy + 6.5); c.closePath(); c.fill(); }
+      if (L.head === 'tied') { c.beginPath(); c.ellipse(hx - 1.2, hy - 0.8, hr + 0.9, hr + 0.5, 0, 0, 7); c.fill(); c.lineWidth = 3.6; c.beginPath(); c.moveTo(hx - 5.5, hy + 1.5); c.quadraticCurveTo(hx - 11 - fl, hy + 3 + bob, hx - 12.5 - fl * 1.3, hy + 10.5 + bob * 2); c.stroke(); }
+      if (L.head === 'puffs') { c.beginPath(); c.arc(hx - 6.2, hy - 4.6 + bob * 0.5, 4.1, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 0.8, hy - 7.6, 3.3, 0, 7); c.fill(); }
+      if (L.head === 'bun') { c.beginPath(); c.ellipse(hx - 1, hy - 0.8, hr + 0.8, hr + 0.5, 0, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 6.8, hy - 3.6, 3.8, 0, 7); c.fill(); }
+      if (L.head === 'short') { c.beginPath(); c.ellipse(hx - 0.9, hy - 1, hr + 0.7, hr + 0.4, 0, 0, 7); c.fill(); }
+      c.beginPath(); c.arc(hx, hy, hr, 0, 7); c.fill();
+      c.beginPath(); c.moveTo(hx + hr - 1.2, hy - 1.4); c.lineTo(hx + hr + 1.6, hy + 1); c.lineTo(hx + hr - 1.4, hy + 2.4); c.closePath(); c.fill();
+      if (L.head === 'coif') { c.beginPath(); c.ellipse(hx - 2.3, hy - 1.6, 7.7, 7.2, -0.3, 0, 7); c.fill(); c.beginPath(); c.moveTo(hx - 7, hy + 2.5); c.lineTo(hx - 10.4 - fl * 0.3, hy + 5.4); c.lineTo(hx - 4.5, hy + 5.2); c.closePath(); c.fill(); }
+      else if (L.head === 'flathat') { rr(hx - 5.2, hy - hr - 4.8, 10.6, 6.4, 1.6); c.fill(); c.lineWidth = 2.8; c.beginPath(); c.moveTo(hx - 11, hy - hr + 1.3); c.lineTo(hx + 11.8, hy - hr + 1.3); c.stroke(); }
+      else if (L.head === 'flatcap') { c.beginPath(); c.ellipse(hx - 1.2, hy - 3.2, hr + 1.6, hr - 1.1, -0.12, Math.PI, 0); c.closePath(); c.fill(); c.lineWidth = 2.6; c.beginPath(); c.moveTo(hx + 3, hy - 3.6); c.lineTo(hx + 11.6, hy - 2.2); c.stroke(); }
+      else if (L.head === 'bonnet') { c.beginPath(); c.ellipse(hx - 1.2, hy - hr + 0.2, 10, 3.9, -0.14, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 1.8, hy - hr - 3.6, 1.9, 0, 7); c.fill(); }
+      c.restore();
+    }
+    // Homes are dark shapes with a warm light, like the houses in the story pictures.
+    function drawHome(x, y, lit) {
+      const sn = S.snow, warm = '#FFD98A';
+      if (goalKind === 'camp') {
+        c.strokeStyle = '#2A211B'; c.lineWidth = 2.6; c.lineCap = 'round'; c.beginPath(); c.moveTo(x - 9, y - 96); c.lineTo(x + 6, y - 72); c.moveTo(x + 9, y - 96); c.lineTo(x - 6, y - 72); c.moveTo(x, y - 99); c.lineTo(x, y - 74); c.stroke();
+        c.fillStyle = '#3A2F27'; c.beginPath(); c.moveTo(x - 42, y + 2); c.lineTo(x, y - 82); c.lineTo(x + 42, y + 2); c.closePath(); c.fill();
+        c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x - 30, y - 22); c.quadraticCurveTo(x, y - 15, x + 30, y - 22); c.moveTo(x - 19, y - 44); c.quadraticCurveTo(x, y - 39, x + 19, y - 44); c.moveTo(x - 9, y - 63); c.quadraticCurveTo(x, y - 60, x + 9, y - 63); c.stroke();
+        if (sn) { c.fillStyle = 'rgba(255,255,255,.92)'; c.beginPath(); c.moveTo(x - 42, y + 2); c.lineTo(x - 31, y - 20); c.quadraticCurveTo(x - 24, y - 6, x - 13, y + 2); c.closePath(); c.fill(); c.beginPath(); c.moveTo(x + 42, y + 2); c.lineTo(x + 33, y - 16); c.quadraticCurveTo(x + 26, y - 5, x + 16, y + 2); c.closePath(); c.fill(); }
+        c.fillStyle = '#17100C'; c.beginPath(); c.moveTo(x - 10, y + 2); c.lineTo(x - 10, y - 20); c.quadraticCurveTo(x, y - 30, x + 10, y - 20); c.lineTo(x + 10, y + 2); c.closePath(); c.fill();
+        c.fillStyle = warm; c.globalAlpha = lit; c.beginPath(); c.moveTo(x - 7, y + 2); c.lineTo(x - 7, y - 18); c.quadraticCurveTo(x, y - 26, x + 7, y - 18); c.lineTo(x + 7, y + 2); c.closePath(); c.fill(); c.globalAlpha = 1;
+        return { glow: [x, y - 10, 58], smoke: [x, y - 92] };
+      }
+      if (goalKind === 'pithouse') {
+        c.strokeStyle = '#2A211B'; c.lineWidth = 2.4; c.lineCap = 'round'; c.beginPath(); c.moveTo(x - 7, y - 50); c.lineTo(x + 5, y - 38); c.moveTo(x + 7, y - 50); c.lineTo(x - 5, y - 38); c.stroke();
+        c.fillStyle = '#342B22'; c.beginPath(); c.moveTo(x - 66, y + 3); c.lineTo(x - 6, y - 43); c.lineTo(x + 6, y - 43); c.lineTo(x + 66, y + 3); c.closePath(); c.fill();
+        c.strokeStyle = sn ? 'rgba(255,255,255,.95)' : '#35603F'; c.lineWidth = sn ? 5 : 3.2;
+        for (let i = 0; i < 7; i++) { const t = i / 6, ax = lerp(x - 57, x - 9, t), ay = lerp(y - 5, y - 41, t); c.beginPath(); c.moveTo(ax, ay); c.lineTo(ax + 10, ay - 2); c.stroke(); const bx = lerp(x + 57, x + 9, t); c.beginPath(); c.moveTo(bx, ay); c.lineTo(bx - 10, ay - 2); c.stroke(); }
+        c.fillStyle = '#17100C'; rr(x - 11, y - 26, 22, 29, 3); c.fill();
+        c.fillStyle = warm; c.globalAlpha = lit; rr(x - 8, y - 23, 16, 25, 2); c.fill(); c.globalAlpha = 1;
+        return { glow: [x, y - 12, 58], smoke: [x, y - 48] };
+      }
+      const cabin = goalKind === 'cabin';
+      c.fillStyle = cabin ? '#4A382B' : '#3F322B'; c.fillRect(x - 46, y - 46, 92, 49);
+      c.strokeStyle = 'rgba(0,0,0,.3)'; c.lineWidth = cabin ? 1.5 : 1;
+      for (let i = 1; i < (cabin ? 6 : 8); i++) { const yy = y - 46 + i * (cabin ? 8 : 6); c.beginPath(); c.moveTo(x - 46, yy); c.lineTo(x + 46, yy); c.stroke(); }
+      if (cabin) { c.fillStyle = '#3B2C22'; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(x - 46, y - 42 + i * 8, 3.7, 0, 7); c.arc(x + 46, y - 42 + i * 8, 3.7, 0, 7); c.fill(); } }
+      c.fillStyle = cabin ? '#6D6E6C' : '#4C3E36'; c.fillRect(x + 22, y - 88, 12, 32);
+      c.fillStyle = '#261D18'; c.beginPath(); c.moveTo(x - 55, y - 44); c.lineTo(x, y - 83); c.lineTo(x + 55, y - 44); c.closePath(); c.fill();
+      if (sn) { c.fillStyle = '#F4F8FA'; c.beginPath(); c.moveTo(x - 55, y - 44); c.lineTo(x, y - 83); c.lineTo(x + 55, y - 44); c.lineTo(x + 46, y - 44); c.lineTo(x, y - 75); c.lineTo(x - 46, y - 44); c.closePath(); c.fill(); c.fillRect(x + 21, y - 91, 14, 4); }
+      c.fillStyle = '#17100C'; c.fillRect(x - 34, y - 30, 17, 33); c.fillRect(x + 4, y - 34, 26, 20);
+      c.fillStyle = warm; c.globalAlpha = lit; c.fillRect(x + 6, y - 32, 22, 16); c.globalAlpha = 1;
+      c.strokeStyle = '#17100C'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(x + 17, y - 32); c.lineTo(x + 17, y - 16); c.moveTo(x + 6, y - 24); c.lineTo(x + 28, y - 24); c.stroke();
+      return { glow: [x + 17, y - 24, 62], smoke: [x + 28, y - 92] };
+    }
+    function drawBird(bd, x, y) {
+      const sing = bd.sing > 0, hop = sing ? Math.abs(Math.sin(bd.sing * 9)) * 5 : 0, fl = sing ? Math.sin(st.t * 44) : 0;
+      // a bough reaching down into the picture, for the bird to sit on
+      c.strokeStyle = S.snow ? '#4A3B33' : '#3F3128'; c.lineCap = 'round'; c.lineWidth = 4; c.beginPath(); c.moveTo(x + 76, -8); c.quadraticCurveTo(x + 46, y - 22, x - 15, y + 10); c.stroke();
+      c.lineWidth = 2; c.beginPath(); c.moveTo(x + 30, y - 8); c.lineTo(x + 20, y - 26); c.moveTo(x + 52, y - 30); c.lineTo(x + 66, y - 20); c.stroke();
+      const leaf = S.snow ? '#FFFFFF' : S.canopy[bd.x % 2 | 0] || S.canopy[0];
+      c.fillStyle = leaf; [[20, -27, 5.5], [66, -19, 5], [-15, 9, 4.5], [40, -19, 4.5]].forEach(([dx, dy, r]) => { c.beginPath(); c.ellipse(x + dx, y + dy, r, r * 0.55, -0.5, 0, 7); c.fill(); });
+      const by = y - hop;
+      c.fillStyle = '#6F757A'; c.beginPath(); c.moveTo(x - 6, by - 1); c.lineTo(x - 15, by + 3 + fl * 2); c.lineTo(x - 5, by + 3.4); c.closePath(); c.fill();               // tail
+      c.fillStyle = '#C9CED2'; c.beginPath(); c.ellipse(x, by, 8, 6.4, 0, 0, 7); c.fill();                                                                         // back
+      c.fillStyle = '#E9DEC3'; c.beginPath(); c.ellipse(x + 1, by + 2.4, 6, 3.6, 0, 0, 7); c.fill();                                                                // buff side
+      if (sing) { c.fillStyle = '#8D9499'; c.beginPath(); c.moveTo(x - 3, by - 2); c.lineTo(x - 6, by - 13 + fl * 6); c.lineTo(x + 3, by - 2); c.closePath(); c.fill(); }   // a flutter
+      c.fillStyle = '#1B2529'; c.beginPath(); c.arc(x + 5, by - 4.4, 4.6, 0, 7); c.fill();                                                                         // black cap
+      c.fillStyle = '#F4F1EA'; c.beginPath(); c.ellipse(x + 6, by - 3.2, 3.2, 1.9, 0.2, 0, 7); c.fill();                                                            // white cheek
+      c.fillStyle = '#1B2529'; c.beginPath(); c.arc(x + 7.4, by - 5.4, 1, 0, 7); c.fill(); c.beginPath(); c.moveTo(x + 9.4, by - 4.6); c.lineTo(x + 13, by - 3.8); c.lineTo(x + 9.4, by - 3); c.closePath(); c.fill();
+      c.beginPath(); c.ellipse(x + 3.6, by + 0.6, 2.6, 1.5, 0.2, 0, 7); c.fill();                                                                                  // black bib
+    }
+    function draw() {
+      const cam = st.cam, d = clamp(st.day, 0, 1), K = S.sky, f = Math.pow(d, 1.35) * 3, ki = Math.min(2, Math.floor(f)), kt = f - ki, low = st.low;
+      const g = c.createLinearGradient(0, 0, 0, 250); g.addColorStop(0, mix(K[ki][0], K[ki + 1][0], kt)); g.addColorStop(1, mix(K[ki][1], K[ki + 1][1], kt));
+      c.save(); if (st.shake > 0) c.translate((Math.random() - 0.5) * 24 * st.shake, (Math.random() - 0.5) * 16 * st.shake);
+      c.fillStyle = g; c.fillRect(-10, -10, W + 20, H + 20);
+      const dark = clamp((d - 0.62) / 0.38, 0, 1);
+      // stars, sun and moon
+      if (dark > 0.4) { c.fillStyle = '#FFFFFF'; for (let i = 0; i < 40; i++) { c.globalAlpha = (dark - 0.4) * 1.4 * (0.4 + 0.6 * Math.abs(Math.sin(st.t * (0.6 + hsh(i, 5)) + i))); c.fillRect(hsh(i, 1) * W, hsh(i, 2) * 150, 1.6, 1.6); } c.globalAlpha = 1; }
+      const sunX = lerp(W - 200, W - 80, d), sunY = lerp(46, 236, Math.pow(d, 1.15)), sunC = mix('#FFF4C8', '#F0703A', clamp(d * 1.2, 0, 1));
+      const sg = c.createRadialGradient(sunX, sunY, 4, sunX, sunY, 110); sg.addColorStop(0, 'rgba(255,240,190,' + (0.55 * (1 - dark * 0.6)) + ')'); sg.addColorStop(1, 'rgba(255,240,190,0)'); c.fillStyle = sg; c.fillRect(sunX - 120, sunY - 120, 240, 240);
+      c.fillStyle = sunC; c.beginPath(); c.arc(sunX, sunY, 17, 0, 7); c.fill();
+      if (d > 0.8) { const ma = clamp((d - 0.8) / 0.2, 0, 1); c.globalAlpha = ma; c.fillStyle = '#F2EEDC'; c.beginPath(); c.arc(128, 62 - ma * 10, 15, 0, 7); c.fill(); c.fillStyle = '#D9D4BE'; c.beginPath(); c.arc(123, 58 - ma * 10, 3.4, 0, 7); c.arc(133, 68 - ma * 10, 2.4, 0, 7); c.fill(); c.globalAlpha = 1; }
+      // clouds and far birds
+      c.fillStyle = 'rgba(255,255,255,' + (0.55 - dark * 0.35) + ')';
+      for (let i = 0; i < 5; i++) { const x = ((hsh(i, 21) * 1100 - cam * 0.03 - st.t * (3 + i)) % 1100 + 1100) % 1100 - 180, y = 26 + hsh(i, 22) * 66, s = 0.7 + hsh(i, 23) * 0.8; c.beginPath(); c.ellipse(x, y, 40 * s, 8 * s, 0, 0, 7); c.ellipse(x - 14 * s, y - 6 * s, 20 * s, 9 * s, 0, 0, 7); c.ellipse(x + 15 * s, y - 8 * s, 24 * s, 11 * s, 0, 0, 7); c.fill(); }
+      if (!low) { c.strokeStyle = 'rgba(40,52,60,.6)'; c.lineWidth = 1.6; c.lineCap = 'round'; for (let i = 0; i < 5; i++) { const x = ((st.t * 16 + i * 17 + 200) % (W + 160)) - 80, y = 54 + i * 7 + 8 * Math.sin(st.t * 0.5 + i), w = 5 + 2 * Math.sin(st.t * 7 + i); c.beginPath(); c.moveTo(x - 6, y - w * 0.5); c.quadraticCurveTo(x - 3, y - w, x, y); c.quadraticCurveTo(x + 3, y - w, x + 6, y - w * 0.5); c.stroke(); } }
+      // hills and the far tree line
+      c.fillStyle = S.hill; c.beginPath(); c.moveTo(0, 260); for (let x = 0; x <= W; x += 16) { const wx = x + cam * 0.05; c.lineTo(x, 168 - 26 * Math.sin(wx / 190) - 14 * Math.sin(wx / 71 + 2)); } c.lineTo(W, 260); c.closePath(); c.fill();
+      c.fillStyle = S.far; c.beginPath(); c.moveTo(0, 260); for (let x = -12; x <= W + 12; x += 6) { const wx = Math.floor((x + cam * 0.14) / 6); c.lineTo(x, 186 - hsh(wx, 31) * 26 - ((wx % 2) ? 0 : 12) - 10 * Math.sin(wx / 23)); } c.lineTo(W, 260); c.closePath(); c.fill();
+      // light between the trees
+      if (dark < 0.7 && !RM && !low) { c.save(); c.globalAlpha = 0.07 * (1 - dark); c.fillStyle = '#FFF6D0'; for (let i = 0; i < 4; i++) { const x = ((i * 230 - cam * 0.1) % 920 + 920) % 920 - 100; c.beginPath(); c.moveTo(x + 120, 0); c.lineTo(x + 170, 0); c.lineTo(x + 40, 260); c.lineTo(x - 30, 260); c.closePath(); c.fill(); } c.restore(); }
+      layer(midSet, 0.3, 252, 92, 41, 0.86);
+      // a moose stands back among the trees
+      if (moose) for (let i = 0; i < 2; i++) { const mx = (C.len * (0.3 + i * 0.4)) * 0.3 + 300 - cam * 0.3; if (mx > -160 && mx < W + 20) c.drawImage(moose, mx, 252 - 100 * 0.66, 150 * 0.66, 100 * 0.66); }
+      c.fillStyle = haze(S.ground === '#FFFFFF' ? '#E6EDF1' : S.ground, 0.45); c.fillRect(0, 246, W, 20);
+      layer(nearSet, 0.58, 262, 168, 53, 0.92);
+      // the ground: soil, the trodden path, and a grassy or snowy edge
+      const sg2 = c.createLinearGradient(0, 240, 0, H); sg2.addColorStop(0, S.soil[0]); sg2.addColorStop(1, S.soil[1]);
+      c.fillStyle = sg2; c.beginPath(); c.moveTo(-10, H + 10); for (let x = -10; x <= W + 10; x += 10) c.lineTo(x, gAt(cam + x) + 1); c.lineTo(W + 10, H + 10); c.closePath(); c.fill();
+      c.strokeStyle = S.path; c.lineWidth = 11; c.lineCap = 'butt'; c.beginPath(); for (let x = -10; x <= W + 10; x += 10) { const y = gAt(cam + x) + 6; if (x === -10) c.moveTo(x, y); else c.lineTo(x, y); } c.stroke();
+      c.strokeStyle = S.ground; c.lineWidth = 4; c.beginPath(); for (let x = -10; x <= W + 10; x += 10) { const y = gAt(cam + x) + 0.5; if (x === -10) c.moveTo(x, y); else c.lineTo(x, y); } c.stroke();
+      const t0 = Math.floor(cam / 19) - 1, t1 = t0 + Math.ceil(W / 19) + 3;
+      for (let i = t0; i <= t1; i++) {
+        const wx = i * 19 + hsh(i, 61) * 12, x = wx - cam, y = gAt(wx), h1 = hsh(i, 62); if (brookAt(wx)) continue;
+        if (h1 < 0.55) { c.strokeStyle = S.tuft; c.lineWidth = 1.5; c.lineCap = 'round'; c.beginPath(); c.moveTo(x, y + 1); c.lineTo(x - 3, y - 6 - h1 * 6); c.moveTo(x, y + 1); c.lineTo(x + 1, y - 9 - h1 * 5); c.moveTo(x, y + 1); c.lineTo(x + 4, y - 5 - h1 * 6); c.stroke(); }
+        else if (h1 > 0.93 && !S.snow) { c.fillStyle = S.fleck[Math.abs(i) % S.fleck.length]; c.beginPath(); c.arc(x, y - 6, 2.2, 0, 7); c.fill(); c.strokeStyle = S.tuft; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x, y + 1); c.lineTo(x, y - 5); c.stroke(); }
+        if (!low) { const h3 = hsh(i, 63); if (h3 > 0.5) { c.fillStyle = S.snow ? 'rgba(90,120,150,.13)' : (h3 > 0.8 ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.16)'); c.beginPath(); c.ellipse(x + 6, y + 22 + hsh(i, 64) * 44, 4 + h1 * 7, 2 + h1 * 1.4, 0, 0, 7); c.fill(); } }
+      }
+      // ferns close to you
+      if (!low) { const f0 = Math.floor(cam * 1.3 / 210) - 1; for (let i = f0; i <= f0 + 5; i++) { if (hsh(i, 71) < 0.45) continue; const x = i * 210 + hsh(i, 72) * 120 - cam * 1.3, s = 1.1 + hsh(i, 73) * 0.7; c.drawImage(fern, x, H - 34 * s, 120 * s, 60 * s); } }
+      // evening falls on the woods. The trail itself stays easy to see: everything you must jump is drawn after this.
+      if (dark > 0) { c.fillStyle = 'rgba(12,24,52,' + (0.5 * dark) + ')'; c.fillRect(-10, -10, W + 20, H + 20); }
+      // brooks, flowing toward you, and stepping stones
+      for (const b of brooks) {
+        const x0 = b.x - cam, x1 = x0 + b.w; if (x1 < -40 || x0 > W + 40) continue;
+        const y0 = gAt(b.x), y1 = gAt(b.x + b.w), wy = Math.max(y0, y1) + 9;
+        const wg = c.createLinearGradient(0, wy, 0, H); wg.addColorStop(0, mix(S.water, '#FFFFFF', 0.16)); wg.addColorStop(1, mix(S.water, '#0C1C28', 0.38));
+        c.fillStyle = wg; c.beginPath(); c.moveTo(x0 - 3, y0 - 2); c.quadraticCurveTo(x0 + 3, wy - 1, x0 + 11, wy); c.lineTo(x1 - 11, wy); c.quadraticCurveTo(x1 - 3, wy - 1, x1 + 3, y1 - 2); c.lineTo(x1 + 20, H + 10); c.lineTo(x0 - 20, H + 10); c.closePath(); c.fill();
+        c.strokeStyle = 'rgba(0,0,0,.22)'; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.moveTo(x0 - 1, y0 + 3); c.quadraticCurveTo(x0 + 2, wy, x0 - 19, H + 10); c.moveTo(x1 + 1, y1 + 3); c.quadraticCurveTo(x1 - 2, wy, x1 + 19, H + 10); c.stroke();
+        c.strokeStyle = S.foam; c.lineWidth = 1.8; c.globalAlpha = 0.85; c.beginPath(); c.moveTo(x0 + 10, wy + 0.5); c.lineTo(x1 - 10, wy + 0.5); c.stroke();
+        c.lineWidth = 1.5; const n = Math.max(2, Math.floor(b.w / 24));
+        for (let i = 0; i < n; i++) { const tt = ((st.t * 0.35 + i / n) % 1), ry = wy + 6 + tt * (H - wy), spread = 1 + tt * 0.35, rx = (x0 + x1) / 2 + ((i * 37 % b.w) - b.w / 2 + 12) * 0.78 * spread; c.globalAlpha = 0.7 * (1 - tt); c.beginPath(); c.moveTo(rx - 6, ry); c.quadraticCurveTo(rx, ry - 2.6, rx + 6, ry); c.stroke(); }
+        c.globalAlpha = 1;
+        if (S.snow) { c.fillStyle = '#F4FAFC'; c.beginPath(); c.ellipse(x0 + 8, wy + 1.5, 13, 3, 0, 0, 7); c.ellipse(x1 - 8, wy + 1.5, 13, 3, 0, 0, 7); c.fill(); }
+        for (const s of b.stones) { const sx = s - cam, sy = gAt(s); c.fillStyle = '#596166'; c.beginPath(); c.moveTo(sx - 26, wy + 16); c.quadraticCurveTo(sx - 27, sy - 2, sx - 13, sy - 3); c.lineTo(sx + 14, sy - 3); c.quadraticCurveTo(sx + 28, sy - 1, sx + 26, wy + 16); c.closePath(); c.fill(); c.fillStyle = S.snow ? '#FFFFFF' : '#8E979B'; c.beginPath(); c.ellipse(sx, sy - 1, 20.5, 4.2, 0, 0, 7); c.fill(); c.strokeStyle = S.foam; c.lineWidth = 1.4; c.globalAlpha = 0.7; c.beginPath(); c.ellipse(sx, wy + 15, 28 + Math.sin(st.t * 3 + s) * 1.5, 3, 0, 0, Math.PI); c.stroke(); c.globalAlpha = 1; }
+        c.strokeStyle = S.tuft; c.lineWidth = 1.6; [[x0 - 5, y0], [x1 + 6, y1]].forEach(([rx, ry]) => { for (let j = 0; j < 3; j++) { c.beginPath(); c.moveTo(rx + j * 3 - 3, ry + 2); c.lineTo(rx + j * 4 - 5 + Math.sin(st.t * 2 + j) * 1.5, ry - 13 - j * 3); c.stroke(); } });
+      }
+      // home, obstacles, things to gather, chickadees
+      const hy = gAt(homeX), hsx = homeX - cam; let hm = null;
+      if (hsx < W + 140) {
+        hm = drawHome(hsx, hy, 0.6 + 0.4 * dark);
+        for (let i = 0; i < 4; i++) { const tt = (st.t * 0.5 + i * 0.25) % 1; c.fillStyle = 'rgba(225,225,225,' + (0.5 * (1 - tt)) + ')'; c.beginPath(); c.arc(hm.smoke[0] + tt * 16 + Math.sin(tt * 6) * 3, hm.smoke[1] - tt * 34, 4 + tt * 7, 0, 7); c.fill(); }
+      }
+      for (const o of obs) { const x = o.x - cam; if (x < -90 || x > W + 30) continue; drawObstacle(o, x, gAt(o.x + o.w / 2) + 2); }
+      const full = st.got >= need;
+      for (const it of items) { if (it.got) continue; const x = it.x - cam; if (x < -20 || x > W + 20) continue; const y = gAt(it.x) + it.y + Math.sin(st.t * 3 + it.ph) * 2.2; if (full) c.globalAlpha = 0.5; else { c.fillStyle = 'rgba(255,255,255,.3)'; c.beginPath(); c.arc(x, y, 10.5, 0, 7); c.fill(); } c.save(); c.translate(x, y); ITEM[it.k](c); c.restore(); c.globalAlpha = 1; }
+      for (const bd of birds) { const x = bd.x - cam; if (x < -100 || x > W + 40) continue; drawBird(bd, x, gAt(bd.x) + bd.y); }
+      // the runner
+      const sx = st.x - cam, gy = gAt(st.x), air = clamp((gy - st.y) / 90, 0, 1);
+      c.fillStyle = 'rgba(0,0,0,' + (0.2 * (1 - air * 0.6)) + ')'; c.beginPath(); c.ellipse(sx + 2, gy + 3, 14 * (1 - air * 0.45), 3.6, 0, 0, 7); c.fill();
+      if (!(st.inv > 0 && Math.floor(st.inv * 14) % 2)) {
+        if (dark < 0.12) drawRunner(sx, st.y);
+        else if (low) { c.fillStyle = 'rgba(205,225,255,' + (0.2 * dark).toFixed(3) + ')'; c.beginPath(); c.ellipse(sx + 3, st.y - 30, 25, 38, 0, 0, 7); c.fill(); drawRunner(sx, st.y); }
+        else {
+          c = rctx; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, 150, 150); drawRunner(75, 118); c = mainCtx;
+          c.save(); c.shadowColor = 'rgba(210,228,255,' + Math.min(1, dark * 1.25).toFixed(3) + ')'; c.shadowBlur = 4 * dpr; c.drawImage(rcv, sx - 75, st.y - 118, 150, 150); c.shadowBlur = 2 * dpr; c.drawImage(rcv, sx - 75, st.y - 118, 150, 150); c.restore();
+        }
+      }
+      if (st.wet) { c.fillStyle = mix(S.water, '#FFFFFF', 0.12); c.fillRect(sx - 14, gy + 9, 30, 9); c.strokeStyle = S.foam; c.lineWidth = 1.5; c.beginPath(); c.ellipse(sx + 1, gy + 9.5, 13 + Math.sin(st.t * 12) * 2, 2.4, 0, 0, 7); c.stroke(); }
+      for (const p of parts) {
+        const x = p.x - cam, a = clamp(p.life * 2.5, 0, 1); if (x < -20 || x > W + 20 || p.kind === 'fly') continue; c.globalAlpha = a;
+        if (p.kind === 'dust' || p.kind === 'snowpuff') { c.fillStyle = p.kind === 'dust' ? 'rgba(170,150,120,.7)' : 'rgba(255,255,255,.9)'; c.beginPath(); c.arc(x, p.y, 2.6, 0, 7); c.fill(); }
+        else if (p.kind === 'drop') { c.fillStyle = S.foam; c.beginPath(); c.arc(x, p.y, 2.2, 0, 7); c.fill(); }
+        else if (p.kind === 'spark') { c.fillStyle = p.col || '#FFF3B8'; c.fillRect(x - 1.5, p.y - 1.5, 3, 3); }
+        else if (p.kind === 'item') { c.save(); c.translate(x, p.y); c.scale(0.8, 0.8); ITEM[p.k](c); c.restore(); }
+        else if (p.kind === 'snow') { c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(x + Math.sin(p.life * 2 + p.s) * 6, p.y, p.s, 0, 7); c.fill(); }
+        else if (p.kind === 'leaf') { c.save(); c.translate(x + Math.sin(p.life * 2.2 + p.r) * 14, p.y); c.rotate(p.life * 2 + p.r); c.fillStyle = p.col; c.beginPath(); c.ellipse(0, 0, 4.6, 2.2, 0, 0, 7); c.fill(); c.restore(); }
+        c.globalAlpha = 1;
+      }
+      // little signs for new players
+      c.font = '700 13px system-ui, -apple-system, Segoe UI, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      for (const h of hints) { const x = h.x - cam, ha = clamp((h.x - st.x - 50) / 110, 0, 1); if (x < -80 || x > W + 80 || ha <= 0) continue; const y = gAt(h.x) + h.y + Math.sin(st.t * 4) * 2, tw = c.measureText(h.text).width + 18; c.globalAlpha = ha; c.fillStyle = 'rgba(255,253,248,.94)'; rr(x - tw / 2, y - 12, tw, 24, 12); c.fill(); c.beginPath(); c.moveTo(x - 5, y + 11); c.lineTo(x, y + 18); c.lineTo(x + 5, y + 11); c.closePath(); c.fill(); c.fillStyle = '#22252B'; c.fillText(h.text, x, y + 0.5); c.globalAlpha = 1; }
+      // a last thin veil of dusk over everything, then the lights come out
+      if (dark > 0) { c.fillStyle = 'rgba(12,24,52,' + (0.14 * dark) + ')'; c.fillRect(-10, -10, W + 20, H + 20); }
+      c.save(); c.globalCompositeOperation = 'lighter';
+      if (hm) { const L = hm.glow, fl = 1 + 0.06 * Math.sin(st.t * 11), lg = c.createRadialGradient(L[0], L[1], 2, L[0], L[1], L[2] * (1 + 0.55 * dark) * fl); lg.addColorStop(0, 'rgba(255,196,104,' + (0.2 + 0.26 * dark) + ')'); lg.addColorStop(1, 'rgba(255,200,110,0)'); c.fillStyle = lg; c.fillRect(L[0] - 200, L[1] - 200, 400, 400); }
+      for (const p of parts) { if (p.kind !== 'fly') continue; const x = p.x - cam, a = Math.sin(clamp(p.life / 3.5, 0, 1) * Math.PI) * (0.5 + 0.5 * Math.sin(st.t * 5 + p.x)); if (a <= 0.02) continue; const fg = c.createRadialGradient(x, p.y, 0, x, p.y, 9); fg.addColorStop(0, 'rgba(230,255,150,' + a.toFixed(3) + ')'); fg.addColorStop(1, 'rgba(230,255,150,0)'); c.fillStyle = fg; c.fillRect(x - 10, p.y - 10, 20, 20); }
+      c.restore(); c.restore();
+      // what you can read: basket, trail and daylight
+      const FONT = 'system-ui, -apple-system, Segoe UI, sans-serif', narrow = W < 700;
+      c.font = '700 15px ' + FONT; c.textBaseline = 'middle'; c.textAlign = 'left';
+      c.fillStyle = 'rgba(255,253,248,.92)'; rr(12, 12, 138, 30, 15); c.fill();
+      c.save(); c.translate(31, 20); c.strokeStyle = '#7A5A30'; c.lineWidth = 1.8; c.beginPath(); c.arc(0, 4, 6.5, Math.PI, 0); c.stroke(); c.fillStyle = '#B98A4E'; c.beginPath(); c.moveTo(-7.5, 4); c.lineTo(7.5, 4); c.lineTo(5.5, 12.5); c.lineTo(-5.5, 12.5); c.closePath(); c.fill(); c.restore();
+      const fillB = clamp(st.got / need, 0, 1); c.fillStyle = '#E8E1D2'; rr(48, 21, 90, 12, 6); c.fill();
+      if (fillB > 0.02) { c.fillStyle = full ? '#2F7D46' : '#C2791A'; rr(48, 21, Math.max(12, 90 * fillB), 12, 6); c.fill(); }
+      if (full) { c.strokeStyle = '#FFFFFF'; c.lineWidth = 2.2; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(88, 27); c.lineTo(91.5, 30.5); c.lineTo(98, 23.5); c.stroke(); }
+      const pw = narrow ? 200 : 252, pl = W / 2 - pw / 2;
+      c.fillStyle = 'rgba(255,253,248,.92)'; rr(pl, 12, pw, 30, 15); c.fill();
+      c.strokeStyle = '#B9B2A4'; c.lineWidth = 4; c.lineCap = 'round'; c.beginPath(); c.moveTo(pl + 22, 27); c.lineTo(pl + pw - 34, 27); c.stroke();
+      const pr = clamp(st.x / C.len, 0, 1), plen = pw - 56;
+      c.strokeStyle = '#3F6B3A'; c.beginPath(); c.moveTo(pl + 22, 27); c.lineTo(pl + 22 + plen * pr, 27); c.stroke();
+      c.fillStyle = INK; c.beginPath(); c.arc(pl + 22 + plen * pr, 27, 6, 0, 7); c.fill();
+      const hxx = pl + pw - 26; c.fillStyle = '#7A5230'; c.beginPath(); c.moveTo(hxx, 27); c.lineTo(hxx + 10, 18); c.lineTo(hxx + 20, 27); c.lineTo(hxx + 17, 27); c.lineTo(hxx + 17, 35); c.lineTo(hxx + 3, 35); c.lineTo(hxx + 3, 27); c.closePath(); c.fill();
+      c.fillStyle = 'rgba(255,253,248,.92)'; rr(W - 150, 12, 138, 30, 15); c.fill();
+      const left = clamp(1 - st.day, 0, 1); c.fillStyle = '#E8E1D2'; rr(W - 112, 21, 90, 12, 6); c.fill();
+      if (left > 0.02) { c.fillStyle = mix('#3F5FA8', '#E0A21E', clamp(left * 1.6, 0, 1)); rr(W - 112, 21, Math.max(12, 90 * left), 12, 6); c.fill(); }
+      if (left > 0) { c.fillStyle = '#E0A21E'; c.beginPath(); c.arc(W - 131, 27, 7.5, 0, 7); c.fill(); c.strokeStyle = '#E0A21E'; c.lineWidth = 1.8; for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; c.beginPath(); c.moveTo(W - 131 + Math.cos(a) * 10, 27 + Math.sin(a) * 10); c.lineTo(W - 131 + Math.cos(a) * 12.5, 27 + Math.sin(a) * 12.5); c.stroke(); } }
+      else { c.fillStyle = '#5B6F9E'; c.beginPath(); c.arc(W - 131, 27, 8, 0, 7); c.fill(); c.fillStyle = 'rgba(255,253,248,.92)'; c.beginPath(); c.arc(W - 127.5, 24.5, 6.6, 0, 7); c.fill(); }
+      c.textAlign = 'center'; c.font = '700 16px ' + FONT;
+      for (const m of st.msg) { const mx = clamp(m.x - cam, 90, W - 90); c.globalAlpha = clamp(1.4 - m.t, 0, 1); c.lineWidth = 4; c.strokeStyle = 'rgba(20,28,34,.75)'; c.strokeText(m.text, mx, m.y - m.t * 26); c.fillStyle = m.col; c.fillText(m.text, mx, m.y - m.t * 26); }
+      c.globalAlpha = 1;
+      if ((!st.started || st.paused) && !st.hideUI) {
+        c.fillStyle = 'rgba(20,28,34,.45)'; c.fillRect(0, 0, W, H);
+        c.fillStyle = 'rgba(255,253,248,.96)'; rr(W / 2 - 215, H / 2 - 44, 430, 88, 16); c.fill();
+        c.fillStyle = '#22252B'; c.font = '700 20px ' + FONT; c.fillText(st.paused ? 'Paused' : 'Ready?', W / 2, H / 2 - 16);
+        c.font = '600 15px ' + FONT; c.fillText(st.paused ? 'Press Space or tap to carry on' : 'Press Space or tap to start. Hold to jump farther.', W / 2, H / 2 + 16);
+      }
+    }
+
+    // ---------- loop and controls ----------
+    let raf = 0, last = 0, acc = 0, alive = true, fN = 0, fT = 0;
+    const frame = (now) => {
+      if (!alive) return; if (!cv.isConnected) { stop(); return; }
+      const raw = (now - last) / 1000 || 0, dt = Math.min(0.05, raw); last = now;
+      if (st.started && !st.paused) {
+        acc += dt; while (acc >= 1 / 120) { step(1 / 120); acc -= 1 / 120; if (st.ended) return; }
+        // a slow Chromebook gets a simpler picture, so the run stays smooth
+        if (!st.low && raw < 0.25 && fN < 90) { fN++; fT += raw; if (fN === 90 && fT / 90 > 0.024) { st.low = true; if (dpr > 1) { dpr = 1; cv.width = W; cv.height = H; mainCtx.setTransform(1, 0, 0, 1, 0, 0); } } }
+      }
+      draw(); raf = requestAnimationFrame(frame);
+    };
+    const press = () => {
+      if (st.ended) return;
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (e) { /* no sound */ }
+      if (st.paused) { st.paused = false; pauseBtn.textContent = '⏸ Pause'; return; }
+      if (!st.started) { st.started = true; live.textContent = 'Running. Fill your basket on the way home.'; return; }
+      st.buf = 0.13; st.hold = true;
+    };
+    const release = () => { st.hold = false; };
+    const pause = () => { if (!st.started || st.ended || st.done) return; st.paused = !st.paused; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; };
+    const JUMP = (e) => e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.key === ' ';
+    const kd = (e) => {
+      const tg = document.activeElement; if (tg && /INPUT|TEXTAREA|SELECT/.test(tg.tagName)) return;
+      if (JUMP(e)) { if (tg && tg.tagName === 'BUTTON' && tg !== jumpBtn && (e.code === 'Space' || e.key === ' ')) return; e.preventDefault(); if (!e.repeat) press(); }
+      else if (e.code === 'KeyP') pause();
+    };
+    const ku = (e) => { if (JUMP(e)) release(); };
+    const vis = () => { if (document.hidden && st.started && !st.ended && !st.done) { st.paused = true; pauseBtn.textContent = '▶ Carry on'; } };
+    const pd = (e) => { e.preventDefault(); cv.focus({ preventScroll: true }); press(); };
+    window.addEventListener('keydown', kd); window.addEventListener('keyup', ku); document.addEventListener('visibilitychange', vis);
+    cv.addEventListener('pointerdown', pd); cv.addEventListener('pointerup', release); cv.addEventListener('pointerleave', release); cv.addEventListener('pointercancel', release);
+    cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    jumpBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); press(); }); jumpBtn.addEventListener('pointerup', release); jumpBtn.addEventListener('pointerleave', release); jumpBtn.addEventListener('pointercancel', release);
+    jumpBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+    jumpBtn.addEventListener('keydown', (e) => { if (e.code === 'Enter' && !e.repeat) press(); }); jumpBtn.addEventListener('keyup', (e) => { if (e.code === 'Enter') release(); });
+    pauseBtn.onclick = () => { pause(); cv.focus({ preventScroll: true }); };
+    function stop() { alive = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); document.removeEventListener('visibilitychange', vis); if (stopRun === stop) stopRun = null; }
+    stopRun = stop;
+    cv.focus({ preventScroll: true }); raf = requestAnimationFrame(frame);
+
+    // ---------- home ----------
+    function finish() {
+      const beforeDark = st.day < 1, full = st.got >= need;
+      const spare = clamp(1.06 * (1 - st.day) / (1 - 1 / C.slack), 0, 1);
+      const fillB = clamp(st.got / need, 0, 1);
+      const pItems = Math.round(600 * fillB), pBirds = st.hello * 50, pHome = beforeDark ? 200 : 50, pDay = beforeDark ? Math.round(200 * spare) : 0, pFeet = Math.max(0, 150 - st.trips * 30);
+      const score = Math.round((pItems + pBirds + pHome + pDay + pFeet) * C.mult * (relaxed ? 0.8 : 1));
+      const n = 1 + (beforeDark && fillB >= 0.6 ? 1 : 0) + (beforeDark && full && st.trips <= 1 ? 1 : 0);
+      PROG.frunStars = PROG.frunStars || {}; PROG.frunStars[C.n] = Math.max(PROG.frunStars[C.n] || 0, n);
+      PROG.frunN = (PROG.frunN || 0) + 1;
+      const best = Math.max(PROG.frun || 0, score), isBest = score > (PROG.frun || 0); PROG.frun = best; saveProg(); cloudSend(true); win();
+      stop(); box.innerHTML = '';
+      const again = () => playGame('trail');
+      const carried = ITEMS.filter(([k]) => st.bag[k]).map((x) => x[1]);
+      const howFull = fillB >= 0.75 ? 'nearly full' : fillB >= 0.45 ? 'about half full' : 'not very full this time';
+      const facts = (T.facts || []).filter((k) => typeof FOREST_KNOW !== 'undefined' && FOREST_KNOW[k]), fk = facts.length ? FOREST_KNOW[facts[(PROG.frunN - 1) % facts.length]] : null;
+      const H3 = HOME[goalKind] || HOME.house;
+      box.append(
+        el('h2', { class: 'trail-title readable', text: beforeDark ? H3[0] : '🌙 Home by moonlight' }),
+        el('p', { class: 'trail-stars', text: stars(n), role: 'img', 'aria-label': `${n} out of 3 stars` }),
+        el('p', { class: 'readable', text: `${beforeDark ? H3[1] : H3[2]} ${full ? `Your basket is full of ${list(carried)}. You took what you needed and left the rest.` : st.got ? `Your basket is ${howFull}, with ${list(carried)}.` : 'Your basket is empty this time.'}${st.hello ? ` You said hello to ${st.hello} chickadee${st.hello > 1 ? 's' : ''}.` : ''} ${st.trips ? `You tripped or splashed ${st.trips} time${st.trips > 1 ? 's' : ''}.` : 'You never tripped once.'}` }),
+        el('section', { class: 'fact' }, [
+          el('h2', { text: `Score: ${score}${isBest ? '  (your new best!)' : ''}` }),
+          el('p', { text: `Basket ${pItems}  +  chickadees ${pBirds}  +  home ${pHome}  +  daylight to spare ${pDay}  +  sure feet ${pFeet}${C.mult !== 1 ? `, then × ${C.mult} for this longer trail` : ''}${relaxed ? ', then × 0.8 for relaxed mode' : ''}.` }),
+          el('p', { text: n < 3 ? 'For three stars: fill your basket, trip no more than once, and be home before dark.' : 'Three stars. You know these woods.' }),
+        ]),
+        ...(fk ? [el('section', { class: 'note' }, [el('h2', { text: `${fk[0]} Did you know? ${fk[1]}` }), el('p', { text: fk[3] })])] : []),
+        el('section', { class: 'riddle' }, CLOUD_ME
+          ? [el('h2', { text: `🏆 Saved for ${CLOUD_ME.name}` }), el('p', { class: 'hint', text: `Your best trail score is ${best}. It can take up to 5 minutes to show on the class leaderboard.` }), el('button', { class: 'gamebtn secret', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(again) })]
+          : [el('h2', { text: '🏆 Want this score on the class leaderboard?' }), el('p', { class: 'hint', text: `Your best trail score on this Chromebook is ${best}. Sign in on the start page with your animal, and it will be added.` }), el('button', { class: 'gamebtn secret', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(again) })]),
+        el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '▶ Run this trail again', onclick: () => play(C) }), el('button', { class: 'secondary', type: 'button', text: '🌲 Choose a different trail', onclick: () => menu() })]),
+      );
+      window.scrollTo(0, 0);
+    }
+  }
+  menu();
+}
+
 const GAMES = {
   chest: { icon: '🧳', name: 'Pack the sea chest', blurb: 'Tomorrow you sail on the Hector. What goes in the chest?', where: 'Kirsty at Loch Broom', run: (b, w) => gCoffre(b, w, 'chest') },
   fleece: { icon: '🧶', name: 'From fleece to cloth', blurb: 'Make the right choice at each step, from a sheep’s back to warm cloth.', where: 'Kirsty and her grandmother', run: gRoute },
@@ -4942,6 +5593,7 @@ const GAMES = {
   map: { icon: '🗺️', name: 'Where is it?', blurb: 'Find eight places from this history on the map.', where: 'The journeys map', run: gMap },
   memory: { icon: '🧠', name: 'Word memory', blurb: 'Match Gaelic words with their meanings.', where: 'Anytime', run: gMemory },
   kitchen: { icon: '👩‍🍳', name: 'Kitchen mix-up', blurb: 'Put a recipe’s steps back in order.', where: 'The Kitchen', run: gKitchen },
+  trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
 const GAME_AT = { 2: ['fleece'], 55: ['fleece'], 506: ['decode'], 225: ['who'], 541: ['who'], 212: ['memory'], 512: ['memory'], 527: ['kitchen'], 248: ['timeline'] };
 Object.assign(GAME_AT, {"3": ["chest"], "215": ["milling"], "520": ["ward"]});
@@ -5974,6 +6626,7 @@ function cloudStats() {
     d: n('docs'),
     h: n('doors'),
     f: P.chase || 0,
+    r: P.frun || 0,
   };
 }
 function cloudPacket() {
@@ -6053,6 +6706,7 @@ async function cloudPull() {
   PROG.tr = PROG.tr || {};
   Object.entries(mine.d.tr || {}).forEach(([k, v]) => { if ((PROG.tr[k] || 0) < v) { PROG.tr[k] = v; added++; } });
   const cf = (mine.d.st || {}).f || 0; if (cf > (PROG.chase || 0)) { PROG.chase = cf; added++; }
+  const crun = (mine.d.st || {}).r || 0; if (crun > (PROG.frun || 0)) { PROG.frun = crun; added++; }
   const found = load(KEY_FOUND, []);
   (mine.d.f || []).forEach((e) => { if (!found.includes(e)) { found.push(e); added++; } });
   save(KEY_FOUND, found); saveProg();
@@ -6148,6 +6802,7 @@ const BOARDS = [
   ['d', '📜 Most real documents read'],
   ['h', '🔓 Most hidden paths opened'],
   ['f', '🏃 Best chase score'],
+  ['r', '🌲 Best trail run'],
 ];
 function topTrait(tr) {
   const t = Object.entries(tr || {}).filter(([k, v]) => v > 0 && LEARN.traits[k]).sort((a, b) => b[1] - a[1])[0];
