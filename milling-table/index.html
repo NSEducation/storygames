@@ -574,7 +574,7 @@
   .art-wrap { background: #EDE4CC; padding: 9px 9px 10px; }
   .art-wrap svg.art { outline: 1.6px solid #1E2430; outline-offset: -1px; }
   .art-wrap svg.dish { outline: none; }
-  .wordpop { position: absolute; z-index: 70; background: var(--paper); color: var(--ink); border: 2px solid var(--sea); border-radius: 14px;
+  .wordpop { position: absolute; z-index: 70; background: #FFF4CC; color: var(--ink); border: 2px solid var(--sea); border-radius: 14px;
     padding: 9px 14px 10px; box-shadow: 0 6px 18px rgba(0,0,0,.2); font-size: 0.95rem; line-height: 1.4; width: max-content; }
   .wordpop[hidden] { display: none; }
   .wordpop::after { content: ''; position: absolute; left: calc(var(--tail, 50%) - 9px); width: 0; height: 0;
@@ -608,14 +608,6 @@
   .meter .mbar { height: 14px; background: rgba(0,0,0,0.1); border-radius: 7px; overflow: hidden; display: block; }
   .meter .mfill { display: block; height: 100%; background: var(--sea, #2C5266); border-radius: 7px; }
 </style><style id="wide">
-  /* wider layout on laptops and Chromebooks */
-  main { max-width: min(64rem, 100%); }
-  .bar-inner { max-width: min(72rem, 100%); }
-  .story p { max-width: 42em; }
-  /* the picture never takes more than about half the screen height, so the story shows without scrolling */
-  .art { width: min(100%, calc(46vh * 12 / 5)); margin-left: auto; margin-right: auto; }
-  @media (min-width: 900px) { .art-wrap { background: transparent; border-bottom: 0; padding-top: 1rem; } .art { border-radius: 10px; } }
-
   /* clearer sections: each box has its own colour, a heading band and space around it */
   .story { padding-bottom: 0.5rem; }
   .sheet .fact, .sheet .note, .sheet .ffbox, .sheet .runsum, .sheet .source {
@@ -638,6 +630,28 @@
   @media (prefers-color-scheme: dark) {
     .sheet .fact { background: #17242D; } .sheet .note { background: #2A2416; } .sheet .ffbox { background: #1A2716; } .sheet .runsum { background: #241B26; } .sheet .source { background: #261F17; }
   }
+
+  /* pop-up History Notes and riddles */
+  .poprow { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.2rem 0; }
+  .popwrap { position: relative; display: inline-block; margin: 0.6rem 0.4rem 0.6rem 0; }
+  .poprow .popwrap { margin: 0; }
+  .popchip { font: inherit; font-weight: 700; font-size: 0.98rem; cursor: pointer; border-radius: 999px; padding: 0.55rem 1rem; border: 2px solid; }
+  .pop-note .popchip { background: #FBF5E8; border-color: #A8771F; color: #5C3F0A; }
+  .pop-riddle .popchip { background: #F3EEF8; border-color: #6A4C6E; color: #45304A; }
+  .popwrap.open .popchip { box-shadow: 0 0 0 3px rgba(0,0,0,0.12); }
+  .poppanel { display: none; position: absolute; left: 0; top: calc(100% + 8px); z-index: 60; width: min(36rem, 88vw); max-height: 60vh; overflow: auto;
+    padding: 0.9rem 1.1rem 1rem; border-radius: 12px; border: 2px solid; box-shadow: 0 8px 24px rgba(0,0,0,0.22); }
+  .popwrap.open .poppanel { display: block; }
+  .pop-note .poppanel { background: #FBF5E8; border-color: #A8771F; }
+  .pop-riddle .poppanel { background: #F7F3FA; border-color: #6A4C6E; }
+  .popclose { float: right; font: inherit; background: transparent; border: 0; font-size: 1.1rem; cursor: pointer; padding: 0 0.2rem; margin: -0.3rem -0.4rem 0 0.5rem; color: inherit; }
+  .poppanel p { margin: 0.4rem 0; }
+  @media (prefers-color-scheme: dark) { .pop-note .popchip, .pop-note .poppanel { background: #2A2416; color: inherit; } .pop-riddle .popchip, .pop-riddle .poppanel { background: #241B26; color: inherit; } .wordpop { background: #3A3216 !important; } }
+  /* compact sign-in bar */
+  .cloudbox { padding: 0.55rem 0.9rem !important; margin: 0.8rem 0 !important; }
+  .cloudbox .cloudrow { align-items: center; margin: 0; }
+  .cloudbox .cloudlbl { font-weight: 700; margin-right: 0.3rem; }
+  .cloudbox .cloudrow button { padding: 0.35rem 0.8rem; font-size: 0.92rem; }
 </style>
 </head>
 <body>
@@ -2849,8 +2863,6 @@ function cover() {
       ].map(([who, what]) => el('li', { class: 'readable' }, [el('strong', { text: who + ': ' }), document.createTextNode(what)]))),
       el('h3', { class: 'readable', text: 'What this game shows, and what it leaves out' }),
       el('p', { class: 'readable', text: 'This game follows one made-up family in Pictou County and Cape Breton. That is one thread in a very large history. It leaves out most of the story in Scotland itself, Gaels in other parts of Canada, most Gaelic music, dance, poetry and storytelling, and a great deal of what Gaels are doing today. The last card of the map above lists more. The “Find out more” page tells you where to look.' }),
-      el('h3', { class: 'readable', text: 'Stories that touch' }),
-      el('p', { class: 'readable', text: 'If you played The Words We Carry, watch for the Mi’kmaw harbour at Piktuk, where Grandpa Joe of Fisher’s Grant lives in 1916, for the girl counting basket money at the Halifax market, and for her Uncle Frank in a hospital in France. If you played The Day the Soldiers Came, watch for Acadians from Chéticamp, and for a Gaelic-speaking sergeant named MacLeod who teaches Émile the names of the pipe tunes. If you played What the Box Remembers, remember that Isaac signs up at Pictou in 1916, on the harbour where the Hector arrived. Each game tells these moments from a different side.' }),
       el('p', { class: 'readable' }, [document.createTextNode('Want to know more? '), el('button', { class: 'secondary', type: 'button', text: 'See places to visit and people to ask', onclick: () => { todayPage(); setTimeout(() => { const f = document.getElementById('findout'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80); } })]),
       el('p', { class: 'hint', text: '💡 Think about it: as you play, notice who helps whom, who remembers it, and who forgets.' }),
     ]),
@@ -3264,7 +3276,6 @@ function render(id) {
     nodes.push(holder);
   }
   if (GAME_AT[id]) nodes.push(el('div', { class: 'row tight noprint' }, GAME_AT[id].map((gk) => el('button', { class: 'gamebtn gamelink', type: 'button', text: `🎮 Try it: ${GAMES[gk].name}`, onclick: () => playGame(gk, () => render(id)) }))));
-  if (RECIPE_AT[id]) nodes.push(el('div', { class: 'row tight noprint' }, RECIPE_AT[id].map((rid) => el('button', { class: 'gamebtn recipelink', type: 'button', text: `🍲 Try the recipe: ${RECIPES.find(r => r.id === rid).fr} ↗`, onclick: () => openRecipeWindow(rid, id) }))));
   const rb = riddleBox(id); if (rb) nodes.push(rb);
   const fb = forestBox(id); if (fb) nodes.push(fb);
   const sbs = secretButtons(id); if (sbs.length) nodes.push(el('div', { class: 'row' }, sbs));
@@ -3304,14 +3315,12 @@ function render(id) {
       el('button', { class: 'primary', type: 'button', text: `Try a different path as ${heroOf(id).name}`, onclick: () => go(heroOf(id).start, false) }),
       ...Object.values(HEROES).filter((h) => h !== heroOf(id)).map((h) => el('button', { class: 'secondary', type: 'button', text: `Play as ${h.name}`, onclick: () => go(h.start, false) })),
       el('button', { class: 'secondary', type: 'button', text: 'Back to the title page', onclick: cover }),
-      ...(HUB_URL ? [el('button', { class: 'secondary', type: 'button', text: '📚 Choose another story', onclick: goHub })] : []),
     ]));
     const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs);
     nodes.push(foundList(heroOf(id)));
     undoBtn.hidden = true;
   }
   // From any scene: back to the story's title page, where you choose who to play.
-  if (!s.end) nodes.push(el('div', { class: 'row scenenav' }, [el('button', { class: 'secondary', type: 'button', text: '👥 Choose a different character', onclick: cover }), ...(HUB_URL ? [el('button', { class: 'secondary', type: 'button', text: '📚 Choose another story', onclick: goHub })] : [])]));
   show(nodes);
   SND.scene(id);
 }
@@ -4015,6 +4024,7 @@ let voyToken = 0;
 let voyReturn = null;
 
 const VOY_DEPORT = VOY.findIndex(p => !p.era);
+const VOY_FROM = {"57.9,-5.2": "Loch Broom, Scotland", "45.68,-62.7": "Piktuk", "57,-6.33": "the Isle of Rum, Scotland", "44.65,-63.57": "Halifax", "51.08,-0.8": "Bramshott, England", "50.51,1.64": "Étaples, France"};
 function voyageSVG(i) {
   const ph = VOY[i];
   const W = 600, H = 420;
@@ -4056,6 +4066,31 @@ function voyageSVG(i) {
   if (!ph.noStar) { const [gx, gy] = P(...GP); gpLeft = ph.zoom || gx - 70 > 4; placed.push(gpLeft ? [gx - 70, gy - 7, 64] : [gx + 9, gy - 7, 64]); }
   const markLabs = (ph.marks || []).map((m) => (!m.big && !m.sea ? fitLab([m.lat, m.lon], m.lab, m.text) : null));
   const routeLabs = ph.routes.map((r) => fitLab(r.pts[r.pts.length - 1], r.lab, r.name + (r.n ? `: ${r.n}` : '')));
+  // where each journey starts from (worked out early so place names keep clear of these labels)
+  const fromLabs = [], fromSeen = [];
+  ph.routes.forEach((r) => {
+    const st = r.pts[0], key = st.join(',');
+    const near = (a2, b2, d) => Math.hypot(a2[0] - b2[0], a2[1] - b2[1]) < d;
+    if (fromSeen.some((q) => near(q, st, 0.4))) return;
+    if (ph.routes.some((o) => o !== r && near(o.pts[o.pts.length - 1], st, 0.3))) return;
+    if (!ph.noStar && near(GP, st, 0.5)) return;
+    if ((ph.marks || []).some((m) => !m.big && !m.sea && near([m.lat, m.lon], st, 0.3))) return;
+    fromSeen.push(st);
+    const [x, y] = P(st[0], st[1]);
+    if (x < 0 || x > W || y < 0 || y > H) return;
+    const name = VOY_FROM[key];
+    if (!name) { fromLabs.push([x, y, null]); placed.push([x - 6, y + 5, 12]); return; }
+    const text = `from ${name}`, w = text.length * 5.4 + 6;
+    // put the label on the side away from where the journey heads
+    const nx = P(...r.pts[Math.min(1, r.pts.length - 1)])[0];
+    let lx = nx < x ? x + 8 : x - 8 - w, ly = y + 4;
+    if (lx + w > W - 6) lx = x - 8 - w;
+    if (lx < 6) lx = x + 8;
+    for (let t = 0; t < 8 && placed.some((bb) => lx < bb[0] + bb[2] && lx + w > bb[0] && ly - 10 < bb[1] && ly > bb[1] - 10); t++) ly += 12;
+    ly = Math.min(Math.max(14, ly), H - 54);
+    placed.push([lx, ly, w]); placed.push([x - 6, y + 5, 12]);
+    fromLabs.push([x, y, [lx, ly, text]]);
+  });
   let s = `<svg class="amap vmap" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map: ${ph.year}, ${ph.title}">`;
   if (ph.zoom) s += `<rect width="${W}" height="${H}" fill="#A9C3CF"/><path d="${LAND_ZOOM}" fill="#ECE5D0" stroke="#7E8F96" stroke-width="0.8"/>`;
   else {
@@ -4110,6 +4145,10 @@ function voyageSVG(i) {
     const near = Math.hypot(lx - x, ly - y) < 18;
     s += `<g class="vdest" data-k="${k}" opacity="0">${mark}${near ? '' : `<line x1="${x}" y1="${y}" x2="${lx - 2}" y2="${ly - 3}" stroke="#3E4D54" stroke-width="0.6"/>`}`
       + `<text x="${lx}" y="${ly}" ${font} font-size="9.5" fill="#1B2529" ${halo}><tspan font-weight="700">${r.name}</tspan>${r.n ? `<tspan fill="#3E4D54">: ${r.n}</tspan>` : ''}</text>` + '</g>';
+  });
+  fromLabs.forEach(([x, y, lab]) => {
+    s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="#FFFFFF" stroke="#1B2529" stroke-width="2"/>`;
+    if (lab) s += `<text x="${lab[0].toFixed(1)}" y="${lab[1].toFixed(1)}" ${font} font-size="9.5" font-style="italic" font-weight="700" fill="#1B2529" ${halo}>${lab[2]}</text>`;
   });
   ph.routes.forEach((r, k) => { s += `<g class="vship" data-k="${k}">${r.walk ? WALK_ICON : r.canoe ? CANOE_ICON : SHIP_ICON}</g>`; });
   s += `<text x="16" y="404" ${font} font-size="26" font-weight="700" fill="#1B2529" ${halo}>${ph.year}</text>`;
@@ -5881,10 +5920,9 @@ function cloudPanel() {
   const fill = () => {
     box.textContent = '';
     if (CLOUD_ME) {
-      box.appendChild(el('h2', { text: `👤 Signed in as ${CLOUD_ME.name}` }));
-      box.appendChild(el('p', { class: 'hint', text: 'Your progress saves to the class list as you play. On another Chromebook, choose “I already have an animal” and use the same PIN.' }));
-      box.appendChild(el('div', { class: 'row tight' }, [
-        el('button', { class: 'primary', type: 'button', text: '🏆 Class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }),
+      box.appendChild(el('div', { class: 'row tight cloudrow' }, [
+        el('span', { class: 'cloudlbl', text: `👤 Signed in as ${CLOUD_ME.name}. Your progress is saving.` }),
+        el('button', { class: 'secondary', type: 'button', text: '🏆 Leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }),
         el('button', { class: 'secondary', type: 'button', text: 'Sign out', onclick: () => { cloudSend(true); cloudSetMe(null); fill(); } }),
       ]));
       return;
@@ -5947,13 +5985,12 @@ function cloudPanel() {
       box.appendChild(msg);
       box.appendChild(el('button', { class: 'secondary', type: 'button', text: '← Back', onclick: fill }));
     };
-    box.appendChild(el('h2', { text: '👤 Sign in to save your progress' }));
-    box.appendChild(el('p', { class: 'hint', text: 'Sign in to keep your progress on any Chromebook and join the class leaderboard. Your nickname is a Canadian animal.' }));
-    box.appendChild(el('div', { class: 'row tight' }, [
-      el('button', { class: 'primary', type: 'button', text: '🆕 I’m new: pick my animal', onclick: showNew }),
-      el('button', { class: 'primary', type: 'button', text: '🔑 I already have an animal', onclick: showBack }),
+    box.appendChild(el('div', { class: 'row tight cloudrow' }, [
+      el('span', { class: 'cloudlbl', text: '👤 Save your progress:' }),
+      el('button', { class: 'secondary', type: 'button', text: '🆕 I’m new: pick my animal', onclick: showNew }),
+      el('button', { class: 'secondary', type: 'button', text: '🔑 I have an animal', onclick: showBack }),
+      el('button', { class: 'secondary', type: 'button', text: '🏆 Leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }),
     ]));
-    box.appendChild(el('button', { class: 'secondary', type: 'button', text: '🏆 See the class leaderboard', onclick: () => cloudBoard(current ? () => render(current) : homePage) }));
   };
   fill();
   return box;
@@ -6026,6 +6063,39 @@ async function cloudBoard(back) {
   wrap.replaceChildren(...kids);
 }
 
+
+// ---- pop-up boxes for History Notes and riddles (less scrolling) ----
+let POP_OPEN = null;
+function closePop() { if (POP_OPEN) { POP_OPEN.classList.remove('open'); POP_OPEN.querySelector('.popchip').setAttribute('aria-expanded', 'false'); POP_OPEN = null; } }
+function makePop(sec, kind) {
+  const h = sec.querySelector(':scope > h2'); if (!h) return;
+  const wrap = el('div', { class: `popwrap pop-${kind}` });
+  const chip = el('button', { class: 'popchip', type: 'button', 'aria-expanded': 'false', text: h.textContent });
+  const panel = el('div', { class: 'poppanel', role: 'dialog', 'aria-label': h.textContent });
+  h.remove();
+  panel.append(...sec.childNodes);
+  const close = el('button', { class: 'popclose', type: 'button', 'aria-label': 'Close', text: '✕', onclick: (e) => { e.stopPropagation(); closePop(); } });
+  panel.prepend(close);
+  wrap.append(chip, panel);
+  let t = null;
+  const open = () => { clearTimeout(t); if (POP_OPEN && POP_OPEN !== wrap) closePop(); wrap.classList.add('open'); chip.setAttribute('aria-expanded', 'true'); POP_OPEN = wrap; };
+  const later = () => { clearTimeout(t); t = setTimeout(() => { if (wrap.dataset.pinned || panel.contains(document.activeElement)) return; if (POP_OPEN === wrap) closePop(); }, 300); };
+  wrap.addEventListener('mouseenter', open); wrap.addEventListener('mouseleave', later);
+  chip.addEventListener('focus', open);
+  chip.addEventListener('click', (e) => { e.stopPropagation(); if (wrap.dataset.pinned && wrap.classList.contains('open')) { delete wrap.dataset.pinned; closePop(); } else { wrap.dataset.pinned = '1'; open(); } });
+  panel.addEventListener('click', (e) => e.stopPropagation());
+  sec.replaceWith(wrap);
+}
+document.addEventListener('click', () => { if (POP_OPEN) { delete POP_OPEN.dataset.pinned; closePop(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && POP_OPEN) { const c = POP_OPEN.querySelector('.popchip'); delete POP_OPEN.dataset.pinned; closePop(); c.focus(); } });
+function popifyScene() {
+  POP_OPEN = null;
+  const sheet = document.querySelector('.sheet'); if (!sheet) return;
+  sheet.querySelectorAll('section.note').forEach((sec) => { const h = sec.querySelector(':scope > h2'); if (h && h.textContent.startsWith('📘')) makePop(sec, 'note'); });
+  sheet.querySelectorAll('section.riddle').forEach((sec) => { const h = sec.querySelector(':scope > h2'); if (h && h.textContent.startsWith('🧩')) makePop(sec, 'riddle'); });
+  const pops = [...sheet.querySelectorAll('.popwrap')];
+  if (pops.length > 1) { const row = el('div', { class: 'poprow' }); pops[0].before(row); pops.forEach((w) => row.appendChild(w)); }
+}
 // ---- hook into the game ----
 (function () {
   const baseCover = cover, baseHome = homePage, baseRender = render;
@@ -6034,6 +6104,7 @@ async function cloudBoard(back) {
   homePage = function () { const r = baseHome.apply(this, arguments); addPanel(); return r; };
   render = function (id) {
     const r = baseRender.apply(this, arguments);
+    popifyScene();
     const s = STORY[id];
     if (s && s.end) {
       if (!RUN.trDone) { RUN.trDone = true; PROG.tr = PROG.tr || {}; Object.entries(TRAITS).forEach(([k, v]) => { PROG.tr[k] = (PROG.tr[k] || 0) + v; }); saveProg(); }
