@@ -24,7 +24,7 @@
     --on-sea: #FFFFFF;
     --base: 20px;
   }
-  @media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: dark) and (max-width: 0px) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
       --fog: #11171A;
@@ -605,7 +605,7 @@
 
   /* forest challenge box: pine green instead of ochre */
   .riddle.forestbox { --fb-bd:#2E7D52; --fb-bg:#EAF5EE; --fb-btn:#D6EEDD; border:2px solid var(--fb-bd); background:var(--fb-bg); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; } }
+  @media (prefers-color-scheme: dark) and (max-width: 0px) { :root:not([data-theme="light"]) .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; } }
   :root[data-theme="dark"] .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; }
   .riddle.forestbox h2 { color: var(--fb-bd); }
   .riddle.forestbox .gamebtn.secret { background:var(--fb-btn); border-color:var(--fb-bd); }
@@ -629,7 +629,7 @@
   .sheet .runsum > h2 { background: #6A4C6E; color: #fff; }
   .sheet .note .kind { margin-top: -0.2rem; }
   .sheet .ask { margin-top: 2rem; padding-top: 1.2rem; border-top: 3px solid var(--rule); font-size: 1.15rem; }
-  @media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: dark) and (max-width: 0px) {
     .sheet .fact { background: #17242D; } .sheet .note { background: #2A2416; } .sheet .ffbox { background: #1A2716; } .sheet .runsum { background: #241B26; } .sheet .source { background: #261F17; }
   }
 
@@ -652,7 +652,7 @@
   .poppanel blockquote { margin: 0.6rem 0; padding-left: 0.8rem; border-left: 3px solid #A8771F; font-style: italic; }
   .popclose { float: right; font: inherit; background: transparent; border: 0; font-size: 1.1rem; cursor: pointer; padding: 0 0.2rem; margin: -0.3rem -0.4rem 0 0.5rem; color: inherit; }
   .poppanel p { margin: 0.4rem 0; }
-  @media (prefers-color-scheme: dark) { .pop-note .popchip, .pop-note .poppanel { background: #2A2416; color: inherit; } .pop-riddle .popchip, .pop-riddle .poppanel { background: #241B26; color: inherit; } .pop-doc .popchip, .pop-doc .poppanel { background: #261F17; color: inherit; } .wordpop { background: #3A3216 !important; } }
+  @media (prefers-color-scheme: dark) and (max-width: 0px) { .pop-note .popchip, .pop-note .poppanel { background: #2A2416; color: inherit; } .pop-riddle .popchip, .pop-riddle .poppanel { background: #241B26; color: inherit; } .pop-doc .popchip, .pop-doc .poppanel { background: #261F17; color: inherit; } .wordpop { background: #3A3216 !important; } }
   /* slim sign-in bar */
   .cloudbox { padding: 0.35rem 0.7rem !important; margin: 0.6rem 0 !important; border: 1px solid var(--rule) !important; border-radius: 999px !important;
     background: var(--paper) !important; font-size: 0.82rem; box-shadow: none !important; }
@@ -693,7 +693,38 @@
   .poprow { position: relative; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.8rem 0; }
   .poprow .popwrap { margin: 0; }
   .popchip { font-size: 0.85rem; font-weight: 600; padding: 0.35rem 0.8rem; border-width: 1px; }
+</style><style id="scheme">
+  /* colour scheme: Mi'kmaw: birchbark, spruce, water and berry. Light only. */
+  html:root, html:root[data-theme] {
+    color-scheme: light;
+    --fog: #EFEBE2; --paper: #FFFEFA; --ink: #1F2622; --muted: #59605A;
+    --sea: #1E5B54; --sea-hover: #154640; --sea-tint: #E3F0EC; --on-sea: #FFFFFF;
+    --grass: #2F6B45; --ochre: #A6701B; --ochre-tint: #FAF2E2; --rule: #DCD5C6; --accent: #9C2F3A;
+  }
+  body { background: var(--fog); color: var(--ink); }
+  .bar { background: var(--paper); border-bottom: 3px solid var(--accent); }
+  .sheet { background: var(--paper); border-color: var(--rule); box-shadow: 0 6px 24px rgba(60,40,20,0.08); }
+  h1, .pick-h { color: var(--sea); }
+  h1:not(.hp-text h1)::after, .hp-text h1::after { content: ""; display: block; width: 3.5rem; height: 4px; margin-top: 0.45rem; background: #9C2F3A; border-radius: 2px; }
+  /* section boxes */
+  .sheet .fact { border-color: #2F607E; background: #EAF2F7; } .sheet .fact > h2 { background: #2F607E; color: #fff; }
+  .sheet .note { border-color: #A6701B; background: #FAF3E3; } .sheet .note > h2 { background: #A6701B; color: #fff; }
+  .sheet .ffbox { border-color: #2F6B45; background: #ECF5EF; } .sheet .ffbox > h2 { background: #2F6B45; color: #fff; }
+  .sheet .runsum { border-color: #8E3343; background: #F9EEF0; } .sheet .runsum > h2 { background: #8E3343; color: #fff; }
+  .sheet .source { border-color: #6E4E33; background: #F8F3EA; } .sheet .source > h2 { background: #6E4E33; color: #fff; }
+  /* pop-up chips and panels */
+  .pop-note .popchip { background: #FAF3E3; border-color: #A6701B; color: #A6701B; } .pop-note .poppanel { background: #FAF3E3; border-color: #A6701B; color: var(--ink); }
+  .pop-riddle .popchip { background: #F9EEF0; border-color: #8E3343; color: #8E3343; } .pop-riddle .poppanel { background: #F9EEF0; border-color: #8E3343; color: var(--ink); }
+  .pop-doc .popchip { background: #F8F3EA; border-color: #6E4E33; color: #6E4E33; } .pop-doc .poppanel { background: #F8F3EA; border-color: #6E4E33; color: var(--ink); }
+  .poppanel blockquote { border-left-color: #A6701B; }
+  .wordpop { background: #FFF4CC !important; color: #22252B !important; }
+  /* boxes and buttons that use the theme colours */
+  .riddle { border-color: var(--ochre); background: var(--ochre-tint); }
+  .cloudbox { background: var(--paper) !important; border-color: var(--rule) !important; }
+  .hp-tile { background: var(--paper); border-color: var(--rule); }
+  .hp-tile:hover, .hp-tile:focus-visible { border-color: var(--sea); background: var(--sea-tint); }
 </style>
+
 </head>
 <body>
 <header class="bar">
@@ -6790,7 +6821,7 @@ function foldCover() {
       const rs = document.querySelector('.runsum');
       const box = el('section', { class: 'riddle noprint' }, CLOUD_ME
         ? [el('h2', { text: `🏆 Saved for ${CLOUD_ME.name}` }), el('p', { class: 'hint', text: 'This ending and your clues are on the class list.' }), el('button', { class: 'secondary', type: 'button', text: 'See the class leaderboard', onclick: () => cloudBoard(() => render(id)) })]
-        : [el('h2', { text: '🏆 Want this on the class leaderboard?' }), el('p', { class: 'hint', text: 'Sign in on the start page with a nickname and PIN. Everything you have found on this Chromebook will be added.' }), el('button', { class: 'secondary', type: 'button', text: 'Go to the start page', onclick: homePage })]);
+        : [el('h2', { text: '🏆 Want this on the class leaderboard?' }), el('p', { class: 'hint', text: 'Sign in on the start page with your animal and PIN. Everything you have found on this Chromebook will be added.' }), el('button', { class: 'secondary', type: 'button', text: 'Go to the start page', onclick: homePage })]);
       if (rs) rs.after(box);
     } else cloudSend(false);
     return r;

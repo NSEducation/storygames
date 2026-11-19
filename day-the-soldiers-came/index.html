@@ -58,7 +58,7 @@
     --on-sea: #FFFFFF;
     --base: 20px;
   }
-  @media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: dark) and (max-width: 0px) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
       --fog: #11171A;
@@ -606,7 +606,7 @@
 
   /* forest challenge box: pine green instead of ochre */
   .riddle.forestbox { --fb-bd:#2E7D52; --fb-bg:#EAF5EE; --fb-btn:#D6EEDD; border:2px solid var(--fb-bd); background:var(--fb-bg); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; } }
+  @media (prefers-color-scheme: dark) and (max-width: 0px) { :root:not([data-theme="light"]) .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; } }
   :root[data-theme="dark"] .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; }
   .riddle.forestbox h2 { color: var(--fb-bd); }
   .riddle.forestbox .gamebtn.secret { background:var(--fb-btn); border-color:var(--fb-bd); }
@@ -630,7 +630,7 @@
   .sheet .runsum > h2 { background: #6A4C6E; color: #fff; }
   .sheet .note .kind { margin-top: -0.2rem; }
   .sheet .ask { margin-top: 2rem; padding-top: 1.2rem; border-top: 3px solid var(--rule); font-size: 1.15rem; }
-  @media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: dark) and (max-width: 0px) {
     .sheet .fact { background: #17242D; } .sheet .note { background: #2A2416; } .sheet .ffbox { background: #1A2716; } .sheet .runsum { background: #241B26; } .sheet .source { background: #261F17; }
   }
 
@@ -676,7 +676,7 @@
   .poppanel blockquote { margin: 0.6rem 0; padding-left: 0.8rem; border-left: 3px solid #A8771F; font-style: italic; }
   .popclose { float: right; font: inherit; background: transparent; border: 0; font-size: 1.1rem; cursor: pointer; padding: 0 0.2rem; margin: -0.3rem -0.4rem 0 0.5rem; color: inherit; }
   .poppanel p { margin: 0.4rem 0; }
-  @media (prefers-color-scheme: dark) { .pop-note .popchip, .pop-note .poppanel { background: #2A2416; color: inherit; } .pop-riddle .popchip, .pop-riddle .poppanel { background: #241B26; color: inherit; } .pop-doc .popchip, .pop-doc .poppanel { background: #261F17; color: inherit; } .wordpop { background: #3A3216 !important; } }
+  @media (prefers-color-scheme: dark) and (max-width: 0px) { .pop-note .popchip, .pop-note .poppanel { background: #2A2416; color: inherit; } .pop-riddle .popchip, .pop-riddle .poppanel { background: #241B26; color: inherit; } .pop-doc .popchip, .pop-doc .poppanel { background: #261F17; color: inherit; } .wordpop { background: #3A3216 !important; } }
   /* slim sign-in bar */
   .cloudbox { padding: 0.35rem 0.7rem !important; margin: 0.6rem 0 !important; border: 1px solid var(--rule) !important; border-radius: 999px !important;
     background: var(--paper) !important; font-size: 0.82rem; box-shadow: none !important; }
@@ -694,7 +694,38 @@
   .poprow { position: relative; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.8rem 0; }
   .poprow .popwrap { margin: 0; }
   .popchip { font-size: 0.85rem; font-weight: 600; padding: 0.35rem 0.8rem; border-width: 1px; }
+</style><style id="scheme">
+  /* colour scheme: Acadian: navy, red and gold of the Acadian flag on cream. Light only. */
+  html:root, html:root[data-theme] {
+    color-scheme: light;
+    --fog: #F3EADB; --paper: #FFFDF8; --ink: #22252B; --muted: #5E5A55;
+    --sea: #1F3A68; --sea-hover: #142A50; --sea-tint: #E6ECF6; --on-sea: #FFFFFF;
+    --grass: #3F6B3A; --ochre: #A87A0E; --ochre-tint: #FBF3DE; --rule: #E2D6C2; --accent: #B5262E;
+  }
+  body { background: var(--fog); color: var(--ink); }
+  .bar { background: var(--paper); border-bottom: 3px solid var(--accent); }
+  .sheet { background: var(--paper); border-color: var(--rule); box-shadow: 0 6px 24px rgba(60,40,20,0.08); }
+  h1, .pick-h { color: var(--sea); }
+  h1:not(.hp-text h1)::after, .hp-text h1::after { content: ""; display: block; width: 3.5rem; height: 4px; margin-top: 0.45rem; background: linear-gradient(90deg, #1F3A68 33%, #FFFFFF 33% 66%, #B5262E 66%); border-radius: 2px; box-shadow: 0 0 0 1px #E2D6C2; }
+  /* section boxes */
+  .sheet .fact { border-color: #1F3A68; background: #EDF1F8; } .sheet .fact > h2 { background: #1F3A68; color: #fff; }
+  .sheet .note { border-color: #A87A0E; background: #FCF5E3; } .sheet .note > h2 { background: #A87A0E; color: #fff; }
+  .sheet .ffbox { border-color: #3F6B3A; background: #EFF5EC; } .sheet .ffbox > h2 { background: #3F6B3A; color: #fff; }
+  .sheet .runsum { border-color: #9E2A2F; background: #FBEFEF; } .sheet .runsum > h2 { background: #9E2A2F; color: #fff; }
+  .sheet .source { border-color: #7A5230; background: #FBF6EC; } .sheet .source > h2 { background: #7A5230; color: #fff; }
+  /* pop-up chips and panels */
+  .pop-note .popchip { background: #FCF5E3; border-color: #A87A0E; color: #A87A0E; } .pop-note .poppanel { background: #FCF5E3; border-color: #A87A0E; color: var(--ink); }
+  .pop-riddle .popchip { background: #FBEFEF; border-color: #9E2A2F; color: #9E2A2F; } .pop-riddle .poppanel { background: #FBEFEF; border-color: #9E2A2F; color: var(--ink); }
+  .pop-doc .popchip { background: #FBF6EC; border-color: #7A5230; color: #7A5230; } .pop-doc .poppanel { background: #FBF6EC; border-color: #7A5230; color: var(--ink); }
+  .poppanel blockquote { border-left-color: #A87A0E; }
+  .wordpop { background: #FFF4CC !important; color: #22252B !important; }
+  /* boxes and buttons that use the theme colours */
+  .riddle { border-color: var(--ochre); background: var(--ochre-tint); }
+  .cloudbox { background: var(--paper) !important; border-color: var(--rule) !important; }
+  .hp-tile { background: var(--paper); border-color: var(--rule); }
+  .hp-tile:hover, .hp-tile:focus-visible { border-color: var(--sea); background: var(--sea-tint); }
 </style>
+
 </head>
 <body>
 <header class="bar">
@@ -1501,10 +1532,16 @@ const ART = (() => {
     fallen: () => frame(SKY.room, room(`<rect x="300" y="40" width="132" height="168" fill="#D3D8D3"/>` + fig('SEAT', 120, 210, 112) + fig('S', 380, 210, 150, { flip: true }) +
       g(260, 210, 1.3, FIG.LIE) + `<path d="M150,206 L210,196" stroke="${INK}" stroke-width="5"/><path d="M134,140 L176,150" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`),
       'Anne knocked to the floor by the soldier while Grand-mère reaches for her'),
-    bundle: () => frame(SKY.room, glow(300, 250, 260, GLOW, 0.4) + `<rect x="0" y="170" width="600" height="80" fill="#2E2219"/>` +
-      `<path d="M250,172 Q232,110 300,100 Q368,110 350,172 Z" fill="#5E4A3A"/><path d="M286,104 L300,86 L314,104" stroke="#3A2C24" stroke-width="5" fill="none"/><path d="M262,140 Q300,128 340,140" stroke="#3A2C24" stroke-width="3" fill="none"/>` +
-      `<rect x="140" y="110" width="14" height="60" fill="${PAPER}"/>` + glow(147, 100, 40, GLOW, 0.9) + `<path d="M147,108 Q142,100 147,90 Q152,100 147,108 Z" fill="${GLOW}"/>`,
-      'The wooden box wrapped up and tied inside Anne’s wool cloak'),
+    bundle: () => frame(SKY.room, room(windowL(60, 58, '#E3DCC6') +
+      `<path d="M60,142 L134,142 L196,206 L36,206 Z" fill="#F2E8CC" opacity="0.16"/>` +
+      hearth({ box: false }) + `<rect x="420" y="66" width="38" height="12" fill="none" stroke="#7A6656" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.8"/>` +
+      `<rect x="486" y="62" width="6" height="16" fill="#C9CED2"/><rect x="480" y="67" width="18" height="4" fill="#C9CED2"/>` +
+      `<rect x="150" y="160" width="74" height="8" fill="#3A2C24"/><rect x="156" y="168" width="6" height="38" fill="#3A2C24"/><rect x="212" y="168" width="6" height="38" fill="#3A2C24"/><path d="M168,160 Q178,146 192,152 Q204,146 212,160 Z" fill="#A9763F"/>` +
+      fig('SEAT', 340, 210, 112) + fig('W', 262, 212, 120) +
+      `<path d="M255,118 Q244,140 262,150 M269,118 Q282,138 270,150" stroke="${INK}" stroke-width="6" stroke-linecap="round" fill="none"/>` +
+      `<g transform="translate(264 152) scale(0.8) translate(-264 -148)">` + `<path d="M244,148 Q240,128 264,126 Q290,128 286,150 Q284,168 264,170 Q246,168 244,148 Z" fill="#4E5F7A"/><path d="M250,140 Q264,134 280,140 M248,156 Q264,162 282,154" stroke="#3B4A61" stroke-width="2" fill="none"/>` +
+      `<path d="M262,126 L258,116 M266,126 L272,117" stroke="#D2B97E" stroke-width="3" stroke-linecap="round"/><path d="M246,148 L286,146" stroke="#D2B97E" stroke-width="2.5"/></g>`),
+      'Anne holding the wooden box, wrapped and tied in her blue wool cloak, while Grand-mère smiles from her chair by the fire; the spot on the mantel where the box sat is empty'),
     emptyhouse: () => frame(['#141B22', '#26323C'], room(windowL(60, 58, '#5E7286') + `<path d="M60,142 L134,142 L190,206 L40,206 Z" fill="#9FB3C4" opacity="0.1"/>` +
       `<rect x="372" y="84" width="176" height="122" fill="#2A2522"/><path d="M402,206 L402,146 Q460,112 518,146 L518,206 Z" fill="#0E0B0A"/><rect x="362" y="78" width="196" height="10" fill="${INK}"/>` +
       `<path d="M460,88 L460,150" stroke="#3A3532" stroke-width="3"/><path d="M440,150 L480,150 L476,176 L444,176 Z" fill="#2E2A28"/>` +
@@ -7987,7 +8024,7 @@ function foldCover() {
       const rs = document.querySelector('.runsum');
       const box = el('section', { class: 'riddle noprint' }, CLOUD_ME
         ? [el('h2', { text: `🏆 Saved for ${CLOUD_ME.name}` }), el('p', { class: 'hint', text: 'This ending and your clues are on the class list.' }), el('button', { class: 'secondary', type: 'button', text: 'See the class leaderboard', onclick: () => cloudBoard(() => render(id)) })]
-        : [el('h2', { text: '🏆 Want this on the class leaderboard?' }), el('p', { class: 'hint', text: 'Sign in on the start page with a nickname and PIN. Everything you have found on this Chromebook will be added.' }), el('button', { class: 'secondary', type: 'button', text: 'Go to the start page', onclick: homePage })]);
+        : [el('h2', { text: '🏆 Want this on the class leaderboard?' }), el('p', { class: 'hint', text: 'Sign in on the start page with your animal and PIN. Everything you have found on this Chromebook will be added.' }), el('button', { class: 'secondary', type: 'button', text: 'Go to the start page', onclick: homePage })]);
       if (rs) rs.after(box);
     } else cloudSend(false);
     return r;
