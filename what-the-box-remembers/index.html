@@ -724,6 +724,40 @@
   .hp-tile { background: var(--paper); border-color: var(--rule); }
   .hp-tile:hover, .hp-tile:focus-visible { border-color: var(--sea); background: var(--sea-tint); }
 </style>
+<style id="artfx">
+  /* extra picture movement (clouds, water shimmer, flags, lantern swing, sparks, oars, chimney smoke) */
+  @media (prefers-reduced-motion: no-preference) {
+    .art .anim-cloud { animation: a-cloud 70s linear infinite alternate; }
+    @keyframes a-cloud { from { transform: translateX(-34px); } to { transform: translateX(48px); } }
+    .art .anim-shimmer { animation: a-shimmer 3.4s ease-in-out infinite alternate; }
+    @keyframes a-shimmer { from { opacity: 0.1; } to { opacity: 0.85; } }
+    .art .anim-wave2 { animation: a-wave2 7.5s ease-in-out infinite alternate; }
+    @keyframes a-wave2 { from { transform: translateX(9px); } to { transform: translateX(-9px); } }
+    .art .anim-flag { transform-box: fill-box; transform-origin: 0% 50%; animation: a-flag 1.5s ease-in-out infinite alternate; }
+    @keyframes a-flag { from { transform: skewY(-10deg) scaleX(1); } to { transform: skewY(10deg) scaleX(0.84); } }
+    .art .anim-swing { transform-box: fill-box; transform-origin: 50% 0%; animation: a-swing 4.8s ease-in-out infinite alternate; }
+    @keyframes a-swing { from { transform: rotate(-3.5deg); } to { transform: rotate(3.5deg); } }
+    .art .anim-spark { animation: a-spark 3.4s linear infinite; }
+    @keyframes a-spark { 0% { transform: translate(0, 0); opacity: 0; } 12% { opacity: 1; } 100% { transform: translate(var(--sx, 5px), var(--sy, -40px)); opacity: 0; } }
+    .art .anim-oar { transform-box: fill-box; animation: a-oar 2.6s ease-in-out infinite alternate; }
+    @keyframes a-oar { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+    .art .anim-rise { transform-box: fill-box; transform-origin: center; animation: a-rise 8s linear infinite; }
+    @keyframes a-rise { 0% { transform: translate(0, 0) scale(0.5); opacity: 0; } 15% { opacity: 0.6; } 100% { transform: translate(var(--sx, 12px), var(--sy, -34px)) scale(1.6); opacity: 0; } }
+    .art .anim-nod { transform-box: fill-box; transform-origin: 50% 100%; animation: a-nod 5.2s ease-in-out infinite alternate; }
+    @keyframes a-nod { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+    .art .anim-rain { animation: a-rain 0.9s linear infinite; }
+    .art .anim-blow { animation: a-blow 1.5s linear infinite; }
+    .art .anim-snow { animation: a-snowdrift 7s linear infinite; }
+    @keyframes a-snowdrift { 0% { transform: translate(6px, -30px); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translate(-8px, 30px); opacity: 0; } }
+    .art .anim-spin { animation: a-turn 1.4s linear infinite; }
+    @keyframes a-blow { 0% { opacity: 0; transform: translate(-22px, -5px); } 25% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(22px, 5px); } }
+    @keyframes a-rain { 0% { opacity: 0; transform: translate(3px, -9px); } 25% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(-3px, 9px); } }
+    .art .anim-turn { transform-box: fill-box; transform-origin: center; animation: a-turn 5s linear infinite; }
+    @keyframes a-turn { to { transform: rotate(360deg); } }
+    .art .anim-blink { animation: a-blink 2.2s steps(1) infinite; }
+    @keyframes a-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+  }
+</style>
 
 </head>
 <body>
@@ -790,17 +824,24 @@ const ART = (() => {
     if (sky === SKY.morning || sky === SKY.grey || sky === SKY.dusk) {
       const y = 18 + r() * 40, d = -(r() * 40).toFixed(1);
       const bird = (bx, by, sc) => `<g transform="translate(${bx} ${by}) scale(${sc})"><path class="anim-flap" d="M-7,0 Q-3.5,-4 0,0 Q3.5,-4 7,0" stroke="#3E4D54" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`;
-      return `<g class="anim-fly" style="animation-delay:${d}s">${bird(-60, y, 1)}${bird(-76, y + 7, 0.85)}${bird(-48, y + 9, 0.8)}</g>`;
+      const cl = sky === SKY.morning ? fxClouds(r, '#FFFFFF', 0.5) : sky === SKY.grey ? fxClouds(r, '#FFFFFF', 0.3) : fxClouds(r, '#FBE0C0', 0.42);
+      return cl + `<g class="anim-fly" style="animation-delay:${d}s">${bird(-60, y, 1)}${bird(-76, y + 7, 0.85)}${bird(-48, y + 9, 0.8)}</g>`;
     }
-    if (sky === SKY.night && !/anim-twinkle/.test(body)) {
-      let st = ''; for (let i = 0; i < 9; i++) st += `<circle class="anim-twinkle" style="animation-delay:-${(r() * 3).toFixed(1)}s" cx="${(20 + r() * 560).toFixed(0)}" cy="${(8 + r() * 55).toFixed(0)}" r="${(0.8 + r() * 0.8).toFixed(1)}"/>`;
-      return `<g fill="#DCE3EA">${st}</g>`;
+    if (sky === SKY.winter) return fxClouds(r, '#FFFFFF', 0.55, 2);
+    if (sky === SKY.night) {
+      let st = '';
+      if (!/anim-twinkle/.test(body)) { for (let i = 0; i < 9; i++) st += `<circle class="anim-twinkle" style="animation-delay:-${(r() * 3).toFixed(1)}s" cx="${(20 + r() * 560).toFixed(0)}" cy="${(8 + r() * 55).toFixed(0)}" r="${(0.8 + r() * 0.8).toFixed(1)}"/>`; st = `<g fill="#DCE3EA">${st}</g>`; }
+      return st + fxClouds(r, '#2C3E52', 0.55, 2);
     }
+    if (sky === SKY.blue) return fxClouds(r, '#FFFFFF', 0.75);
+    if (sky === SKY.gold) return fxClouds(r, '#FFF6DC', 0.5);
+    if (sky === SKY.storm) return fxClouds(r, '#2F3B44', 0.55, 3);
+    if (sky === SKY.tropic) return fxClouds(r, '#FFFFFF', 0.5, 2);
     return '';
   };
   const ambientFront = (sky, seed) => {
     const r = seeded(seed + 11);
-    if (sky === SKY.room || sky === SKY.hold) {
+    if (sky === SKY.room || sky === SKY.hold || sky === SKY.hall || sky === SKY.ward || sky === SKY.nave) {
       let m = ''; for (let i = 0; i < 10; i++) m += `<circle class="anim-mote" style="animation-delay:-${(r() * 11).toFixed(1)}s" cx="${(30 + r() * 540).toFixed(0)}" cy="${(40 + r() * 160).toFixed(0)}" r="${(0.9 + r() * 1).toFixed(1)}"/>`;
       return `<g fill="#EFE6CC">${m}</g>`;
     }
@@ -810,20 +851,29 @@ const ART = (() => {
   const frame = (sky, body, alt) => {
     const sid = id('sky');
     const seed = (String(alt || "").length * 37 + uid * 11) % 233280;
+    body = body.replace(/<path d="(M[\d.]+,[\d.]+ Q[^"]{8,70}Z)" fill="(#F2B24C|#E0662B)"\/>/g, '<path class="anim-flame" d="$1" fill="$2"/>');
     body = ambientBack(sky, body, seed) + body + ambientFront(sky, seed);
+    if (Object.values(SKY).indexOf(sky) < 0 && !/anim-(mote|rain|blow)|snowfall/.test(body)) { const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(sky[0] || ''); if (m && (parseInt(m[1], 16) * 3 + parseInt(m[2], 16) * 6 + parseInt(m[3], 16)) / 10 < 62) body += ambientFront(SKY.room, seed); }
     const skyName = Object.keys(SKY).find((k) => SKY[k] === sky) || '';
     return `<svg class="art" data-sky="${skyName}" viewBox="0 0 600 250" role="img" aria-label="${alt}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="${sid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="600" height="250" fill="url(#${sid})"/>${body}${weather(sky)}</svg>`;
   };
 
   // ---------- primitives ----------
+  const fxSparks = (x, y, s, n = 3) => Array.from({ length: n }, (_, i) => `<circle class="anim-spark" style="animation-delay:-${(i * 1.15).toFixed(2)}s;--sx:${((i - 1) * 5 * s + 3).toFixed(0)}px;--sy:${(-44 * s).toFixed(0)}px" cx="${(x + (i - (n - 1) / 2) * 7 * s).toFixed(1)}" cy="${(y - 24 * s).toFixed(1)}" r="${Math.max(0.8, 1.3 * s).toFixed(1)}" fill="#F6C56A"/>`).join('');
+  const fxPuffs = (x, y, s = 1, c = '#B9BEC0') => [0, 1, 2].map((i) => `<circle class="anim-rise" style="animation-delay:-${(i * 2.7).toFixed(1)}s;--sx:${(12 * s).toFixed(0)}px;--sy:${(-36 * s).toFixed(0)}px" cx="${x}" cy="${y}" r="${(5 * s).toFixed(1)}" fill="${c}" opacity="0"/>`).join('');
+  const fxCloud = (cx, cy, sc, col, op, d) => `<g class="anim-cloud" style="animation-delay:-${d}s"><g transform="translate(${cx} ${cy}) scale(${sc})" fill="${col}" opacity="${op}"><ellipse cx="0" cy="0" rx="36" ry="6"/><ellipse cx="-12" cy="-5" rx="17" ry="7"/><ellipse cx="12" cy="-7" rx="20" ry="9"/><ellipse cx="32" cy="-2" rx="14" ry="5"/></g></g>`;
+  const fxRain = (n = 40, c = '#A7B3B7', op = 0.7) => [0, 1].map((k) => `<g class="anim-rain" style="animation-delay:-${(k * 0.45).toFixed(2)}s"><path d="${Array.from({ length: Math.ceil(n / 2) }, (_, i) => `M${((i * 2 + k) * 37) % 600},${((i * 2 + k) * 53) % 210} l-4,12`).join(' ')}" stroke="${c}" stroke-width="1" opacity="${op}" fill="none"/></g>`).join('');
+  const fxClouds = (r, col, op, n = 3) => { let c = ''; for (let i = 0; i < n; i++) c += fxCloud((30 + r() * 540).toFixed(0), (12 + r() * 40).toFixed(0), (0.7 + r() * 0.8).toFixed(2), col, op, (r() * 70).toFixed(0)); return c; };
   const water = (y, c = SEA.day) => {
     let w = `<rect x="0" y="${y}" width="600" height="${250 - y}" fill="${c[0]}"/>`;
-    let d = '';
+    let d = '', d2 = '', sp = '';
     for (let i = 0; i < 6; i++) {
       const yy = y + 9 + i * 13; if (yy > 246) break;
       for (let x = (i % 2) * 23 - 10; x < 610; x += 46) d += `M${x},${yy} q8,-3 16,0 `;
+      if (yy + 6 < 248) for (let x = (i % 2) * 31 + 12; x < 610; x += 92) d2 += `M${x},${yy + 6} q5,-2 10,0 `;
     }
-    return w + `<path class="anim-wave" d="${d}" stroke="${c[1]}" stroke-width="1.6" fill="none" opacity="0.8"/>`;
+    for (let i = 0; i < 7; i++) { const sx = Math.round((i * 173 + y * 3) % 586 + 4), sy = Math.round(y + 4 + ((i * 37 + y) % Math.max(8, 240 - y))); if (sy < 247) sp += `<path class="anim-shimmer" style="animation-delay:-${(i * 0.7).toFixed(1)}s" d="M${sx},${sy} h7" stroke="${c[1]}" stroke-width="1.6" stroke-linecap="round" fill="none"/>`; }
+    return w + `<rect x="0" y="${y}" width="600" height="1.4" fill="${c[1]}" opacity="0.5"/><path class="anim-wave" d="${d}" stroke="${c[1]}" stroke-width="1.6" fill="none" opacity="0.8"/>` + (d2 ? `<path class="anim-wave2" d="${d2}" stroke="${c[1]}" stroke-width="1.1" fill="none" opacity="0.5"/>` : '') + sp;
   };
   const glow = (cx, cy, r, color = GLOW, op = 0.85) => {
     const gid = id('glow');
@@ -834,16 +884,25 @@ const ART = (() => {
     const sail = o.sail || SAIL;
     const sails = o.furled
       ? `<path d="M-30,-92 L2,-92 M-28,-60 L0,-60 M10,-84 L38,-84 M12,-56 L36,-56" stroke-width="3" fill="none"/>`
-      : `<path d="M-32,-100 Q-14,-94 4,-100 L4,-50 Q-14,-44 -32,-50 Z" fill="${sail}"/><path d="M8,-92 Q24,-87 40,-92 L40,-46 Q24,-41 8,-46 Z" fill="${sail}"/><path d="M30,-94 L76,-26 L30,-30 Z" fill="${sail}"/>`;
-    return g(x, y, s, `<path d="M-14,-12 L-14,-108 M24,-12 L24,-98 M60,-12 L82,-26" stroke-width="3" fill="none"/>${sails}<path d="M-14,-108 L-2,-104 L-14,-100 Z"/><path d="M-58,-12 L60,-12 L47,8 L-45,8 Z"/>`, o);
+      : `<path d="M-32,-100 Q-14,-94 4,-100 L4,-50 Q-14,-44 -32,-50 Z" fill="${sail}"/><path d="M8,-92 Q24,-87 40,-92 L40,-46 Q24,-41 8,-46 Z" fill="${sail}"/><path d="M30,-94 L76,-26 L30,-30 Z" fill="${sail}"/>` +
+        `<path d="M-32,-75 Q-14,-69 4,-75 M8,-69 Q24,-64 40,-69" stroke="#000000" stroke-width="0.8" opacity="0.18" fill="none"/>`;
+    return g(x, y, s, `<path d="M-14,-12 L-14,-108 M24,-12 L24,-98 M60,-12 L82,-26" stroke-width="3" fill="none"/>` +
+      `<path d="M-14,-106 L-50,-12 M-14,-106 L-4,-12 M24,-96 L12,-12 M24,-96 L48,-12 M-14,-106 L24,-96 M24,-96 L82,-26" stroke-width="0.9" fill="none" opacity="0.55"/>` +
+      `${sails}<path class="anim-flag" d="M-14,-108 L-2,-104 L-14,-100 Z"/><path d="M-58,-12 L60,-12 L47,8 L-45,8 Z"/><path d="M-55,-7 L57,-7" stroke="#FFFFFF" stroke-width="1.5" opacity="0.2" fill="none"/>`, o);
   };
   const house = (x, y, s, o = {}) => g(x, y, s,
     `<rect x="-36" y="-34" width="72" height="34"/><path d="M-42,-32 L0,-64 L42,-32 Z"/><rect x="16" y="-66" width="9" height="22"/>` +
+    (s >= 0.45 ? `<path d="M-42,-32 L0,-64 L42,-32 L35,-32 L0,-58 L-35,-32 Z" fill="#FFFFFF" opacity="0.1" stroke="none"/><path d="M-24,-36 L-18,-41 M-8,-40 L0,-47 M10,-47 L18,-41 M22,-38 L28,-34 M-12,-34 L-5,-39 M4,-38 L11,-34" stroke="#FFFFFF" stroke-width="1" opacity="0.13" fill="none"/>` +
+      (o.window ? '' : `<rect x="-25" y="-25" width="12" height="11" fill="#FFFFFF" opacity="0.16" stroke="none"/><path d="M-19,-25 L-19,-14 M-25,-19.5 L-13,-19.5" stroke="#000000" stroke-width="0.8" opacity="0.4" fill="none"/>`) +
+      (o.door ? '' : `<rect x="4" y="-23" width="11" height="23" fill="#000000" opacity="0.3" stroke="none"/>`) : '') +
     (o.window ? `<rect x="-24" y="-24" width="11" height="10" fill="${o.window}"/>` : '') +
-    (o.door ? `<rect x="4" y="-24" width="11" height="24" fill="${o.door}"/>` : ''), o);
-  const barn = (x, y, s, o = {}) => g(x, y, s, `<path d="M-34,0 L-34,-38 L-22,-56 L22,-56 L34,-38 L34,0 Z"/>`, o);
+    (o.door ? `<rect x="4" y="-24" width="11" height="24" fill="${o.door}"/>` : '') +
+    (o.smoke ? fxPuffs(20.5, -70, 1) : ''), o);
+  const barn = (x, y, s, o = {}) => g(x, y, s, `<path d="M-34,0 L-34,-38 L-22,-56 L22,-56 L34,-38 L34,0 Z"/>` +
+    (s >= 0.45 ? `<rect x="-12" y="-27" width="24" height="27" fill="#000000" opacity="0.3" stroke="none"/><path d="M0,-27 L0,0 M-12,-27 L0,-13 L-12,0 M12,-27 L0,-13 L12,0" stroke="#FFFFFF" stroke-width="0.8" opacity="0.14" fill="none"/><rect x="-5" y="-48" width="10" height="9" fill="#000000" opacity="0.3" stroke="none"/><path d="M-34,-38 L34,-38" stroke="#FFFFFF" stroke-width="1" opacity="0.12" fill="none"/>` : ''), o);
   const church = (x, y, s, o = {}) => g(x, y, s,
-    `<rect x="-40" y="-44" width="80" height="44"/><path d="M-44,-42 L0,-66 L44,-42 Z"/><rect x="-8" y="-84" width="16" height="22"/><path d="M-10,-84 L0,-104 L10,-84 Z"/><path d="M0,-114 L0,-103 M-4,-109 L4,-109" stroke-width="2" fill="none"/>`, o);
+    `<rect x="-40" y="-44" width="80" height="44"/><path d="M-44,-42 L0,-66 L44,-42 Z"/><rect x="-8" y="-84" width="16" height="22"/><path d="M-10,-84 L0,-104 L10,-84 Z"/><path d="M0,-114 L0,-103 M-4,-109 L4,-109" stroke-width="2" fill="none"/>` +
+    (s >= 0.45 ? `<path d="M-6,0 L-6,-17 Q0,-24 6,-17 L6,0 Z" fill="#000000" opacity="0.32" stroke="none"/><path d="M-30,-12 L-30,-26 Q-25.5,-33 -21,-26 L-21,-12 Z M21,-12 L21,-26 Q25.5,-33 30,-26 L30,-12 Z" fill="#FFFFFF" opacity="0.17" stroke="none"/><rect x="-3" y="-79" width="6" height="10" fill="#000000" opacity="0.32" stroke="none"/><path d="M-44,-42 L0,-66 L44,-42 L37,-42 L0,-60 L-37,-42 Z" fill="#FFFFFF" opacity="0.1" stroke="none"/>` : ''), o);
   const spruce = (x, y, h, c = INK) => `<g class="anim-sway" style="animation-delay:-${((x * 7) % 50 / 10).toFixed(1)}s">${spruce0(x, y, h, c)}</g>`;
   const spruce0 = (x, y, h, c = INK) => {
     const p = (a, b) => `${(x + a * h).toFixed(1)},${(y + b * h).toFixed(1)}`;
@@ -855,13 +914,15 @@ const ART = (() => {
     `<rect x="-4" y="-30" width="8" height="30"/><circle cx="0" cy="-50" r="22"/><circle cx="-19" cy="-38" r="15"/><circle cx="19" cy="-38" r="15"/>` +
     (o.apples === false ? '' : `<g fill="${APPLE}"><circle cx="-10" cy="-44" r="3"/><circle cx="12" cy="-52" r="3"/><circle cx="-22" cy="-32" r="3"/><circle cx="20" cy="-34" r="3"/><circle cx="2" cy="-36" r="3"/></g>`), o);
   const wikuom = (x, y, s, o = {}) => g(x, y, s,
-    `<path d="M-6,-62 L4,-46 M6,-62 L-4,-46" stroke-width="2.5" fill="none"/><path d="M-24,0 L0,-54 L24,0 Z"/><path d="M-6,0 L-6,-12 Q0,-18 6,-12 L6,0 Z" fill="${o.door || '#0E1416'}"/>`, o);
+    `<path d="M-6,-62 L4,-46 M6,-62 L-4,-46" stroke-width="2.5" fill="none"/><path d="M-24,0 L0,-54 L24,0 Z"/>` +
+    (s >= 0.45 ? `<path d="M-17,-16 Q0,-11 17,-16 M-10,-32 Q0,-28 10,-32" stroke="#FFFFFF" stroke-width="1" opacity="0.14" fill="none"/>` : '') +
+    `<path d="M-6,0 L-6,-12 Q0,-18 6,-12 L6,0 Z" fill="${o.door || '#0E1416'}"/>` + (o.smoke ? fxPuffs(0, -60, 0.8) : ''), o);
   const canoe = (x, y, s, o = {}) => g(x, y, s, `<path d="M-36,-8 Q-32,4 -16,4 L16,4 Q32,4 36,-8 Q20,-3 0,-3 Q-20,-3 -36,-8 Z"/>`, o);
   const fire = (x, y, s) => glow(x, y - 12 * s, 70 * s) + '<g class="anim-flame">' + g(x, y, s,
-    `<path d="M-18,2 L18,-4 M-18,-4 L18,2" stroke-width="5" fill="none"/><path d="M-12,0 Q-15,-14 -5,-27 Q-2,-15 4,-19 Q4,-31 12,-38 Q15,-21 17,-12 Q18,-3 12,0 Z" fill="${FLAME}"/><path d="M-5,0 Q-6,-8 0,-15 Q3,-8 6,-11 Q9,-4 6,0 Z" fill="${GLOW}"/>`) + '</g>';
-  const flames = (x, y, s) => '<g class="anim-flame">' + g(x, y, s, `<path d="M-14,0 Q-18,-16 -6,-30 Q-3,-17 3,-22 Q3,-36 12,-44 Q15,-25 18,-14 Q20,-4 14,0 Z" fill="${FLAME}"/><path d="M-6,0 Q-7,-9 0,-17 Q3,-9 6,-12 Q10,-4 7,0 Z" fill="${GLOW}"/>`) + '</g>';
+    `<path d="M-18,2 L18,-4 M-18,-4 L18,2" stroke-width="5" fill="none"/><path d="M-12,0 Q-15,-14 -5,-27 Q-2,-15 4,-19 Q4,-31 12,-38 Q15,-21 17,-12 Q18,-3 12,0 Z" fill="${FLAME}"/><path d="M-5,0 Q-6,-8 0,-15 Q3,-8 6,-11 Q9,-4 6,0 Z" fill="${GLOW}"/>`) + '</g>' + fxSparks(x, y, s);
+  const flames = (x, y, s) => '<g class="anim-flame">' + g(x, y, s, `<path d="M-14,0 Q-18,-16 -6,-30 Q-3,-17 3,-22 Q3,-36 12,-44 Q15,-25 18,-14 Q20,-4 14,0 Z" fill="${FLAME}"/><path d="M-6,0 Q-7,-9 0,-17 Q3,-9 6,-12 Q10,-4 7,0 Z" fill="${GLOW}"/>`) + '</g>' + fxSparks(x, y, s, 2);
   const smoke = (x, y, s, c = '#8E9393', op = 0.55) => '<g class="anim-smoke">' + g(x, y, s, `<circle cx="0" cy="0" r="10"/><circle cx="7" cy="-17" r="13"/><circle cx="-2" cy="-38" r="16"/><circle cx="10" cy="-62" r="20"/><circle cx="2" cy="-90" r="23"/>`, { c, op }) + '</g>';
-  const moon = (x, y, r = 14) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#ECE5CC"/>`;
+  const moon = (x, y, r = 14) => glow(x, y, r * 3, '#ECE5CC', 0.3) + `<circle cx="${x}" cy="${y}" r="${r}" fill="#ECE5CC"/><g fill="#CDC6AC" opacity="0.75"><circle cx="${x - r * 0.3}" cy="${y - r * 0.2}" r="${(r * 0.2).toFixed(1)}"/><circle cx="${x + r * 0.35}" cy="${y + r * 0.3}" r="${(r * 0.14).toFixed(1)}"/><circle cx="${x + r * 0.1}" cy="${y - r * 0.52}" r="${(r * 0.1).toFixed(1)}"/></g>`;
   const stars = (pts) => `<g fill="#DCE3EA">${pts.map(([x, y, r = 1.4], i) => `<circle${i % 3 === 0 ? ' class="anim-twinkle"' : ''} cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>`;
   const STARS = [[40, 30], [90, 60], [150, 22], [210, 48], [260, 18], [330, 40], [380, 20], [440, 55], [500, 28], [560, 46], [120, 90, 1], [470, 85, 1], [300, 75, 1]];
   const oxcart = (x, y, s, o = {}) => g(x, y, s, '<g transform="translate(0 -22)">' + OX_SVG +
@@ -873,9 +934,9 @@ const ART = (() => {
     let figs = '';
     for (let i = 0; i < n; i++) { const cx = n === 1 ? 0 : -28 + i * (56 / (n - 1)); figs += `<circle cx="${cx}" cy="-27" r="5.5"/><path d="M${cx - 7},-11 L${cx + 7},-11 L${cx + 6},-21 L${cx - 6},-21 Z"/>`; }
     if (o.hat) figs += `<path d="M-12,-31 L12,-31 L12,-28 L-12,-28 Z M-6,-31 L-5,-38 L5,-38 L6,-31 Z"/>`;
-    return g(x, y, s, `${figs}<path d="M-8,-13 L-26,8 M8,-13 L26,8" stroke-width="2.5" fill="none"/><path d="M-44,-10 L44,-10 L34,5 L-34,5 Z"/>`, o);
+    return g(x, y, s, `${figs}<path class="anim-oar" style="transform-origin:100% 0%" d="M-8,-13 L-26,8" stroke-width="2.5" fill="none"/><path class="anim-oar" style="transform-origin:0% 0%;animation-delay:-0.4s" d="M8,-13 L26,8" stroke-width="2.5" fill="none"/><path d="M-44,-10 L44,-10 L34,5 L-34,5 Z"/><path d="M-41,-6 L41,-6" stroke="#FFFFFF" stroke-width="1.2" opacity="0.16" fill="none"/>`, o);
   };
-  const lantern = (x, y) => glow(x, y, 46, GLOW, 0.9) + `<rect x="${x - 4}" y="${y - 6}" width="8" height="11" fill="${GLOW}" stroke="${INK}" stroke-width="1.5"/>`;
+  const lantern = (x, y) => glow(x, y, 46, GLOW, 0.9) + `<path d="M${x - 3},${y - 6} Q${x},${y - 12} ${x + 3},${y - 6}" stroke="${INK}" stroke-width="1.2" fill="none"/><rect x="${x - 4}" y="${y - 6}" width="8" height="11" fill="${GLOW}" stroke="${INK}" stroke-width="1.5"/><path class="anim-flame" d="M${x},${y + 3.5} q-2.3,-3 0,-6.5 q2.3,3.5 0,6.5 Z" fill="#FFF6D6"/>`;
 
   // ---------- figures (height 100, feet at 0, facing right) ----------
   const FIG = {
@@ -897,11 +958,13 @@ const ART = (() => {
   const fig = (kind, x, y, h, o = {}) => `<g class="anim-breathe" style="animation-delay:-${((x * 13) % 42 / 10).toFixed(1)}s">${g(x, y, h / 100, FIG[kind], o)}</g>`;
 
   // ---------- interiors ----------
-  const room = (inner) => `<rect x="0" y="206" width="600" height="44" fill="#1A1412"/>${inner}`;
+  const room = (inner) => `<rect x="0" y="206" width="600" height="44" fill="#1A1412"/><path d="M0,219 L600,219 M0,234 L600,234 M90,206 L90,219 M300,206 L300,219 M510,206 L510,219 M190,219 L190,234 M410,219 L410,234 M60,234 L60,250 M330,234 L330,250 M540,234 L540,250" stroke="#000000" stroke-width="1.2" opacity="0.4" fill="none"/>${inner}`;
   const hearth = (opts = {}) =>
     `<rect x="372" y="84" width="176" height="122" fill="#3A302B"/>` +
+    `<path d="M372,105 L548,105 M372,126 L548,126 M372,147 L402,147 M518,147 L548,147 M372,168 L402,168 M518,168 L548,168 M372,188 L402,188 M518,188 L548,188 M412,88 L412,105 M470,88 L470,105 M522,88 L522,105 M440,105 L440,126 M498,105 L498,126 M387,126 L387,147 M533,126 L533,147 M389,168 L389,188 M531,168 L531,188" stroke="#000000" stroke-width="1.2" opacity="0.3" fill="none"/>` +
     `<path d="M402,206 L402,146 Q460,112 518,146 L518,206 Z" fill="#2A1A12"/>` + glow(460, 190, 90, GLOW, 0.75) +
-    g(460, 204, 1.25, `<path d="M-18,2 L18,-4 M-18,-4 L18,2" stroke-width="5" fill="none"/><path d="M-12,0 Q-15,-14 -5,-27 Q-2,-15 4,-19 Q4,-31 12,-38 Q15,-21 17,-12 Q18,-3 12,0 Z" fill="${FLAME}"/>`) +
+    '<g class="anim-flame">' + g(460, 204, 1.25, `<path d="M-18,2 L18,-4 M-18,-4 L18,2" stroke-width="5" fill="none"/><path d="M-12,0 Q-15,-14 -5,-27 Q-2,-15 4,-19 Q4,-31 12,-38 Q15,-21 17,-12 Q18,-3 12,0 Z" fill="${FLAME}"/>`) + '</g>' + fxSparks(460, 200, 1) +
+    `<path d="M460,128 L460,148" stroke="#0E0B0A" stroke-width="1.6" fill="none"/><path d="M447,150 Q447,165 460,165 Q473,165 473,150 Z" fill="#0E0B0A"/><path d="M445,150 L475,150" stroke="#0E0B0A" stroke-width="3" stroke-linecap="round" fill="none"/>` +
     `<rect x="362" y="78" width="196" height="10" fill="${INK}"/>` +
     (opts.box !== false ? `<rect x="420" y="62" width="38" height="16" fill="#5A3D2B"/>` : '');
   const windowL = (x = 60, y = 58, light = '#BFC7C3') =>
@@ -931,7 +994,8 @@ const ART = (() => {
   const holdBase = (o = {}) => {
     const hx = o.hx || 276;
     return `<rect x="0" y="0" width="600" height="18" fill="#0A0E10"/><rect x="0" y="40" width="600" height="10" fill="#0A0E10"/>` +
-      (o.lantern ? lantern(o.lx || 300, o.ly || 80) : o.dark ? `<rect x="${hx}" y="0" width="64" height="6" fill="#C9D3D6" opacity="0.4"/>` :
+      `<path d="M0,98 L600,98 M0,150 L600,150 M0,196 L600,196" stroke="#000000" stroke-width="1.5" opacity="0.28" fill="none"/>` + [56, 176, 424, 544].map((x) => `<rect x="${x}" y="50" width="8" height="164" fill="#0A0E10" opacity="0.4"/>`).join('') +
+      (o.lantern ? `<g class="anim-swing"><path d="M${o.lx || 300},${(o.ly || 80) - 44} L${o.lx || 300},${(o.ly || 80) - 10}" stroke="#0A0E10" stroke-width="1.3" fill="none"/>${lantern(o.lx || 300, o.ly || 80)}</g>` : o.dark ? `<rect x="${hx}" y="0" width="64" height="6" fill="#C9D3D6" opacity="0.4"/>` :
         `<path d="M${hx},0 L${hx + 64},0 L${hx + 144},250 L${hx - 76},250 Z" fill="${o.light || '#C9D3D6'}" opacity="0.14"/><rect x="${hx}" y="0" width="64" height="18" fill="${o.light || '#C9D3D6'}" opacity="0.7"/>`) +
       `<rect x="0" y="214" width="600" height="36" fill="#0C1013"/>` +
       (o.crowd === false ? '' : [[30, 216, 62], [82, 218, 54], [524, 216, 64], [574, 218, 56]].map(([x, y, h]) => fig('BACK', x, y, h, { c: '#1E272C' })).join(''));
@@ -943,7 +1007,19 @@ const ART = (() => {
   Object.assign(SKY, { gold: ['#D9B56A', '#F3E3B8'], blue: ['#9FC0D6', '#DCEAF0'], storm: ['#3A4750', '#77858C'], nave: ['#1E1A1C', '#3B3232'], white: ['#E4E9EC', '#F6F8F9'] });
   FIG.RUNM = `<circle cx="9" cy="-88" r="8"/><path d="M-2,-93 L20,-93 L20,-90 L-2,-90 Z M3,-93 L4,-101 L14,-101 L15,-93 Z"/><path d="M-2,-80 L15,-79 L17,-42 L-6,-40 Z"/><path d="M4,-42 L-12,-2 M11,-42 L27,-10" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M13,-74 L29,-58 M0,-74 L-14,-60" stroke-width="4" stroke-linecap="round" fill="none"/>`;
   FIG.UP = FIG.M + `<path d="M-9,-78 L-20,-108 M9,-78 L20,-108" stroke-width="4" stroke-linecap="round" fill="none"/>`;
-  const gr = (y, c = INK, dip = 8) => `<path d="M0,250 L0,${y} Q300,${y - dip} 600,${y} L600,250 Z" fill="${c}"/>`;
+  const gr = (y, c = INK, dip = 8) => {
+    let t = '';
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(c || '');
+    if (m && y >= 176 && y <= 236) {
+      const [rr, gg, bb] = [1, 2, 3].map((i) => parseInt(m[i], 16));
+      if (gg >= rr + 3 && gg > bb + 10 && gg > 60) {
+        let d = ''; const r = seeded(y * 31 + dip * 7 + 5);
+        for (let i = 0; i < 20; i++) { const tt = r(); const X = (600 * tt).toFixed(0); const Y = (y - 2 * tt * (1 - tt) * dip + 3 + r() * (250 - y) * 0.6).toFixed(0); d += `M${X},${Y} l-3,-6 M${X},${Y} l1,-8 M${X},${Y} l4,-5 `; }
+        t = `<path d="${d}" stroke="#000000" stroke-width="1.2" opacity="0.2" fill="none"/>`;
+      }
+    }
+    return `<path d="M0,250 L0,${y} Q300,${y - dip} 600,${y} L600,250 Z" fill="${c}"/>` + t;
+  };
   const rw = (kind, xs, y, h, o) => xs.map((x, i) => fig(kind, x, y, h, typeof o === 'function' ? o(i) : o)).join('');
   const stk = (d, w = 3, c = INK) => `<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
   const tent = (x, y, s = 1, c = '#DAD7CD') => `<path d="M${x - 16 * s},${y} L${x},${y - 22 * s} L${x + 16 * s},${y} Z" fill="${c}"/>`;
@@ -967,8 +1043,8 @@ const ART = (() => {
 
   const skyline = (c = MID, y = 150, lit = false) => [[40, 50, 40], [86, 44, 56], [134, 52, 38], [190, 40, 64], [236, 60, 46], [300, 46, 52], [350, 56, 40], [404, 44, 60], [452, 58, 44], [512, 48, 54], [560, 52, 38]].map(([x, w, h]) =>
     `<rect x="${x - w / 2}" y="${y - h}" width="${w}" height="${h}" fill="${c}"/>` + (lit ? `<rect x="${x - 5}" y="${y - h + 12}" width="6" height="7" fill="${GLOW}"/>` : '')).join('') + `<rect x="296" y="${y - 94}" width="10" height="40" fill="${c}"/><path d="M292,${y - 92} L301,${y - 120} L310,${y - 92} Z" fill="${c}"/>`;
-  const deck = (c = INK) => `<rect x="0" y="196" width="600" height="54" fill="${c}"/><rect x="0" y="182" width="600" height="7" fill="${c}"/>`;
-  const hut = (x, y, s = 1, c = INK) => g(x, y, s, `<rect x="-26" y="-28" width="52" height="28"/><path d="M-32,-26 L0,-48 L32,-26 Z"/>`, { c });
+  const deck = (c = INK) => `<rect x="0" y="196" width="600" height="54" fill="${c}"/><rect x="0" y="182" width="600" height="7" fill="${c}"/><path d="M40,189 L40,196 M140,189 L140,196 M240,189 L240,196 M340,189 L340,196 M440,189 L440,196 M540,189 L540,196" stroke="${c}" stroke-width="4" fill="none"/><path d="M0,212 L600,212 M0,230 L600,230 M90,196 L90,212 M300,196 L300,212 M510,196 L510,212 M190,212 L190,230 M410,212 L410,230 M60,230 L60,250 M330,230 L330,250 M540,230 L540,250" stroke="#FFFFFF" stroke-width="1" opacity="0.1" fill="none"/>`;
+  const hut = (x, y, s = 1, c = INK) => g(x, y, s, `<rect x="-26" y="-28" width="52" height="28"/><path d="M-32,-26 L0,-48 L32,-26 Z"/>` + (s >= 0.45 ? `<rect x="-5" y="-17" width="10" height="17" fill="#000000" opacity="0.3" stroke="none"/><path d="M-32,-26 L0,-48 L32,-26 L26,-26 L0,-43 L-26,-26 Z" fill="#FFFFFF" opacity="0.1" stroke="none"/>` : ''), { c });
   const stump = (x, y) => `<rect x="${x - 7}" y="${y - 10}" width="14" height="10" fill="#5A4636"/>`;
   const bush = (x, y, s = 1, c = INK) => g(x, y, s, `<circle cx="-18" cy="-12" r="16"/><circle cx="0" cy="-20" r="20"/><circle cx="20" cy="-12" r="16"/>`, { c });
   const racks = (x, y, n = 3, c = '#5A4636') => Array.from({ length: n }, (_, i) => stk(`M${x + i * 34},${y} L${x + i * 34},${y - 16} M${x + i * 34 - 12},${y - 16} L${x + i * 34 + 22},${y - 16}`, 2.5, c) + `<rect x="${x + i * 34 - 10}" y="${y - 16}" width="30" height="5" fill="#C9C2B0"/>`).join('');
@@ -999,7 +1075,7 @@ const ART = (() => {
   const canoeW = (x, y, s, n = 2, c = INK) => canoe(x, y, s, { c }) + Array.from({ length: n }, (_, i) => `<circle cx="${x - 18 * s + i * (36 * s / Math.max(1, n - 1))}" cy="${y - 14 * s}" r="${5 * s}" fill="${c}"/><rect x="${x - 22 * s + i * (36 * s / Math.max(1, n - 1))}" y="${y - 10 * s}" width="${8 * s}" height="${8 * s}" fill="${c}"/>`).join('');
   const hill = (c, y, dip = 20) => `<path d="M0,250 L0,${y} Q150,${y - dip} 300,${y - 4} T600,${y} L600,250 Z" fill="${c}"/>`;
   const snowfield = (y = 180) => gr(y, '#E4ECEF', 6) + stk(`M60,${y + 20} q20,-4 40,0 M300,${y + 30} q30,-5 60,0 M480,${y + 16} q18,-3 36,0`, 1.4, '#C6D3D9');
-  const marsh = (y, c = '#6E7A4A') => stk(Array.from({ length: 70 }, (_, i) => `M${i * 9 + 2},250 l${(i % 3) - 1},-${18 + (i % 5) * 7}`).join(' '), 2.5, c);
+  const marsh = (y, c = '#6E7A4A') => '<g class="anim-sway">' + stk(Array.from({ length: 70 }, (_, i) => `M${i * 9 + 2},250 l${(i % 3) - 1},-${18 + (i % 5) * 7}`).join(' '), 2.5, c) + '</g>';
   const priestF = (x, y, h) => fig('W', x, y, h, { c: '#1E1A1A' }) + `<rect x="${x - 2}" y="${y - h * 0.7}" width="4" height="${h * 0.16}" fill="#E8E1D0"/>`;
 
   // ================= WHAT THE BOX REMEMBERS: new primitives =================
@@ -1066,7 +1142,7 @@ const ART = (() => {
   const tropTree = (x, y, h = 100, c = '#3E5A2E') => g(x, y, h / 100, `<path d="M-3,0 Q-6,-50 2,-92" stroke="#5A4636" stroke-width="6" fill="none"/><path d="M2,-92 Q-30,-100 -50,-76 M2,-92 Q30,-104 52,-80 M2,-92 Q-14,-120 -36,-118 M2,-92 Q20,-122 40,-116 M2,-92 Q2,-120 0,-130" stroke="${c}" stroke-width="9" fill="none" stroke-linecap="round"/>`, { c });
   const notebook = (x, y, s = 1) => `<rect x="${x - 22 * s}" y="${y - 30 * s}" width="${44 * s}" height="${30 * s}" fill="#F4F0E6" stroke="#5A4636" stroke-width="1.5"/>` + stk(`M${x - 16 * s},${y - 22 * s} L${x + 16 * s},${y - 22 * s} M${x - 16 * s},${y - 15 * s} L${x + 14 * s},${y - 15 * s} M${x - 16 * s},${y - 8 * s} L${x + 10 * s},${y - 8 * s}`, 1, '#8C8272');
   const lamp = (x, y) => glow(x, y, 70, GLOW, 0.6) + `<path d="M${x - 8},${y + 10} L${x + 8},${y + 10} L${x + 5},${y - 8} L${x - 5},${y - 8} Z" fill="${GLOW}" stroke="${INK}" stroke-width="1.5"/>`;
-  const snowfall = () => `<g class="anim-snow" fill="#FFFFFF" opacity="0.85">${Array.from({ length: 40 }, (_, i) => `<circle cx="${(i * 73) % 600}" cy="${(i * 41) % 240}" r="${1.2 + (i % 3) * 0.6}"/>`).join('')}</g>`;
+  const snowfall = () => [0, 1].map((k) => `<g class="anim-snow" style="animation-delay:-${k * 3.5}s"><g fill="#FFFFFF" opacity="0.85">${Array.from({ length: 40 }, (_, i) => (i % 2 === k ? `<circle cx="${(i * 73) % 600}" cy="${(i * 41) % 240}" r="${1.2 + (i % 3) * 0.6}"/>` : '')).join('')}</g></g>`).join('');
   const basin = (y = 150, c = SEA.day) => water(y, c) + `<path d="M0,${y} Q120,${y - 20} 260,${y - 6} T600,${y - 14} L600,${y} Z" fill="#6E8460" opacity="0.6"/>`;
   const africville = (y = 170, n = 6) => [60, 150, 240, 330, 420, 510].slice(0, n).map((x, i) => afHouse(x, y + (i % 2) * 6, 0.8, ['#C9A64E', '#8FB0C0', '#D98C7A', '#E9E1CC', '#9EB07A', '#C98F4E'][i])).join('');
   const people = (x, y, kinds, h = 80, gap = 30, c = INK) => kinds.map((k, i) => fig(k, x + i * gap, y, k === 'CHILD' || k === 'GIRL' ? h * 0.8 : h, { c, flip: i % 2 === 1 })).join('');
@@ -1108,7 +1184,7 @@ const ART = (() => {
     countryside: (alt) => frame(SKY.morning, hill('#7E9A5A', 150) + hill('#5E7A3A', 180, 14) + forest(184, 60, 20, '#3E5234') + `<rect x="420" y="130" width="60" height="36" fill="#D9CDB4"/><path d="M412,132 L450,108 L488,132 Z" fill="#8E3B2C"/>` + rw('M', [140, 180, 220], 236, 80), alt),
     service: (alt, o = {}) => frame(o.sky || SKY.morning, tallForest() + gr(200, '#4E5A3A', 2) + `<rect x="270" y="170" width="60" height="30" fill="#5A4636"/>` + fig('PREACH', 300, 170, 80) + heads(206, 12, INK, 70, 44), alt),
     tentIn: (alt) => frame(SKY.room, `<rect width="600" height="250" fill="#3A3428"/><path d="M0,250 L300,10 L600,250 Z" fill="#8A7E60"/>` + lamp(300, 110) + table(300, 170, 160) + notebook(300, 170, 0.9) + fig('SEAT', 240, 236, 90) + fig('SEAT', 380, 236, 90, { flip: true }), alt),
-    hospital: (alt, o = {}) => frame(SKY.room, roomBox(o.wall || '#D9D3C4', '#8A7E6A') + win2(260, 40, 80, 80, o.night ? '#1E2A3A' : '#C2CED1') + bedrow(186) + (o.lamp ? lamp(500, 100) : '') + (o.nurse ? fig('W', 230, 236, 92, { c: '#4A4A4A' }) : ''), alt),
+    hospital: (alt, o = {}) => frame(SKY.room, roomBox(o.wall || '#D9D3C4', '#8A7E6A') + win2(260, 40, 80, 80, o.night ? '#1E2A3A' : '#C2CED1') + bedrow(186) + (o.lamp ? lamp(500, 100) : '') + (o.nurse ? fig('NURSE', 230, 236, 92, { c: '#F4F1EA' }) + `<path d="M227,170 L233,170 M230,167 L230,173" stroke="#B5442E" stroke-width="1.6"/>` : ''), alt),
     christmas: (alt) => frame(SKY.winter, `<path d="M0,120 L80,60 L180,110 L280,40 L380,100 L480,50 L600,110 L600,250 L0,250 Z" fill="#A9B8C0"/>` + forest(200, 150, 26, '#2E4228') + snowfield(200) + hutRow(206, [70, 530], '#4A3E34') + people(180, 240, ['DRUM', 'HORN', 'HORN', 'HORN', 'M'], 80, 44) + people(420, 240, ['W', 'CHILD', 'M'], 76, 30, MID) + snowfall(), alt),
     kinmel: (alt, o = {}) => frame(SKY.fog, hill('#7E8A7A', 140) + hutRow(186, [60, 170, 280, 390, 500], '#4A5458') + gr(190, '#5E6A5A', 0) + (o.crowd ? crowd(60, 236, 16, 72, INK) : rw('M', [120, 160, 200, 240, 280], 236, 80)), alt),
     homecoming: (alt, o = {}) => frame(o.sky || SKY.grey, water(150, SEA.grey) + steamer(400, 190, 0.8) + wharf(206) + rw('M', [60, 90, 120, 150, 180, 210], 244, 70) + people(270, 244, ['W', 'CHILD'], 70, 30, MID), alt),
@@ -1300,6 +1376,7 @@ const ART = (() => {
   };
   Object.entries(SPEC).forEach(([n, [set, alt, o]]) => { MAP[Number(n)] = () => vary(SET[set](alt, o || {}), o || {}); });
   // ---------- figures by era: the engine's silhouettes are dressed for 1755, so each strand gets its own ----------
+  FIG.NURSE = `<circle cx="0" cy="-89" r="8"/><path d="M-9,-92 Q0,-103 9,-92 L12,-76 L-12,-76 Z"/><path d="M-10,-80 L10,-80 L8,-58 L14,0 L-14,0 L-8,-58 Z"/>`;
   const FIG0 = { ...FIG };
   const X_DRUM = FIG.DRUM.slice(FIG.M.length), X_HORN = FIG.HORN.slice(FIG.M.length), X_PREACH = FIG.PREACH.slice(FIG.M.length), X_SING = FIG.SING.slice(FIG.W.length);
   const LEGS = `<rect x="-8" y="-40" width="6" height="40"/><rect x="2" y="-40" width="6" height="40"/>`;
@@ -1307,7 +1384,7 @@ const ART = (() => {
   const SEAT_BARE = FIG.SEAT.replace(`<path d="M-13,-70 Q-4,-81 5,-70 L6,-65 L-14,-65 Z"/>`, '');
   const W_1915 = `<circle cx="0" cy="-89" r="8"/><ellipse cx="0" cy="-96" rx="14" ry="2.6"/><path d="M-7,-96 Q0,-106 7,-96 Z"/><path d="M-10,-80 L10,-80 L8,-58 L14,0 L-14,0 L-8,-58 Z"/>`;
   const ERA = {
-    y1783: {},
+    y1783: { SITS: `<circle cx="0" cy="-66" r="8"/><path d="M-13,-71 L13,-71 L13,-68 L-13,-68 Z M-8,-71 L-7,-80 L7,-80 L8,-71 Z"/><path d="M-10,-58 L10,-58 L12,-28 L-12,-28 Z"/><path d="M-12,-31 L22,-31 L22,-24 L-12,-24 Z"/><path d="M16,-26 L22,-26 L24,0 L14,0 Z"/>` },
     y1915: { W: W_1915, SITS: SITS_BARE, SEAT: SEAT_BARE,
       M: `<circle cx="0" cy="-90" r="8"/><path d="M-9,-93 Q-8,-102 2,-101 Q9,-100 10,-95 L16,-93 L16,-91 L-9,-91 Z"/><path d="M-11,-81 L11,-81 L12,-38 L-12,-38 Z"/>` + LEGS },
     army: { W: W_1915, SITS: SITS_BARE, SEAT: SEAT_BARE,
