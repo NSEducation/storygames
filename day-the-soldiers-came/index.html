@@ -603,6 +603,14 @@
     .checklist li { border-bottom: 1px solid #999; }
     .checklist li.done > span:not(.box) { text-decoration: none; color: #000; }
   }
+</style><style id="wide">
+  /* wider layout on laptops and Chromebooks */
+  main { max-width: min(64rem, 100%); }
+  .bar-inner { max-width: min(72rem, 100%); }
+  .story p { max-width: 42em; }
+  /* the picture never takes more than about half the screen height, so the story shows without scrolling */
+  .art { width: min(100%, calc(46vh * 12 / 5)); margin-left: auto; margin-right: auto; }
+  @media (min-width: 900px) { .art-wrap { background: transparent; border-bottom: 0; padding-top: 1rem; } .art { border-radius: 10px; } }
 </style>
 </head>
 <body>

@@ -607,6 +607,14 @@
   .meter .mrow { display: grid; grid-template-columns: minmax(110px, 9rem) 1fr 3rem; gap: 0.6rem; align-items: center; margin: 6px 0; }
   .meter .mbar { height: 14px; background: rgba(0,0,0,0.1); border-radius: 7px; overflow: hidden; display: block; }
   .meter .mfill { display: block; height: 100%; background: var(--sea, #2C5266); border-radius: 7px; }
+</style><style id="wide">
+  /* wider layout on laptops and Chromebooks */
+  main { max-width: min(64rem, 100%); }
+  .bar-inner { max-width: min(72rem, 100%); }
+  .story p { max-width: 42em; }
+  /* the picture never takes more than about half the screen height, so the story shows without scrolling */
+  .art { width: min(100%, calc(46vh * 12 / 5)); margin-left: auto; margin-right: auto; }
+  @media (min-width: 900px) { .art-wrap { background: transparent; border-bottom: 0; padding-top: 1rem; } .art { border-radius: 10px; } }
 </style>
 </head>
 <body>
