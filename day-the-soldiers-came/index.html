@@ -7533,6 +7533,371 @@ function gForestRun(box, win) {
   menu();
 }
 
+const APPLES = {"heroes": {"anne": {"fig": "W", "size": 0.74}, "pierre": {"fig": "M", "size": 0.8}}};
+// ================= APPLES IN THE WIND =================
+// Move a basket under the apples that the wind shakes loose, and let the wormy ones fall.
+// There is no way to lose: the round ends when the basket is full or the wind drops.
+// The people are the same ink figures as in the story pictures. Only the basket and the apples have colour.
+function gApples(box, win) {
+  const CFG = APPLES, H = 360;
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const mulb = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join(''); };
+  const INK = '#1B2529';
+  const SKY = [['#A9D4E6', '#F1EFD9'], ['#F2C77A', '#FBE9C4']];   // afternoon, then golden hour
+  const P = { hill: '#C2B98E', far: '#A3A871', grass: ['#93A04F', '#5C6A33'], leaf: ['#4A7139', '#55803F', '#6C9647', '#83A856'], trunk: '#4A382B', hay: '#D9B45A', red: '#C0392B' };
+  const LEVELS = [
+    { n: 1, icon: '🍃', name: 'Light breeze', tag: 'A gentle start', secs: 46, need: 20, every: [1.5, 1.05], g: 270, vmax: 250, bad: 0.12, gust: 10, mult: 1, seed: 5 },
+    { n: 2, icon: '🌬️', name: 'Fresh wind', tag: 'More apples, and gusts', secs: 50, need: 30, every: [1.05, 0.72], g: 350, vmax: 315, bad: 0.2, gust: 26, mult: 1.25, seed: 17 },
+    { n: 3, icon: '💨', name: 'Gusty afternoon', tag: 'Fast and tricky', secs: 54, need: 42, every: [0.8, 0.52], g: 440, vmax: 380, bad: 0.25, gust: 42, mult: 1.5, seed: 29 },
+  ];
+  // The figures' shapes are the story pictures' own (a woman or girl in a cap and long dress; a man in a flat hat).
+  const FIGS = {
+    W: { head: -89, cap: 'M-9,-93 Q0,-104 9,-93 L10,-88 L-10,-88 Z', body: 'M-12,-80 L12,-80 L11,-62 L20,0 L-20,0 L-11,-62 Z', sh: -77 },
+    M: { head: -90, cap: 'M-13,-95 L13,-95 L13,-92 L-13,-92 Z M-8,-95 L-7,-104 L7,-104 L8,-95 Z', body: 'M-10,-81 L10,-81 L13,-38 L-13,-38 Z', sh: -78, legs: true },
+  };
+  const heroKeys = Object.keys(CFG.heroes).filter((k) => HEROES[k]);
+  let heroKey = CFG.heroes[PROG.applesHero] && HEROES[PROG.applesHero] ? PROG.applesHero : heroKeys[0];
+  let stopRun = null;
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+
+  // quiet sound effects: only when the Sound button at the top is on
+  const sfx = (() => {
+    const A = () => { try { if (typeof SND === 'undefined' || !SND.on) return null; const a = SND._audio(); return a && a.ctx && a.master ? a : null; } catch (e) { return null; } };
+    const tone = (a, type, f0, f1, dur, vol, delay) => {
+      const t = a.ctx.currentTime + (delay || 0), o = a.ctx.createOscillator(), g = a.ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.03);
+    };
+    const STEPS = [0, 2, 4, 7, 9, 12, 14, 16];
+    return (kind, n) => {
+      const a = A(); if (!a) return;
+      try {
+        if (kind === 'get') { const f = 660 * Math.pow(2, STEPS[(n || 0) % STEPS.length] / 12); tone(a, 'triangle', f, f, 0.12, 0.05); tone(a, 'sine', 130, 90, 0.06, 0.05); }
+        else if (kind === 'thud') tone(a, 'sine', 140, 70, 0.09, 0.05);
+        else if (kind === 'bad') tone(a, 'triangle', 220, 150, 0.2, 0.06);
+        else if (kind === 'full') [523, 659, 784].forEach((f, i) => tone(a, 'triangle', f, f, 0.26, 0.05, i * 0.13));
+      } catch (e) { /* sound is a nicety; never let it stop the game */ }
+    };
+  })();
+
+  function menu(focusKey) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const best = PROG.applesBest || 0, bs = PROG.applesStars || {};
+    const heroRow = el('div', { class: 'trail-opts', role: 'group', 'aria-label': 'Who is holding the basket?' }, heroKeys.map((k) => {
+      const b = el('button', { type: 'button', class: 'seg', text: HEROES[k].name, onclick: () => { heroKey = k; PROG.applesHero = k; saveProg(); menu(k); } });
+      b.setAttribute('aria-pressed', String(k === heroKey)); if (k === focusKey) setTimeout(() => b.focus({ preventScroll: true }), 0); return b;
+    }));
+    box.append(
+      el('p', { class: 'readable', text: 'It is apple time at Grand-Pré, in a fall before the soldiers came. The wind is shaking the ripe apples loose. Catch them in your basket before they hit the ground and bruise. Let the wormy ones fall.' }),
+      el('p', { class: 'hint', text: 'Move with the ← and → keys, or slide your finger or the mouse across the picture. When the basket is full, you are done.' }),
+      el('h2', { class: 'readable', text: 'Who is holding the basket?' }), heroRow,
+      el('h2', { class: 'readable', text: 'Choose the wind' }),
+      el('div', { class: 'trail-courses' }, LEVELS.map((L) => el('button', { type: 'button', class: 'ghcard' + (bs[L.n] ? ' done' : ''), onclick: () => play(L) }, [
+        el('span', { class: 'ghicon', text: L.icon }), el('strong', { text: L.name }), el('span', { text: L.tag }),
+        el('span', { class: 'ghwhere', text: bs[L.n] ? `Best: ${stars(bs[L.n])}` : 'Not played yet' }),
+      ]))),
+      el('label', { class: 'grelax' }, [
+        el('input', { type: 'checkbox', checked: RELAXED ? 'checked' : null, onchange: (e) => { RELAXED = e.target.checked; } }),
+        document.createTextNode(' Relaxed mode (the apples fall more slowly, and it scores a little less)'),
+      ]),
+      el('p', { class: 'hint', text: best ? `Your best score: ${best}` : 'Fill a basket to set your first score.' }),
+    );
+  }
+
+  function play(L) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const W = (box.clientWidth || 720) < 520 ? 560 : 720, GY = 292, RIM = GY - 41;
+    const relaxed = !!RELAXED, rate = relaxed ? 0.76 : 1;
+    const cv = document.createElement('canvas'); cv.className = 'trailcv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`;
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'An apple tree in the wind. Move the basket left and right to catch the falling apples.');
+    let dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const live = el('p', { class: 'hint', 'aria-live': 'polite', text: '' });
+    const leftBtn = el('button', { class: 'gamebtn trail-jump', type: 'button', text: '◀ Left', 'aria-label': 'Move left' });
+    const rightBtn = el('button', { class: 'gamebtn trail-jump', type: 'button', text: 'Right ▶', 'aria-label': 'Move right' });
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' });
+    box.append(el('div', { class: 'trailwrap' }, [cv]), el('div', { class: 'row tight' }, [leftBtn, rightBtn, pauseBtn, el('button', { class: 'gamebtn', type: 'button', text: '↩ Choose the wind', onclick: () => menu() })]), live);
+    const look = CFG.heroes[heroKey] || { fig: 'W', size: 0.62 }, F = FIGS[look.fig] || FIGS.W, K = look.size || 0.62;
+
+    // ---------- the apples for this wind (the same every time, so scores are fair) ----------
+    const R = mulb(L.seed * 7919 + 3), drops = [];
+    let t = 1.4, lastX = W / 2, lastT = 0, good = 0;
+    while (t < L.secs - 2.4) {
+      const u = t / L.secs, bad = drops.length > 2 && R() < L.bad, y0 = 72 + R() * 18, vx = (R() - 0.5) * 2 * L.gust, wob = lerp(0.72, 0.5, u);
+      let y = y0, v = 30, ft = 0; while (y < RIM) { v = Math.min(L.vmax, v + L.g / 120); y += v / 120; ft += 1 / 120; }
+      const landT = t + wob + ft; let x;
+      if (bad) { x = 50 + R() * (W - 100); if (Math.abs(x + vx * ft - lastX) < 64) x += (x < W / 2 ? 1 : -1) * 120; x = clamp(x, 40, W - 40); }
+      else {
+        // every good apple can be reached from the one before it
+        const reach = Math.max(70, (landT - lastT) * 300 * 0.85), lo = Math.max(50, lastX - reach), hi = Math.min(W - 50, lastX + reach);
+        const land = lo + R() * (hi - lo); x = clamp(land - vx * ft, 36, W - 36); lastX = clamp(x + vx * ft, 30, W - 30); lastT = landT; good++;
+      }
+      drops.push({ t, x, y0, vx, bad, wob, s: 0, ph: R() * 6 });   // s: 0 waiting, 1 wobbling, 2 falling, 3 in the basket, 4 on the ground, 5 tossed out
+      t += lerp(L.every[0], L.every[1], u) * (0.75 + R() * 0.5);
+    }
+    const need = Math.max(5, Math.min(L.need, Math.floor(good * 0.75)));
+
+    // ---------- pictures drawn once ----------
+    const sprite = (w, h, fn) => { const s = document.createElement('canvas'); s.width = w; s.height = h; fn(s.getContext('2d')); return s; };
+    const apple = (g, x, y, r, bad, rot) => {
+      g.save(); g.translate(x, y); if (rot) g.rotate(rot);
+      g.fillStyle = bad ? '#9A8440' : P.red; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
+      if (bad) {
+        g.fillStyle = '#5A4424'; g.beginPath(); g.ellipse(r * 0.25, r * 0.2, r * 0.5, r * 0.38, 0.5, 0, 7); g.fill();
+        g.strokeStyle = '#6FA83A'; g.lineWidth = Math.max(1.6, r * 0.3); g.lineCap = 'round'; g.beginPath(); g.moveTo(-r * 0.3, -r * 0.55); g.quadraticCurveTo(-r * 1.1, -r * 1.2, -r * 0.5, -r * 1.75); g.stroke();
+        g.fillStyle = INK; g.beginPath(); g.arc(-r * 0.3, -r * 0.5, r * 0.22, 0, 7); g.fill();
+      } else {
+        g.fillStyle = 'rgba(255,255,255,.45)'; g.beginPath(); g.arc(-r * 0.34, -r * 0.3, r * 0.3, 0, 7); g.fill();
+        g.strokeStyle = '#4A3320'; g.lineWidth = 1.5; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, -r * 0.8); g.lineTo(r * 0.15, -r * 1.35); g.stroke();
+        g.fillStyle = '#5E9A44'; g.beginPath(); g.ellipse(r * 0.6, -r * 1.25, r * 0.55, r * 0.28, -0.5, 0, 7); g.fill();
+      }
+      g.restore();
+    };
+    const land = sprite(W, H, (g) => {
+      const Q = mulb(77);
+      g.fillStyle = P.hill; g.beginPath(); g.moveTo(0, 290); for (let x = 0; x <= W; x += 16) g.lineTo(x, 196 - 24 * Math.sin(x / 190 + 1) - 12 * Math.sin(x / 71 + 2)); g.lineTo(W, 290); g.closePath(); g.fill();
+      g.fillStyle = P.far; g.beginPath(); g.moveTo(0, 290); for (let x = -12; x <= W + 12; x += 6) g.lineTo(x, 222 - Q() * 20 - ((x / 6 | 0) % 2 ? 0 : 9) - 8 * Math.sin(x / 140)); g.lineTo(W, 290); g.closePath(); g.fill();
+      g.fillStyle = mix(P.grass[0], P.hill, 0.45); g.fillRect(0, 240, W, 40);
+      // the farmhouse, with its bake oven chimney, and two haycocks
+      const hx = W - 118, hy = 262, wall = mix(INK, P.hill, 0.42);
+      g.fillStyle = wall; g.fillRect(hx - 30, hy - 26, 60, 26); g.beginPath(); g.moveTo(hx - 35, hy - 25); g.lineTo(hx, hy - 50); g.lineTo(hx + 35, hy - 25); g.closePath(); g.fill(); g.fillRect(hx + 14, hy - 52, 7, 18);
+      g.fillStyle = mix(wall, '#000000', 0.35); g.fillRect(hx + 4, hy - 17, 9, 17); g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(hx - 20, hy - 18, 9, 8);
+      [[W * 0.5, 14], [W * 0.5 + 44, 11]].forEach(([x, r]) => { g.fillStyle = mix(P.hay, P.hill, 0.25); g.beginPath(); g.moveTo(x - r * 1.2, 264); g.quadraticCurveTo(x - r, 264 - r * 2.1, x, 264 - r * 2.3); g.quadraticCurveTo(x + r, 264 - r * 2.1, x + r * 1.2, 264); g.closePath(); g.fill(); });
+      // more apple trees in rows, a rail fence, and the grass
+      for (let i = 0; i < 6; i++) { const x = W * 0.3 + i * 58 + Q() * 16, y = 258, r = 15 + Q() * 5, col = mix(P.leaf[1 + (i % 2)], P.hill, 0.35); if (Math.abs(x - hx) < 60) continue; g.fillStyle = mix(P.trunk, P.hill, 0.4); g.fillRect(x - 2, y - 16, 4, 16); g.fillStyle = col; g.beginPath(); g.arc(x, y - 24, r, 0, 7); g.arc(x - r * 0.6, y - 18, r * 0.7, 0, 7); g.arc(x + r * 0.6, y - 18, r * 0.7, 0, 7); g.fill(); g.fillStyle = mix(P.red, P.hill, 0.2); for (let j = 0; j < 5; j++) { g.beginPath(); g.arc(x + (Q() - 0.5) * r * 1.6, y - 16 - Q() * r, 1.8, 0, 7); g.fill(); } }
+      g.strokeStyle = mix(P.trunk, P.hill, 0.3); g.lineWidth = 2; g.beginPath(); for (let x = -6; x < W + 20; x += 34) { g.moveTo(x, 252); g.lineTo(x, 268); } g.moveTo(0, 256); g.lineTo(W, 256); g.moveTo(0, 262); g.lineTo(W, 262); g.stroke();
+      const gg = g.createLinearGradient(0, 264, 0, H); gg.addColorStop(0, P.grass[0]); gg.addColorStop(1, P.grass[1]); g.fillStyle = gg; g.fillRect(0, 266, W, H - 266);
+      g.strokeStyle = mix(P.grass[1], '#1B2529', 0.15); g.lineWidth = 1.4; g.lineCap = 'round';
+      for (let i = 0; i < 150; i++) { const x = Q() * W, y = 272 + Q() * (H - 276), h = 4 + Q() * 6; g.beginPath(); g.moveTo(x, y); g.lineTo(x - 2, y - h); g.moveTo(x, y); g.lineTo(x + 2.5, y - h * 0.8); g.stroke(); }
+      for (let i = 0; i < 26; i++) { g.fillStyle = ['#D9A032', '#C8612A', '#E3C54A'][i % 3]; g.beginPath(); g.ellipse(Q() * W, 276 + Q() * (H - 282), 3.4, 1.7, Q() * 3, 0, 7); g.fill(); }
+    });
+    const tree = sprite(W, H, (g) => {
+      const Q = mulb(31);
+      // trunk and limbs
+      g.strokeStyle = P.trunk; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.lineWidth = 30; g.beginPath(); g.moveTo(74, 304); g.quadraticCurveTo(84, 220, 104, 150); g.stroke();
+      g.lineWidth = 22; g.beginPath(); g.moveTo(104, 150); g.quadraticCurveTo(128, 96, 190, 70); g.stroke();
+      g.lineWidth = 15; g.beginPath(); g.moveTo(186, 72); g.quadraticCurveTo(330, 34, W * 0.72, 46); g.stroke();
+      g.lineWidth = 10; g.beginPath(); g.moveTo(W * 0.7, 46); g.quadraticCurveTo(W * 0.86, 46, W + 10, 62); g.stroke();
+      g.lineWidth = 14; g.beginPath(); g.moveTo(100, 166); g.quadraticCurveTo(56, 110, -10, 84); g.stroke();
+      g.lineWidth = 8; g.beginPath(); g.moveTo(300, 44); g.lineTo(350, 78); g.moveTo(470, 44); g.lineTo(520, 76); g.moveTo(140, 100); g.lineTo(118, 60); g.stroke();
+      g.strokeStyle = 'rgba(0,0,0,.22)'; g.lineWidth = 2; g.beginPath(); g.moveTo(70, 296); g.quadraticCurveTo(80, 230, 96, 170); g.moveTo(86, 300); g.quadraticCurveTo(92, 250, 104, 200); g.stroke();
+      g.fillStyle = mix(P.trunk, '#000000', 0.25); g.beginPath(); g.ellipse(90, 232, 5, 8, 0.2, 0, 7); g.fill();
+      // leaves: dark below, lighter on top
+      for (let pass = 0; pass < 3; pass++) for (let i = 0; i < (pass === 0 ? 46 : 40); i++) {
+        const x = -30 + Q() * (W + 60), y = (pass === 0 ? 30 : pass === 1 ? 18 : 8) + Q() * (pass === 0 ? 46 : 44), r = (pass === 2 ? 15 : 22) + Q() * 16;
+        g.fillStyle = P.leaf[pass === 0 ? 0 : pass === 1 ? 1 + (i % 2) : 2 + (i % 2)]; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+      }
+      for (let i = 0; i < 70; i++) { const x = Q() * W, y = 66 + Q() * 22; g.fillStyle = P.leaf[i % 2]; g.beginPath(); g.ellipse(x, y, 7, 3.6, (Q() - 0.5) * 2, 0, 7); g.fill(); }
+      for (let i = 0; i < 30; i++) apple(g, 20 + Q() * (W - 40), 26 + Q() * 46, 4.6, false, 0);
+    });
+
+    // ---------- the round ----------
+    const st = { t: 0, x: W / 2, vx: 0, target: null, keyL: false, keyR: false, got: 0, bruised: 0, wormy: 0, started: false, paused: false, ended: false, full: 0, endAt: 0, msg: [], streak: 0, lastGet: -9, lean: 0, step: 0, bob: 0, low: false, drops, need, L, W, RIM, GY };
+    box._apples = st;
+    const parts = []; const spawn = (o) => { if (parts.length < (RM || st.low ? 40 : 140)) parts.push(o); };
+    const say = (text, x, y, col) => st.msg.push({ text, x, y, t: 0, col: col || '#FFFFFF' });
+    const lastLand = drops.length ? drops[drops.length - 1].t + 3 : 3;
+    st.endT = lastLand;
+    function step(dt) {
+      const wdt = dt * rate; st.t += wdt;
+      st.msg.forEach((m) => { m.t += dt; }); st.msg = st.msg.filter((m) => m.t < 1.5);
+      for (const p of parts) { p.life -= dt; p.vy = (p.vy || 0) + (p.g || 0) * dt; p.x += (p.vx || 0) * dt; p.y += p.vy * dt; if (p.rot !== undefined) p.rot += dt * 4; }
+      for (let i = parts.length - 1; i >= 0; i--) if (parts[i].life <= 0) parts.splice(i, 1);
+      // the basket carrier
+      const want = (st.keyR ? 1 : 0) - (st.keyL ? 1 : 0);
+      if (want) { st.target = null; st.vx += (want * 345 - st.vx) * Math.min(1, dt * 14); }
+      else if (st.target !== null) st.vx = clamp((st.target - st.x) * 12, -470, 470);
+      else st.vx += (0 - st.vx) * Math.min(1, dt * 16);
+      st.x = clamp(st.x + st.vx * dt, 34, W - 34); if (st.x <= 34 || st.x >= W - 34) st.vx = 0;
+      st.step += Math.abs(st.vx) * dt / 9; st.lean += (clamp(st.vx / 470, -1, 1) - st.lean) * Math.min(1, dt * 10); st.bob = Math.max(0, st.bob - dt * 5);
+      // the apples
+      for (const d of drops) {
+        if (d.s === 0 && st.t >= d.t) { d.s = 1; spawn({ x: d.x + 6, y: d.y0 - 4, vx: 20, vy: 26, g: 30, life: 2.4, kind: 'leaf', rot: 0, col: P.leaf[3] }); }
+        if (d.s === 1 && st.t >= d.t + d.wob) { d.s = 2; d.y = d.y0; d.v = 30; d.xx = d.x; d.rot = 0; }
+        if (d.s !== 2) continue;
+        const py = d.y; d.v = Math.min(L.vmax, d.v + L.g * wdt); d.y += d.v * wdt; d.xx += d.vx * wdt; d.rot += wdt * 3 * (d.vx >= 0 ? 1 : -1);
+        if (!d.past && py < RIM && d.y >= RIM) {
+          d.past = true; const dx = d.xx - st.x;
+          if (Math.abs(dx) <= 23 && !st.full) {
+            if (d.bad) { d.s = 5; st.wormy++; sfx('bad'); say('Wormy! Out it goes.', st.x, RIM - 34, '#FFE3B0'); spawn({ x: st.x, y: RIM - 6, vx: (st.x < W / 2 ? 1 : -1) * 150, vy: -260, g: 900, life: 1.1, kind: 'bad', rot: 0 }); }
+            else {
+              d.s = 3; st.got++; st.bob = 1; st.streak = st.t - st.lastGet < 1.6 ? st.streak + 1 : 0; st.lastGet = st.t; sfx('get', st.streak);
+              for (let i = 0; i < 5; i++) spawn({ x: d.xx, y: RIM, vx: (Math.random() - 0.5) * 130, vy: -40 - Math.random() * 90, g: 300, life: 0.45, kind: 'spark' });
+              if (st.got >= need) { st.full = st.t; st.endAt = st.t + 1.3 * rate; sfx('full'); say('Basket full!', st.x, RIM - 40, '#FFF3B8'); live.textContent = 'Your basket is full.'; }
+            }
+          } else if (Math.abs(dx) <= 31 && !st.full) { d.vx = Math.sign(dx) * 120; d.v = -150; }   // it bounces off the rim
+        }
+        if (d.y >= GY - 5) {
+          d.s = 4; d.y = GY - 5 + (d.ph % 5); d.gt = st.t;
+          if (!d.bad && !st.full) { st.bruised++; sfx('thud'); }
+          for (let i = 0; i < 4; i++) spawn({ x: d.xx, y: GY - 4, vx: (Math.random() - 0.5) * 80, vy: -30 - Math.random() * 50, g: 260, life: 0.4, kind: 'dust' });
+        }
+      }
+      if (!RM && !st.low && Math.random() < dt * 2.2) spawn({ x: Math.random() * W, y: 70 + Math.random() * 20, vx: 30 + Math.random() * 50, vy: 22 + Math.random() * 22, g: 8, life: 5, kind: 'leaf', rot: Math.random() * 6, col: ['#D9A032', '#C8612A', P.leaf[3]][Math.floor(Math.random() * 3)] });
+      if (!st.ended && ((st.full && st.t >= st.endAt) || st.t >= lastLand)) { st.ended = true; finish(); }
+    }
+
+    // ---------- drawing ----------
+    const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
+    const P2 = typeof Path2D !== 'undefined' ? { cap: new Path2D(F.cap), body: new Path2D(F.body) } : null;
+    function drawCarrier() {
+      const moving = Math.abs(st.vx) > 24, sw = moving ? Math.sin(st.step) : 0, bobY = st.bob * 3;
+      c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(st.x, GY + 2, 20, 4.5, 0, 0, 7); c.fill();
+      c.save(); c.translate(st.x, GY); c.transform(1, 0, -st.lean * 0.14, 1, 0, 0);
+      c.save(); c.scale(K, K); c.translate(0, moving ? -Math.abs(sw) * 1.6 : 0); c.fillStyle = INK;
+      if (F.legs) { const a = sw * 5; c.fillRect(-8, -40, 6, 40 - Math.max(0, a)); c.fillRect(2, -40, 6, 40 - Math.max(0, -a)); }
+      else { c.fillRect(-9 + sw * 2, -3, 7, 3.4); c.fillRect(2 + sw * 2, -3, 7, 3.4); }
+      if (P2) { c.fill(P2.body); c.fill(P2.cap); } else c.fillRect(-11, -80, 22, F.legs ? 42 : 80);
+      c.beginPath(); c.arc(0, F.head, 8, 0, 7); c.fill();
+      c.restore();
+      // arms and the basket, held in front
+      const ry = RIM - GY + bobY, shy = F.sh * K + (moving ? -Math.abs(sw) * 1.6 * K : 0);
+      c.strokeStyle = INK; c.lineWidth = 4.4; c.lineCap = 'round'; c.beginPath(); c.moveTo(-10 * K, shy); c.lineTo(-22, ry + 9); c.moveTo(10 * K, shy); c.lineTo(22, ry + 9); c.stroke();
+      const fill = clamp(st.got / need, 0, 1), heap = Math.ceil(fill * 7);
+      for (let i = 0; i < heap; i++) { c.fillStyle = i % 3 === 1 ? '#A8322A' : P.red; c.beginPath(); c.arc(-15 + i * 5, ry - 1 - (i % 2) * 3 - (i > 1 && i < 5 ? 2.5 : 0), 4.6, 0, 7); c.fill(); }
+      c.fillStyle = '#B98A4E'; c.beginPath(); c.moveTo(-24, ry); c.lineTo(24, ry); c.lineTo(17.5, ry + 21); c.lineTo(-17.5, ry + 21); c.closePath(); c.fill();
+      c.strokeStyle = '#8A6234'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(-22, ry + 6); c.lineTo(22, ry + 6); c.moveTo(-20.5, ry + 12); c.lineTo(20.5, ry + 12); c.moveTo(-19, ry + 17); c.lineTo(19, ry + 17); for (let i = -2; i <= 2; i++) { c.moveTo(i * 8, ry); c.lineTo(i * 6.2, ry + 21); } c.stroke();
+      c.strokeStyle = '#7A5A30'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(-24.5, ry); c.lineTo(24.5, ry); c.stroke();
+      c.restore();
+    }
+    function draw() {
+      const u = clamp(st.t / L.secs, 0, 1), low = st.low;
+      const g = c.createLinearGradient(0, 0, 0, 270); g.addColorStop(0, mix(SKY[0][0], SKY[1][0], u)); g.addColorStop(1, mix(SKY[0][1], SKY[1][1], u));
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      const sunX = W - 150 + u * 40, sunY = 120 + u * 70;
+      const sg = c.createRadialGradient(sunX, sunY, 4, sunX, sunY, 100); sg.addColorStop(0, 'rgba(255,240,190,.5)'); sg.addColorStop(1, 'rgba(255,240,190,0)'); c.fillStyle = sg; c.fillRect(sunX - 110, sunY - 110, 220, 220);
+      c.fillStyle = mix('#FFF4C8', '#F5A24A', u); c.beginPath(); c.arc(sunX, sunY, 15, 0, 7); c.fill();
+      c.fillStyle = 'rgba(255,255,255,.55)';
+      for (let i = 0; i < 4; i++) { const x = ((i * 260 + 90 + st.t * (5 + i * 2)) % (W + 300)) - 150, y = 118 + i * 17, s = 0.7 + (i % 3) * 0.25; c.beginPath(); c.ellipse(x, y, 40 * s, 8 * s, 0, 0, 7); c.ellipse(x - 14 * s, y - 6 * s, 20 * s, 9 * s, 0, 0, 7); c.ellipse(x + 15 * s, y - 8 * s, 24 * s, 11 * s, 0, 0, 7); c.fill(); }
+      c.drawImage(land, 0, 0, W, H);
+      // smoke from the farmhouse chimney
+      if (!low) for (let i = 0; i < 3; i++) { const tt = (st.t * 0.4 + i / 3) % 1; c.fillStyle = 'rgba(235,235,235,' + (0.45 * (1 - tt)) + ')'; c.beginPath(); c.arc(W - 100 + tt * 14, 208 - tt * 28, 3 + tt * 6, 0, 7); c.fill(); }
+      // the tree stands in front of the far field; its apples swing, then fall
+      c.drawImage(tree, RM ? 0 : Math.sin(st.t * 1.3) * 0.6, 0, W, H);
+      // apples that have landed stay a while
+      for (const d of drops) { if (d.s !== 4) continue; const a = clamp(1 - (st.t - d.gt - 3.5) / 1.5, 0, 1); if (a <= 0) continue; c.globalAlpha = a; c.fillStyle = 'rgba(0,0,0,.15)'; c.beginPath(); c.ellipse(d.xx, d.y + 6, 7, 2.2, 0, 0, 7); c.fill(); apple(c, d.xx, d.y, 6.6, d.bad, d.rot); if (!d.bad) { c.fillStyle = 'rgba(70,45,20,.55)'; c.beginPath(); c.ellipse(d.xx + 1.5, d.y + 2, 3.2, 2.4, 0.4, 0, 7); c.fill(); } c.globalAlpha = 1; }
+      drawCarrier();
+      for (const d of drops) {
+        if (d.s === 1) { const w = Math.sin((st.t - d.t) * 26) * 0.32; c.save(); c.translate(d.x, d.y0 - 9); c.rotate(w); apple(c, 0, 9, 7.4, d.bad, 0); c.restore(); }
+        else if (d.s === 2) apple(c, d.xx, d.y, 7.4, d.bad, d.rot);
+      }
+      for (const p of parts) {
+        c.globalAlpha = clamp(p.life * 2.5, 0, 1);
+        if (p.kind === 'leaf') { c.save(); c.translate(p.x + Math.sin(p.life * 2.4) * 8, p.y); c.rotate(p.rot); c.fillStyle = p.col; c.beginPath(); c.ellipse(0, 0, 5, 2.4, 0, 0, 7); c.fill(); c.restore(); }
+        else if (p.kind === 'spark') { c.fillStyle = '#FFE9A8'; c.fillRect(p.x - 1.5, p.y - 1.5, 3, 3); }
+        else if (p.kind === 'dust') { c.fillStyle = 'rgba(120,130,70,.8)'; c.beginPath(); c.arc(p.x, p.y, 2.2, 0, 7); c.fill(); }
+        else if (p.kind === 'bad') apple(c, p.x, p.y, 7, true, p.rot);
+        c.globalAlpha = 1;
+      }
+      // what you can read: the basket, and how much wind is left
+      const FONT = 'system-ui, -apple-system, Segoe UI, sans-serif', full = st.got >= need;
+      c.fillStyle = 'rgba(255,253,248,.92)'; rr(12, H - 42, 138, 30, 15); c.fill();
+      c.save(); c.translate(31, H - 34); c.strokeStyle = '#7A5A30'; c.lineWidth = 1.8; c.beginPath(); c.arc(0, 4, 6.5, Math.PI, 0); c.stroke(); c.fillStyle = '#B98A4E'; c.beginPath(); c.moveTo(-7.5, 4); c.lineTo(7.5, 4); c.lineTo(5.5, 12.5); c.lineTo(-5.5, 12.5); c.closePath(); c.fill(); c.restore();
+      const fb = clamp(st.got / need, 0, 1); c.fillStyle = '#E8E1D2'; rr(48, H - 33, 90, 12, 6); c.fill();
+      if (fb > 0.02) { c.fillStyle = full ? '#2F7D46' : P.red; rr(48, H - 33, Math.max(12, 90 * fb), 12, 6); c.fill(); }
+      if (full) { c.strokeStyle = '#FFFFFF'; c.lineWidth = 2.2; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(88, H - 27); c.lineTo(91.5, H - 23.5); c.lineTo(98, H - 30.5); c.stroke(); }
+      c.fillStyle = 'rgba(255,253,248,.92)'; rr(W - 150, H - 42, 138, 30, 15); c.fill();
+      c.strokeStyle = '#4E6E82'; c.lineWidth = 2; c.lineCap = 'round'; c.beginPath(); c.moveTo(W - 140, H - 31); c.quadraticCurveTo(W - 131, H - 35, W - 124, H - 31); c.moveTo(W - 140, H - 26); c.quadraticCurveTo(W - 133, H - 30, W - 121, H - 26); c.moveTo(W - 138, H - 21); c.quadraticCurveTo(W - 132, H - 25, W - 126, H - 21); c.stroke();
+      const left = clamp(1 - st.t / lastLand, 0, 1); c.fillStyle = '#E8E1D2'; rr(W - 112, H - 33, 90, 12, 6); c.fill();
+      if (left > 0.02) { c.fillStyle = '#6C93AB'; rr(W - 112, H - 33, Math.max(12, 90 * left), 12, 6); c.fill(); }
+      c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '700 16px ' + FONT;
+      for (const m of st.msg) { const mx = clamp(m.x, 96, W - 96); c.globalAlpha = clamp(1.5 - m.t, 0, 1); c.lineWidth = 4; c.strokeStyle = 'rgba(20,28,34,.75)'; c.strokeText(m.text, mx, m.y - m.t * 22); c.fillStyle = m.col; c.fillText(m.text, mx, m.y - m.t * 22); }
+      c.globalAlpha = 1;
+      if ((!st.started || st.paused) && !st.hideUI) {
+        c.fillStyle = 'rgba(20,28,34,.45)'; c.fillRect(0, 0, W, H);
+        c.fillStyle = 'rgba(255,253,248,.96)'; rr(W / 2 - 225, H / 2 - 44, 450, 88, 16); c.fill();
+        c.fillStyle = '#22252B'; c.font = '700 20px ' + FONT; c.fillText(st.paused ? 'Paused' : 'Ready?', W / 2, H / 2 - 16);
+        c.font = '600 15px ' + FONT; c.fillText(st.paused ? 'Press Space or tap to carry on' : 'Press Space or tap to start. Move with ← → or your finger.', W / 2, H / 2 + 16);
+      }
+    }
+
+    // ---------- loop and controls ----------
+    let raf = 0, last = 0, acc = 0, alive = true, fN = 0, fT = 0;
+    const syncGT = () => { box.dataset.idle = st.started && !st.paused && !st.ended ? '0' : '1'; box.dataset.busy = st.started && !st.ended ? '1' : '0'; };
+    const frame = (now) => {
+      if (!alive) return; if (!cv.isConnected) { stop(); return; }
+      const raw = (now - last) / 1000 || 0, dt = Math.min(0.05, raw); last = now;
+      if (st.started && !st.paused) {
+        acc += dt; while (acc >= 1 / 120) { step(1 / 120); acc -= 1 / 120; if (st.ended) return; }
+        if (!st.low && raw < 0.25 && fN < 90) { fN++; fT += raw; if (fN === 90 && fT / 90 > 0.024) { st.low = true; if (dpr > 1) { dpr = 1; cv.width = W; cv.height = H; c.setTransform(1, 0, 0, 1, 0, 0); } } }
+      }
+      draw(); raf = requestAnimationFrame(frame);
+    };
+    const begin = () => {
+      if (st.ended) return false;
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (e) { /* no sound */ }
+      if (st.paused) { st.paused = false; pauseBtn.textContent = '⏸ Pause'; syncGT(); return true; }
+      if (!st.started) { st.started = true; live.textContent = 'The wind is up. Catch the apples.'; syncGT(); return true; }
+      return false;
+    };
+    const pause = () => { if (!st.started || st.ended) return; st.paused = !st.paused; st.keyL = st.keyR = false; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; syncGT(); };
+    const LEFT = (e) => e.code === 'ArrowLeft' || e.code === 'KeyA', RIGHT = (e) => e.code === 'ArrowRight' || e.code === 'KeyD';
+    const kd = (e) => {
+      const tg = document.activeElement; if (tg && /INPUT|TEXTAREA|SELECT/.test(tg.tagName)) return;
+      if (LEFT(e) || RIGHT(e)) { e.preventDefault(); if (!st.started || st.paused) begin(); if (LEFT(e)) st.keyL = true; else st.keyR = true; }
+      else if (e.code === 'Space' || e.key === ' ') { if (tg && tg.tagName === 'BUTTON') return; e.preventDefault(); if (!e.repeat) begin(); }
+      else if (e.code === 'KeyP') pause();
+    };
+    const ku = (e) => { if (LEFT(e)) st.keyL = false; else if (RIGHT(e)) st.keyR = false; };
+    const vis = () => { if (document.hidden && st.started && !st.ended && !st.paused) pause(); };
+    const toX = (e) => { const r = cv.getBoundingClientRect(); return clamp((e.clientX - r.left) / r.width * W, 34, W - 34); };
+    const pd = (e) => { e.preventDefault(); cv.focus({ preventScroll: true }); begin(); st.target = toX(e); };
+    const pm = (e) => { if (st.started && !st.paused && (e.pointerType === 'mouse' || e.buttons || e.pressure > 0)) st.target = toX(e); };
+    window.addEventListener('keydown', kd); window.addEventListener('keyup', ku); document.addEventListener('visibilitychange', vis);
+    cv.addEventListener('pointerdown', pd); cv.addEventListener('pointermove', pm); cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    const hold = (btn, key) => {
+      const on = (e) => { e.preventDefault(); begin(); st.target = null; st[key] = true; }, off = () => { st[key] = false; };
+      btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off); btn.addEventListener('contextmenu', (e) => e.preventDefault());
+      btn.addEventListener('keydown', (e) => { if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat) { e.preventDefault(); begin(); st.target = null; st[key] = true; } }); btn.addEventListener('keyup', (e) => { if (e.code === 'Enter' || e.code === 'Space') off(); });
+    };
+    hold(leftBtn, 'keyL'); hold(rightBtn, 'keyR');
+    pauseBtn.onclick = () => { pause(); cv.focus({ preventScroll: true }); };
+    function stop() { alive = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); document.removeEventListener('visibilitychange', vis); if (stopRun === stop) stopRun = null; }
+    stopRun = stop;
+    cv.focus({ preventScroll: true }); raf = requestAnimationFrame(frame);
+
+    // ---------- the end of the round ----------
+    function finish() {
+      const fillB = clamp(st.got / need, 0, 1), full = fillB >= 1;
+      const pBasket = Math.round(600 * fillB), pQuick = full ? Math.round(200 * clamp((lastLand - st.full) / lastLand * 4, 0, 1)) : 0, pHands = Math.max(0, 150 - st.bruised * 15), pClean = Math.max(0, 100 - st.wormy * 25);
+      const score = Math.round((pBasket + pQuick + pHands + pClean) * L.mult * (relaxed ? 0.8 : 1));
+      const n = 1 + (full ? 1 : 0) + (full && st.bruised <= 3 && st.wormy === 0 ? 1 : 0);
+      PROG.applesStars = PROG.applesStars || {}; PROG.applesStars[L.n] = Math.max(PROG.applesStars[L.n] || 0, n);
+      const isBest = score > (PROG.applesBest || 0), best = Math.max(PROG.applesBest || 0, score); PROG.applesBest = best; saveProg(); win();
+      stop(); box.innerHTML = '';
+      box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
+      const howFull = fillB >= 0.75 ? 'nearly full' : fillB >= 0.45 ? 'about half full' : 'not very full this time';
+      box.append(
+        el('h2', { class: 'trail-title readable', text: full ? '🍎 A full basket!' : '🍂 The wind has dropped' }),
+        el('p', { class: 'trail-stars', text: stars(n), role: 'img', 'aria-label': `${n} out of 3 stars` }),
+        el('p', { class: 'readable', text: `${full ? 'Your basket is full of apples, and you carry it up to the house.' : `The wind has dropped, and your basket is ${howFull}.`} ${st.bruised ? `${st.bruised} apple${st.bruised > 1 ? 's' : ''} hit the ground and bruised.` : 'Not one good apple hit the ground.'} ${st.wormy ? `${st.wormy} wormy one${st.wormy > 1 ? 's' : ''} landed in the basket, and out ${st.wormy > 1 ? 'they' : 'it'} went.` : 'You let every wormy one fall.'}` }),
+        el('section', { class: 'fact' }, [
+          el('h2', { text: `Score: ${score}${isBest ? '  (your new best!)' : ''}` }),
+          el('p', { text: `Basket ${pBasket}  +  quick work ${pQuick}  +  sure hands ${pHands}  +  no wormy ones ${pClean}${L.mult !== 1 ? `, then × ${L.mult} for this stronger wind` : ''}${relaxed ? ', then × 0.8 for relaxed mode' : ''}.` }),
+          el('p', { text: n < 3 ? 'For three stars: fill the basket, let no more than three good apples hit the ground, and keep the wormy ones out.' : 'Three stars. Not an apple wasted.' }),
+        ]),
+        timeUp()
+          ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' })
+          : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '▶ Play this wind again', onclick: () => play(L) }), el('button', { class: 'secondary', type: 'button', text: '🍃 Choose a different wind', onclick: () => menu() })]),
+      );
+      window.scrollTo(0, 0);
+    }
+  }
+  menu();
+}
+
 const GAMES = {
   aboiteau: { icon: '🌊', name: 'Work the aboiteau', blurb: 'Open and close the dyke gate with the tides to save the harvest.', where: 'Anne and Pierre at the dykes', run: gAboiteau },
   coffre: { icon: '📦', name: 'Pack the coffre', blurb: 'The ships are waiting. What will your family bring?', where: 'Before the ships, in Anne’s and Pierre’s stories', run: gCoffre },
@@ -7547,6 +7912,7 @@ const GAMES = {
   truck: { icon: '⚖️', name: 'Truckhouse trading', blurb: 'Trade furs for what your family needs, and learn why it still matters.', where: 'Muin at the truckhouse, 1760', run: gTruck },
   morse: { icon: '📡', name: 'Signaller’s Morse code', blurb: 'Decode a message from the front, dot by dash.', where: 'Émile at the signallers’ school', run: gMorse },
   kitchen: { icon: '👩‍🍳', name: 'Kitchen mix-up', blurb: 'Put a recipe’s steps back in order.', where: 'The Kitchens', run: gKitchen },
+  apples: { icon: '🍎', name: 'Apples in the wind', blurb: 'The wind is shaking the ripe apples loose. Catch them in your basket, and let the wormy ones fall.', where: 'The orchard at Grand-Pré', run: gApples },
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
 const GAME_AT = { 756: ['morse'], 54: ['aboiteau'], 204: ['aboiteau'], 5: ['coffre'], 206: ['coffre'], 501: ['eel'], 511: ['route'], 6: ['patrol'], 225: ['patrol'], 209: ['who'], 250: ['decode'], 565: ['truck'], 577: ['truck'] };
