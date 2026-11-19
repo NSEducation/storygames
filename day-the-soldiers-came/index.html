@@ -611,6 +611,29 @@
   /* the picture never takes more than about half the screen height, so the story shows without scrolling */
   .art { width: min(100%, calc(46vh * 12 / 5)); margin-left: auto; margin-right: auto; }
   @media (min-width: 900px) { .art-wrap { background: transparent; border-bottom: 0; padding-top: 1rem; } .art { border-radius: 10px; } }
+
+  /* clearer sections: each box has its own colour, a heading band and space around it */
+  .story { padding-bottom: 0.5rem; }
+  .sheet .fact, .sheet .note, .sheet .ffbox, .sheet .runsum, .sheet .source {
+    margin: 1.6rem 0; padding: 0 1.1rem 1rem; border-radius: 12px; border: 2px solid; border-left-width: 2px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06); overflow: hidden; }
+  .sheet .fact > h2, .sheet .note > h2, .sheet .ffbox > h2, .sheet .runsum > h2 {
+    margin: 0 -1.1rem 0.8rem; padding: 0.55rem 1.1rem; font-size: 1.02rem; }
+  .sheet .fact { border-color: #3E6E8E; background: #EEF4F8; }
+  .sheet .fact > h2 { background: #3E6E8E; color: #fff; }
+  .sheet .note { border-color: #A8771F; background: #FBF5E8; }
+  .sheet .note > h2 { background: #A8771F; color: #fff; }
+  .sheet .ffbox { border-color: #4E7A3A; background: #F2F7EE; }
+  .sheet .ffbox > h2 { background: #4E7A3A; color: #fff; }
+  .sheet .runsum { border-color: #6A4C6E; background: #F6F1F7; }
+  .sheet .source { border-color: #7A5230; background: #FBF6EC; }
+  .sheet .source > h2 { margin: 0 -1.1rem 0.8rem; padding: 0.55rem 1.1rem; font-size: 1.02rem; background: #7A5230; color: #fff; }
+  .sheet .runsum > h2 { background: #6A4C6E; color: #fff; }
+  .sheet .note .kind { margin-top: -0.2rem; }
+  .sheet .ask { margin-top: 2rem; padding-top: 1.2rem; border-top: 3px solid var(--rule); font-size: 1.15rem; }
+  @media (prefers-color-scheme: dark) {
+    .sheet .fact { background: #17242D; } .sheet .note { background: #2A2416; } .sheet .ffbox { background: #1A2716; } .sheet .runsum { background: #241B26; } .sheet .source { background: #261F17; }
+  }
 </style>
 </head>
 <body>
@@ -4276,7 +4299,7 @@ function renderSecret(key) {
   const story = el('div', { class: 'story' });
   sc.p.forEach((t) => story.appendChild(rich('p', { class: 'readable' }, t)));
   nodes.push(story);
-  nodes.push(el('section', { class: 'fact' }, [el('h2', { class: 'readable', text: 'Did you know?' }), el('p', { class: 'readable', text: sc.fact })]));
+  nodes.push(el('section', { class: 'fact' }, [el('h2', { class: 'readable', text: '💡 Did you know?' }), el('p', { class: 'readable', text: sc.fact })]));
   const sff = ffBox(key); if (sff) nodes.push(sff);
   if (sc.item && !SECRET_TAKEN.has(key)) { SECRET_TAKEN.add(key); grant(sc.item); }
   checkBadges();
@@ -4368,7 +4391,7 @@ function render(id) {
   const story = el('div', { class: 'story' });
   withFirsts(id, s.p).forEach((t) => story.appendChild(rich('p', { class: 'readable' }, t)));
   nodes.push(story);
-  if (s.fact) nodes.push(el('section', { class: 'fact' }, [el('h2', { class: 'readable', text: 'Did you know?' }), rich('p', { class: 'readable' }, s.fact)]));
+  if (s.fact) nodes.push(el('section', { class: 'fact' }, [el('h2', { class: 'readable', text: '💡 Did you know?' }), rich('p', { class: 'readable' }, s.fact)]));
   if (s.hnote) { nodes.push(el('section', { class: 'note' }, [el('h2', { class: 'readable', text: '📘 History Note: why did this happen?' }), el('p', { class: 'kind', text: '🖊️ Written today to explain what really happened. Tick “History Note” in your booklet.' }), rich('p', { class: 'readable' }, s.hnote)])); const wf = ffBox('Why did it happen?'); if (wf) nodes.push(wf); }
   const srcs = sourcesAt(id);
   if (srcs.length) {
@@ -4387,7 +4410,7 @@ function render(id) {
   const sbs = secretButtons(id); if (sbs.length) nodes.push(el('div', { class: 'row' }, sbs));
 
   if (s.c) {
-    nodes.push(el('p', { class: 'ask readable', text: 'What do you do?' }));
+    nodes.push(el('p', { class: 'ask readable', text: '👉 What do you do?' }));
     const list = el('div', { class: 'choices' });
     s.c.forEach(([label, target]) => list.appendChild(el('button', { class: 'choice', type: 'button', text: label, onclick: () => { tagChoice(id, target); recordChoice(id, target, label); go(String(target)); } })));
     const db = doorButtons(id); if (db) list.appendChild(db);
