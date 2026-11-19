@@ -2850,7 +2850,7 @@ const GAME = {
   badges: {
     threelives: { icon: '🌿', name: 'Four Lives', text: 'Reach an ending as Anne, Pierre, Muin and Émile.' },
     archivist: { icon: '📜', name: 'Archivist', text: 'Read every real document in the stories.' },
-    gamemaster: { icon: '🎮', name: 'Game Master', text: 'Finish all 13 mini-games.' },
+    gamemaster: { icon: '🎮', name: 'Game Master', text: 'Finish all 15 mini-games.' },
     pathfinder: { icon: '🔓', name: 'Pathfinder', text: 'Open all 9 hidden paths with what you learned.' },
     wordcarrier: { icon: '🗣️', name: 'Word Carrier', text: 'Learn all 16 Mi’kmaw and Acadian French words to carry.' },
     inkkeeper: { icon: '🔦', name: 'Keeper of Hidden History', text: 'Find all eight Hidden Ink words around the school.' },
@@ -9277,6 +9277,497 @@ function gApples(box, win) {
   menu();
 }
 
+const DYKE = {"hero": "pierre", "fig": "M", "size": 0.92, "boy": 0.7};
+// ================= PATCH THE DYKE =================
+// Pierre, Grand-Pré, 1760 (scenes 281 and 284): the sea has broken the dyke in three places.
+// Cut sods, carry them to the break and pack them in layers, grass side out, with spruce boughs
+// under each layer, before the tide comes back. There is no way to lose: salt water that gets
+// through is shown on the field, and the break can be mended at the next low tide.
+// The people are the same ink figures as in the story pictures (scene 281 draws Pierre and the
+// Planter's son with the figure M). The picture is a diagram, not to scale.
+function gDyke(box, win) {
+  const CFG = DYKE, H = 360;
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const mulb = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join(''); };
+  const INK = '#1B2529';
+  const P = { sky: ['#B9C9CF', '#E9E6D6'], mud: '#7F6957', sea: '#A98C7D', seaHi: '#CDB9AC', far: '#5D6E78', grass: ['#7E9448', '#566B33'], turf: '#6E8C3F', turfHi: '#93AE55', earth: '#7A5B40', earthDk: '#5A4230', bough: ['#2F5B3A', '#3F7448', '#274C31'], salt: '#B9B7A6' };
+  const LEVELS = [
+    { n: 1, icon: '🌱', name: 'The first break', tag: 'A small break. Learn the work.', cols: 3, rows: 3, secs: 60, flip: 0.4, mult: 1, seed: 7 },
+    { n: 2, icon: '🌊', name: 'The second break', tag: 'Wider, with more to carry', cols: 4, rows: 3, secs: 70, flip: 0.5, mult: 1.25, seed: 19 },
+    { n: 3, icon: '🌬️', name: 'The third break', tag: 'Cut right down to the foot of the dyke', cols: 4, rows: 4, secs: 88, flip: 0.5, mult: 1.5, seed: 31 },
+  ];
+  // The figure's shape is the story pictures' own (a man in a flat hat).
+  const F = { head: -90, cap: 'M-13,-95 L13,-95 L13,-92 L-13,-92 Z M-8,-95 L-7,-104 L7,-104 L8,-95 Z', body: 'M-10,-81 L10,-81 L13,-38 L-13,-38 Z', sh: -78 };
+  const FACTS = [
+    'An Acadian dyke was a wall of earth covered with sods. It stood about 1.5 metres tall: just high enough to keep out the highest tides.',
+    'Dyke builders cut sods like bricks with a special narrow spade and stacked them with the grass facing out. As the roots grew together, they held the wall against the tides.',
+    'When the Acadians first dyked a marsh, it took two or three years of rain and melting snow to wash the salt out of the soil before crops would grow.',
+    'In 1759, a great storm flooded the dykelands with salt water and badly damaged the dykes and aboiteaux. The Acadians who knew how to mend them had been deported or locked up.',
+    'Inside an old Acadian dyke there is more than earth. Builders laid sods and spruce boughs in the core to bind it together. Pieces of these old dykes have lasted to this day.',
+  ];
+  let stopRun = null;
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+  const heroName = (typeof HEROES !== 'undefined' && HEROES[CFG.hero] && HEROES[CFG.hero].name) || 'Pierre';
+
+  // quiet sound effects: only when the Sound button at the top is on
+  const sfx = (() => {
+    const A = () => { try { if (typeof SND === 'undefined' || !SND.on) return null; const a = SND._audio(); return a && a.ctx && a.master ? a : null; } catch (e) { return null; } };
+    const tone = (a, type, f0, f1, dur, vol, delay) => {
+      const t = a.ctx.currentTime + (delay || 0), o = a.ctx.createOscillator(), g = a.ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.03);
+    };
+    return (kind) => {
+      const a = A(); if (!a) return;
+      try {
+        if (kind === 'cut') { tone(a, 'triangle', 180, 90, 0.1, 0.06); tone(a, 'sine', 90, 60, 0.12, 0.05, 0.08); }
+        else if (kind === 'place') tone(a, 'sine', 150, 80, 0.1, 0.06);
+        else if (kind === 'bough') { tone(a, 'triangle', 900, 500, 0.07, 0.025); tone(a, 'triangle', 700, 420, 0.08, 0.025, 0.06); }
+        else if (kind === 'turn') tone(a, 'triangle', 520, 660, 0.07, 0.035);
+        else if (kind === 'weak') tone(a, 'triangle', 240, 170, 0.2, 0.05);
+        else if (kind === 'wash') tone(a, 'sine', 300, 110, 0.35, 0.05);
+        else if (kind === 'closed') [392, 523, 659].forEach((f, i) => tone(a, 'triangle', f, f, 0.28, 0.05, i * 0.14));
+      } catch (e) { /* sound is a nicety; never let it stop the game */ }
+    };
+  })();
+
+  function menu() {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const best = PROG.dykeBest || 0, bs = PROG.dykeStars || {};
+    box.append(
+      el('p', { class: 'readable', text: `It is 1760 at Grand-Pré. The sea has broken the dyke in three places, and the marsh is turning back to salt. Nobody in the colony knows how to mend a dyke except the Acadians. ${heroName} learned it from his father, who learned it from his.` }),
+      el('p', { class: 'readable', text: 'The tide is out. Before it comes back: lay spruce boughs, then cut sods and pack them on top, grass side out, so the roots knit the wall together. Then the next layer.' }),
+      el('p', { class: 'hint', text: 'Walk with the ← and → keys. Press Space to work: cut a sod, pick up boughs, or set down what you carry. Press ↑ to turn a sod around. Or just click or tap where you want to go, and tap Pierre to turn the sod.' }),
+      el('h2', { class: 'readable', text: 'Choose a break' }),
+      el('div', { class: 'trail-courses' }, LEVELS.map((L) => el('button', { type: 'button', class: 'ghcard' + (bs[L.n] ? ' done' : ''), onclick: () => play(L) }, [
+        el('span', { class: 'ghicon', text: L.icon }), el('strong', { text: L.name }), el('span', { text: L.tag }),
+        el('span', { class: 'ghwhere', text: bs[L.n] ? `Best: ${stars(bs[L.n])}` : 'Not mended yet' }),
+      ]))),
+      el('label', { class: 'grelax' }, [
+        el('input', { type: 'checkbox', checked: RELAXED ? 'checked' : null, onchange: (e) => { RELAXED = e.target.checked; } }),
+        document.createTextNode(' Relaxed mode (the tide comes in more slowly, with reminders, and it scores a little less)'),
+      ]),
+      el('p', { class: 'hint', text: best ? `Your best score: ${best}` : 'Mend a break to set your first score.' }),
+    );
+  }
+
+  function play(L) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const W = (box.clientWidth || 720) < 520 ? 560 : 720, small = W < 700;
+    const GY = 304, DT = 196, DB = 290, CW = small ? 34 : 38, RH = 23;
+    const GXc = Math.round(W * 0.5), G0 = GXc - L.cols * CW / 2, G1 = GXc + L.cols * CW / 2, yB = DT + L.rows * RH;
+    const SB = Math.round(W * 0.15), BP = Math.round(W * 0.86), V = W * 0.37, K = CFG.size;
+    const relaxed = !!RELAXED, rate = relaxed ? 0.7 : 1, washT = relaxed ? 3.6 : 2.2;
+    const firstTime = !(PROG.dykeStars && Object.keys(PROG.dykeStars).length), coach = relaxed || (firstTime && L.n === 1);
+    const h0 = -22, hMax = (DB - DT) - 6, leakK = 100 / (L.cols * L.rows * L.secs * 0.3);
+    const cv = document.createElement('canvas'); cv.className = 'trailcv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`;
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'A break in the dyke at low tide. Pierre carries sods and spruce boughs to the break while the tide rises behind it. The Planter’s son watches from the top of the dyke.');
+    let dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const live = el('p', { class: 'hint', 'aria-live': 'polite', text: '' });
+    const leftBtn = el('button', { class: 'gamebtn trail-jump dyke-btn', type: 'button', text: '◀ Left', 'aria-label': 'Walk left' });
+    const rightBtn = el('button', { class: 'gamebtn trail-jump dyke-btn', type: 'button', text: 'Right ▶', 'aria-label': 'Walk right' });
+    const workBtn = el('button', { class: 'gamebtn dyke-btn', type: 'button', text: '✋ Work', 'aria-label': 'Work: cut a sod, pick up boughs, or set down what you carry' });
+    const turnBtn = el('button', { class: 'gamebtn dyke-btn', type: 'button', text: '🔄 Turn sod', 'aria-label': 'Turn the sod around' });
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' });
+    box.append(el('div', { class: 'trailwrap' }, [cv]), el('div', { class: 'row tight' }, [leftBtn, rightBtn, workBtn, turnBtn, pauseBtn, el('button', { class: 'gamebtn', type: 'button', text: '↩ Choose a break', onclick: () => menu() })]), live);
+
+    // ---------- the break: rows of sod slots, bottom row first ----------
+    const R = mulb(L.seed * 7919 + 11), slots = [];
+    for (let r = 0; r < L.rows; r++) for (let q = 0; q < L.cols; q++) slots.push({ r, q, x: G0 + q * CW, y: yB - (r + 1) * RH, f: false, out: true, wet: 0, j: R() });
+    const st = { t: 0, clock: 0, x: Math.round(W * 0.32), vx: 0, face: -1, target: null, auto: false, keyL: false, keyR: false, carry: null, busy: null, boughs: Array(L.rows).fill(false), h: h0, salt: 0, leaking: false, cuts: 0, wrong: 0, washed: 0, placed: 0, closedAt: 0, topAt: 0, started: false, paused: false, ended: false, msg: [], step: 0, low: false, slots, L, W, SB, BP, G0, G1, GXc, coach };
+    box._dyke = st;
+    const parts = []; const spawn = (o) => { if (parts.length < (RM || st.low ? 40 : 150)) parts.push(o); };
+    const say = (text, x, y, col) => { st.msg = st.msg.filter((m) => m.text !== text); st.msg.push({ text, x: x === undefined ? st.x : x, y: y === undefined ? GY - 112 : y, t: 0, col: col || '#FFFFFF' }); live.textContent = text; };
+    const zone = (x) => (Math.abs(x - SB) <= 46 ? 'sod' : Math.abs(x - BP) <= 46 ? 'bough' : x >= G0 - 18 && x <= G1 + 18 ? 'gap' : '');
+    const curRow = () => { for (let r = 0; r < L.rows; r++) if (slots.some((s) => s.r === r && !s.f)) return r; return -1; };
+    const nearest = (list) => list.reduce((b, s) => (!b || Math.abs(s.x + CW / 2 - st.x) < Math.abs(b.x + CW / 2 - st.x) ? s : b), null);
+    const depth = (s) => clamp(((s.y + RH) - (DB - st.h)) / RH, 0, 1);   // how far up this slot the sea stands
+    const need = () => { const r = curRow(); return r < 0 ? (slots.some((s) => !s.out) ? 'fix' : '') : st.boughs[r] ? 'sod' : 'bough'; };
+
+    function turn() {
+      if (!st.started || st.paused || st.ended || st.closedAt) return;
+      if (!st.carry || st.carry.kind !== 'sod') { say('Nothing to turn. Cut a sod first.'); return; }
+      st.carry.out = !st.carry.out; st.carry.spin = 1; sfx('turn');
+      live.textContent = st.carry.out ? 'Grass side out.' : 'Grass side in.';
+    }
+    function work() {
+      if (!st.started || st.paused || st.ended || st.busy || st.closedAt) return;
+      const z = zone(st.x);
+      if (z === 'sod') {
+        if (st.carry && st.carry.kind === 'sod') { say('You have a sod. Take it to the break.'); return; }
+        st.carry = null; st.face = -1;
+        st.busy = { kind: 'cut', t: 0.5, T: 0.5, done() { const out = st.coach && st.cuts === 0 ? false : R() >= L.flip; st.carry = { kind: 'sod', out, spin: 0 }; st.cuts++; sfx('cut'); live.textContent = out ? 'A sod, grass side out.' : 'A sod, grass side in. Turn it around.'; } };
+      } else if (z === 'bough') {
+        if (st.carry && st.carry.kind === 'bough') { say('You have boughs. Take them to the break.'); return; }
+        st.carry = null; st.face = 1;
+        st.busy = { kind: 'pick', t: 0.24, T: 0.24, done() { st.carry = { kind: 'bough' }; sfx('bough'); live.textContent = 'An armful of spruce boughs.'; } };
+      } else if (z === 'gap') {
+        const row = curRow();
+        if (!st.carry) {
+          const w = nearest(slots.filter((s) => s.f && !s.out));
+          if (w) st.busy = { kind: 'pull', t: 0.25, T: 0.25, done() { w.f = false; w.wet = 0; st.carry = { kind: 'sod', out: false, spin: 0 }; say('Pulled it out. Turn it around.'); } };
+          else if (row >= 0) say(st.boughs[row] ? 'Cut a sod first.' : 'Fetch spruce boughs first.');
+          return;
+        }
+        if (row < 0) { say('No room here. Pull out a sod that is grass side in.'); return; }
+        if (st.carry.kind === 'bough') {
+          if (st.boughs[row]) { say('This layer has its boughs. It needs sods.'); return; }
+          st.busy = { kind: 'lay', t: 0.26, T: 0.26, done() { st.boughs[row] = true; st.carry = null; sfx('bough'); live.textContent = 'Boughs laid. Now sods.'; } };
+        } else {
+          if (!st.boughs[row]) { say('Spruce boughs first, then sods.'); return; }
+          const s = nearest(slots.filter((o) => o.r === row && !o.f)), out = st.carry.out;
+          st.busy = { kind: 'place', t: 0.22, T: 0.22, done() {
+            s.f = true; s.out = out; s.wet = 0; st.carry = null; st.placed++;
+            if (!out) { st.wrong++; sfx('weak'); say('Grass side in! It won’t hold.', s.x + CW / 2, s.y - 8, '#FFE3B0'); }
+            else { sfx('place'); for (let i = 0; i < 4; i++) spawn({ x: s.x + CW / 2, y: s.y + RH, vx: (Math.random() - 0.5) * 90, vy: -30 - Math.random() * 50, g: 260, life: 0.4, kind: 'dust' }); }
+          } };
+        }
+      }
+    }
+
+    function step(dt) {
+      const tdt = dt * rate; st.clock += dt; if (!st.closedAt) st.t += tdt;
+      st.msg.forEach((m) => { m.t += dt; }); st.msg = st.msg.filter((m) => m.t < 1.9);
+      for (const p of parts) { p.life -= dt; p.vy = (p.vy || 0) + (p.g || 0) * dt; p.x += (p.vx || 0) * dt; p.y += p.vy * dt; }
+      for (let i = parts.length - 1; i >= 0; i--) if (parts[i].life <= 0) parts.splice(i, 1);
+      if (st.carry && st.carry.spin) st.carry.spin = Math.max(0, st.carry.spin - dt * 5);
+      if (st.busy) { st.vx = 0; st.busy.t -= dt; if (st.busy.t <= 0) { const b = st.busy; st.busy = null; b.done(); } }
+      else {
+        const want = (st.keyR ? 1 : 0) - (st.keyL ? 1 : 0);
+        if (want) { st.target = null; st.auto = false; st.vx += (want * V - st.vx) * Math.min(1, dt * 16); }
+        else if (st.target !== null) {
+          const d = st.target - st.x;
+          if (Math.abs(d) <= V * dt + 1) { st.x = st.target; st.vx = 0; st.target = null; if (st.auto) { st.auto = false; work(); } }
+          else st.vx = Math.sign(d) * V;
+        } else st.vx += (0 - st.vx) * Math.min(1, dt * 18);
+        st.x = clamp(st.x + st.vx * dt, SB - 22, BP + 22); if (st.x <= SB - 22 || st.x >= BP + 22) st.vx = 0;   // the two piles are the ends of the path
+        if (Math.abs(st.vx) > 20) st.face = Math.sign(st.vx);
+        st.step += Math.abs(st.vx) * dt / 9;
+      }
+      // the tide
+      const u = clamp(st.t / L.secs, 0, 1); st.h = h0 + (hMax - h0) * (1 - Math.pow(1 - u, 1.2));
+      let leak = 0, open = 0, weak = 0;
+      for (const s of slots) {
+        const d = depth(s);
+        if (!s.f) { open++; leak += d; if (d > 0.05 && !RM && !st.low && Math.random() < dt * 9) spawn({ x: s.x + 4 + Math.random() * (CW - 8), y: s.y + RH - d * RH + 2, vx: (Math.random() - 0.5) * 20, vy: 40, g: 500, life: 0.5, kind: 'drop' }); }
+        else if (!s.out) {
+          weak++;
+          if (d > 0.3 && !st.closedAt) { s.wet += dt; if (s.wet >= washT) { s.f = false; s.wet = 0; st.washed++; sfx('wash'); say('Washed out! Its roots could not knit.', s.x + CW / 2, s.y - 8, '#FFE3B0'); for (let i = 0; i < 7; i++) spawn({ x: s.x + Math.random() * CW, y: s.y + Math.random() * RH, vx: (Math.random() - 0.5) * 120, vy: -20 - Math.random() * 80, g: 420, life: 0.7, kind: 'clod' }); } }
+        }
+      }
+      if (!st.closedAt) st.salt = Math.min(100, st.salt + leak * leakK * tdt);
+      st.leaking = leak > 0.02; st.open = open; st.weak = weak;
+      if (!st.closedAt && open === 0 && weak === 0) { st.closedAt = st.clock; st.target = null; st.keyL = st.keyR = false; sfx('closed'); say('The break is closed!', GXc, DT - 22, '#FFF3B8'); }
+      if (u >= 1 && !st.topAt) st.topAt = st.clock;
+      if (!st.ended && ((st.closedAt && st.clock >= st.closedAt + 1.5) || (st.topAt && st.clock >= st.topAt + 1.6))) { st.ended = true; finish(); }
+    }
+
+    // ---------- pictures drawn once ----------
+    const sprite = (w, h, fn) => { const s = document.createElement('canvas'); s.width = w * 2; s.height = h * 2; const g = s.getContext('2d'); g.scale(2, 2); fn(g); return s; };
+    const sodFace = (g, x, y, w, h, out, j) => {
+      g.fillStyle = out ? P.turf : P.earth; g.fillRect(x + 0.5, y + 0.5, w - 1, h - 1);
+      g.fillStyle = out ? 'rgba(40,60,20,.28)' : 'rgba(30,20,10,.3)'; g.fillRect(x + 0.5, y + h - 4, w - 1, 3.5);
+      g.lineCap = 'round';
+      if (out) { g.strokeStyle = P.turfHi; g.lineWidth = 1.5; g.beginPath(); for (let i = 0; i < 6; i++) { const tx = x + 4 + i * (w - 8) / 5 + ((j * 7 + i * 3) % 3) - 1; g.moveTo(tx, y + 8); g.lineTo(tx - 1.5, y + 2.5); g.moveTo(tx, y + 8); g.lineTo(tx + 2, y + 3.5); } g.stroke(); g.strokeStyle = 'rgba(40,60,20,.4)'; g.beginPath(); for (let i = 0; i < 4; i++) { const tx = x + 7 + i * (w - 12) / 3; g.moveTo(tx, y + h - 6); g.lineTo(tx + 1.5, y + h - 11); } g.stroke(); }
+      else { g.strokeStyle = '#C9B08A'; g.lineWidth = 1.1; g.beginPath(); for (let i = 0; i < 4; i++) { const tx = x + 5 + i * (w - 10) / 3; g.moveTo(tx, y + 4); g.quadraticCurveTo(tx + 3, y + h / 2, tx - 1, y + h - 5); } g.stroke(); g.fillStyle = 'rgba(30,20,10,.35)'; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(x + 8 + i * (w - 16) / 2, y + 6 + (i % 2) * 7, 1.6, 0, 7); g.fill(); } }
+      g.strokeStyle = out ? 'rgba(40,55,25,.7)' : 'rgba(40,28,18,.75)'; g.lineWidth = 1; g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    };
+    const boughFan = (g, x, y, s, a, col) => {
+      g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s);
+      g.fillStyle = col; g.beginPath(); g.moveTo(0, 0); g.lineTo(26, -7); g.lineTo(22, -3); g.lineTo(30, -1); g.lineTo(23, 2); g.lineTo(27, 7); g.lineTo(0, 2); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(20,35,25,.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(-3, 1); g.lineTo(26, 0); g.stroke();
+      g.restore();
+    };
+    const man = (g, x, y, k, o) => {   // o: { sw, legs }
+      const sw = (o && o.sw) || 0;
+      g.save(); g.translate(x, y); g.scale(k, k); g.fillStyle = INK;
+      const a = sw * 5; g.fillRect(-8, -40, 6, 40 - Math.max(0, a)); g.fillRect(2, -40, 6, 40 - Math.max(0, -a));
+      if (typeof Path2D !== 'undefined') { g.fill(new Path2D(F.body)); g.fill(new Path2D(F.cap)); } else g.fillRect(-11, -95, 22, 57);
+      g.beginPath(); g.arc(0, F.head, 8, 0, 7); g.fill();
+      g.restore();
+    };
+    const holePath = (g, pad) => {
+      const Q = mulb(L.seed + 5), jx = () => (Q() - 0.5) * 7;
+      g.beginPath(); g.moveTo(G0 - 9 - pad, DT - 8);
+      for (let y = DT + 8; y < yB; y += 14) g.lineTo(G0 - 4 - pad + jx(), y);
+      g.lineTo(G0 - 2 - pad, yB + 2 + pad);
+      for (let x = G0 + 12; x < G1; x += 16) g.lineTo(x, yB + 2 + pad + (Q() - 0.5) * 4);
+      g.lineTo(G1 + 2 + pad, yB + 2 + pad);
+      for (let y = yB - 10; y > DT; y -= 14) g.lineTo(G1 + 4 + pad + jx(), y);
+      g.lineTo(G1 + 9 + pad, DT - 8); g.closePath();
+    };
+    // far away: the sky, the Basin and Cape Blomidon
+    const back = sprite(W, H, (g) => {
+      const sg = g.createLinearGradient(0, 0, 0, 180); sg.addColorStop(0, P.sky[0]); sg.addColorStop(1, P.sky[1]); g.fillStyle = sg; g.fillRect(0, 0, W, H);
+      g.fillStyle = P.far; g.beginPath(); g.moveTo(W * 0.5, 172); g.lineTo(W * 0.56, 160); g.lineTo(W * 0.66, 152); g.lineTo(W * 0.9, 148); g.lineTo(W * 0.955, 150); g.lineTo(W * 0.975, 164); g.lineTo(W, 172); g.closePath(); g.fill();
+      g.fillStyle = mix(P.far, P.sky[1], 0.45); g.beginPath(); g.moveTo(0, 172); g.lineTo(0, 164); g.quadraticCurveTo(W * 0.2, 156, W * 0.42, 172); g.closePath(); g.fill();
+    });
+    // the dyke, with the break torn out of it; the turf bank where sods are cut; the pile of boughs
+    const front = sprite(W, H, (g) => {
+      const Q = mulb(L.seed * 13 + 1);
+      const dg = g.createLinearGradient(0, DT, 0, DB + 6); dg.addColorStop(0, mix(P.turf, '#C9CF8A', 0.25)); dg.addColorStop(1, mix(P.grass[1], INK, 0.15));
+      g.fillStyle = dg; g.beginPath(); g.moveTo(0, DT + 3); for (let x = 0; x <= W; x += 24) g.lineTo(x, DT + Math.sin(x / 70 + L.seed) * 1.6); g.lineTo(W, DB + 8); g.lineTo(0, DB + 8); g.closePath(); g.fill();
+      // sods in rows, faintly, and the grass that has grown over them
+      g.strokeStyle = 'rgba(40,55,25,.2)'; g.lineWidth = 1; g.beginPath();
+      for (let r = 1; r * RH < DB - DT; r++) { g.moveTo(0, DT + r * RH); g.lineTo(W, DT + r * RH); }
+      for (let r = 0; r * RH < DB - DT; r++) for (let x = (r % 2) * CW / 2 + ((G0 % CW) - CW); x < W; x += CW) { g.moveTo(x, DT + r * RH + 2); g.lineTo(x, DT + (r + 1) * RH - 2); }
+      g.stroke();
+      g.lineCap = 'round'; g.lineWidth = 1.4;
+      for (let i = 0; i < (small ? 240 : 320); i++) { const x = Q() * W, y = DT + 6 + Q() * (DB - DT - 4), hh = 3 + Q() * 5; g.strokeStyle = Q() < 0.5 ? 'rgba(160,185,95,.7)' : 'rgba(50,70,30,.45)'; g.beginPath(); g.moveTo(x, y); g.lineTo(x - 1.5, y - hh); g.moveTo(x, y); g.lineTo(x + 2, y - hh * 0.8); g.stroke(); }
+      g.strokeStyle = P.grass[0]; g.lineWidth = 1.6; g.beginPath(); for (let x = 2; x < W; x += 5) { const y = DT + Math.sin(x / 70 + L.seed) * 1.6; g.moveTo(x, y + 1); g.lineTo(x + (Q() - 0.5) * 4, y - 3 - Q() * 5); } g.stroke();
+      g.fillStyle = 'rgba(225,215,160,.35)'; g.fillRect(0, DT + 1, W, 5);
+      g.fillStyle = 'rgba(20,30,15,.25)'; g.fillRect(0, DB - 2, W, 10);
+      // the torn edge: packed earth, and bough ends from the old core
+      g.fillStyle = P.earth; holePath(g, 8); g.fill();
+      g.fillStyle = P.earthDk; for (let i = 0; i < 26; i++) { const left = i % 2 === 0, y = DT + 4 + Q() * (yB - DT), x = (left ? G0 - 9 : G1 + 3) + Q() * 6; g.beginPath(); g.arc(x, y, 1.2 + Q() * 1.4, 0, 7); g.fill(); }
+      for (let i = 0; i < 6; i++) { const left = i % 2 === 0, y = DT + 14 + (i >> 1) * ((yB - DT - 20) / 2.4); boughFan(g, left ? G0 - 7 : G1 + 7, y, 0.42, left ? -0.25 : Math.PI + 0.25, P.bough[2]); }
+      g.save(); g.globalCompositeOperation = 'destination-out'; holePath(g, 0); g.fill(); g.restore();
+      // the ground on this side
+      const gg = g.createLinearGradient(0, DB, 0, H); gg.addColorStop(0, P.grass[0]); gg.addColorStop(1, P.grass[1]); g.fillStyle = gg; g.fillRect(0, DB + 6, W, H - DB - 6);
+      g.strokeStyle = mix(P.grass[1], INK, 0.15); g.lineWidth = 1.4;
+      for (let i = 0; i < 130; i++) { const x = Q() * W, y = DB + 12 + Q() * (H - DB - 14), hh = 4 + Q() * 6; g.beginPath(); g.moveTo(x, y); g.lineTo(x - 2, y - hh); g.moveTo(x, y); g.lineTo(x + 2.5, y - hh * 0.8); g.stroke(); }
+      // the turf bank: a step of marsh sod, with a hand barrow beside it
+      const bx0 = SB - 62, bx1 = SB + 40, by = GY - 15;
+      g.fillStyle = P.earth; g.fillRect(bx0, by, bx1 - bx0, GY - by + 4);
+      g.fillStyle = P.turf; g.fillRect(bx0 - 2, by - 5, bx1 - bx0 + 4, 7);
+      g.strokeStyle = P.turfHi; g.lineWidth = 1.5; g.beginPath(); for (let x = bx0; x < bx1; x += 5) { g.moveTo(x, by - 4); g.lineTo(x + (Q() - 0.5) * 3, by - 9 - Q() * 3); } g.stroke();
+      g.strokeStyle = 'rgba(30,20,10,.35)'; g.lineWidth = 1; g.beginPath(); for (let x = bx0 + 13; x < bx1; x += 13) { g.moveTo(x, by + 3); g.lineTo(x, GY + 2); } g.stroke();
+      g.strokeStyle = '#4A382B'; g.lineWidth = 3; g.beginPath(); g.moveTo(bx0 - 44, GY + 16); g.lineTo(bx0 + 4, GY + 16); g.moveTo(bx0 - 44, GY + 26); g.lineTo(bx0 + 4, GY + 26); g.stroke();
+      g.lineWidth = 2; g.beginPath(); for (let x = bx0 - 32; x < bx0 - 6; x += 7) { g.moveTo(x, GY + 15); g.lineTo(x, GY + 27); } g.stroke();
+      sodFace(g, bx0 - 30, GY + 5, 20, 10, true, 0.2); sodFace(g, bx0 - 20, GY - 4, 20, 10, true, 0.6);
+      // the spruce boughs
+      const cols = P.bough;
+      for (let i = 0; i < 16; i++) { const a = -Math.PI / 2 + (Q() - 0.5) * 2.4, x = BP + (Q() - 0.5) * 50, y = GY + 4 - Q() * 14; boughFan(g, x, y, 0.95 + Q() * 0.35, a, cols[i % 3]); }
+      for (let i = 0; i < 5; i++) boughFan(g, BP - 34 + i * 15, GY + 6, 1, (i % 2 ? -0.2 : Math.PI + 0.2), cols[(i + 1) % 3]);
+      // the Planter's son, come down to watch (scene 281)
+      const kx = clamp(G1 + 70, 0, BP - 70); man(g, kx, DT + 1, CFG.boy);
+    });
+
+    // ---------- drawing ----------
+    const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
+    const FONT = 'system-ui, -apple-system, Segoe UI, sans-serif';
+    function drawMan() {
+      const moving = Math.abs(st.vx) > 20, sw = moving ? Math.sin(st.step) : 0, b = st.busy, bk = b ? 1 - b.t / b.T : 0;
+      const bend = b && b.kind === 'cut' ? Math.sin(bk * Math.PI) * 0.16 : b ? Math.sin(bk * Math.PI) * 0.08 : 0, f = st.face;
+      c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(st.x, GY + 2, 22, 5, 0, 0, 7); c.fill();
+      c.save(); c.translate(st.x, GY); c.transform(1, 0, -f * bend - (moving ? f * 0.04 : 0), 1, 0, 0);
+      man(c, 0, moving ? -Math.abs(sw) * 1.5 : 0, K, { sw });
+      const shy = F.sh * K, hx = f * 21, hy = -50 * K;
+      c.strokeStyle = INK; c.lineWidth = 5; c.lineCap = 'round';
+      if (b && b.kind === 'cut') {
+        // the narrow dyking spade goes down into the turf
+        const dy = Math.sin(bk * Math.PI) * 12; c.beginPath(); c.moveTo(-8 * K, shy); c.lineTo(f * 20, -44 + dy); c.moveTo(8 * K, shy); c.lineTo(f * 24, -30 + dy); c.stroke();
+        c.strokeStyle = '#6B4F33'; c.lineWidth = 3; c.beginPath(); c.moveTo(f * 18, -52 + dy); c.lineTo(f * 27, -14 + dy); c.stroke();
+        c.fillStyle = '#4C5358'; c.beginPath(); c.moveTo(f * 24.5, -15 + dy); c.lineTo(f * 30, -15 + dy); c.lineTo(f * 32, 6 + dy); c.lineTo(f * 27.5, 7 + dy); c.closePath(); c.fill();
+      } else if (st.carry && st.carry.kind === 'sod') {
+        c.beginPath(); c.moveTo(-9 * K, shy); c.lineTo(hx - f * 9, hy + 6); c.moveTo(9 * K, shy); c.lineTo(hx + f * 7, hy + 6); c.stroke();
+        const sp = st.carry.spin || 0, sx = Math.abs(Math.cos(sp * Math.PI)) * 0.85 + 0.15;
+        c.save(); c.translate(hx, hy); c.scale(sx, 1); sodFace(c, -15, -9, 30, 17, sp > 0.5 ? !st.carry.out : st.carry.out, 0.4); c.restore();
+      } else if (st.carry && st.carry.kind === 'bough') {
+        c.beginPath(); c.moveTo(-9 * K, shy); c.lineTo(hx - f * 8, hy + 2); c.moveTo(9 * K, shy); c.lineTo(hx + f * 4, hy + 4); c.stroke();
+        for (let i = 0; i < 4; i++) boughFan(c, hx - f * 14, hy + 2 - i * 2, 1.05, f > 0 ? -0.35 + i * 0.16 : Math.PI + 0.35 - i * 0.16, P.bough[i % 3]);
+      } else {
+        c.beginPath(); c.moveTo(-9 * K, shy); c.lineTo(-13 - sw * 5, shy + 30 + (b ? 6 : 0)); c.moveTo(9 * K, shy); c.lineTo(13 + sw * 5, shy + 30 + (b ? 6 : 0)); c.stroke();
+      }
+      c.restore();
+    }
+    function draw() {
+      const u = clamp(st.t / L.secs, 0, 1), wy = DB - st.h, low = st.low;
+      c.drawImage(back, 0, 0, W, H);
+      // the Basin far off: mud flats at low tide, water as the tide comes in
+      const fb = c.createLinearGradient(0, 172, 0, 202); fb.addColorStop(0, mix(mix(P.mud, '#B9A792', 0.5), P.seaHi, clamp(u * 1.6, 0, 1))); fb.addColorStop(1, mix(P.mud, P.sea, clamp(u * 1.6, 0, 1))); c.fillStyle = fb; c.fillRect(0, 172, W, 30);
+      c.fillStyle = mix('#A9B8BC', P.seaHi, 0.3); c.beginPath(); c.moveTo(0, 174); c.quadraticCurveTo(W * 0.3, 176 + u * 2, W * 0.62, 173); c.lineTo(W, 173); c.lineTo(W, 172); c.lineTo(0, 172); c.closePath(); c.fill();
+      c.fillStyle = 'rgba(255,255,255,.22)'; for (let i = 0; i < 5; i++) { const x = ((i * 190 + st.clock * (RM ? 0 : 7)) % (W + 120)) - 60; c.fillRect(x, 176 + i * 4, 46, 1.5); }
+      c.fillStyle = 'rgba(255,255,255,.6)';
+      for (let i = 0; i < 4; i++) { const x = ((i * 250 + 60 + st.clock * (RM ? 0 : 4 + i * 1.5)) % (W + 300)) - 150, y = 52 + i * 24, s = 0.8 + (i % 3) * 0.25; c.beginPath(); c.ellipse(x, y, 42 * s, 8 * s, 0, 0, 7); c.ellipse(x - 14 * s, y - 6 * s, 20 * s, 9 * s, 0, 0, 7); c.ellipse(x + 15 * s, y - 8 * s, 24 * s, 11 * s, 0, 0, 7); c.fill(); }
+      if (!low) { c.strokeStyle = INK; c.lineWidth = 1.6; c.lineCap = 'round'; for (let i = 0; i < 2; i++) { const x = ((st.clock * (RM ? 0 : 18 + i * 7) + i * 330 + 80) % (W + 80)) - 40, y = 96 + i * 26 + Math.sin(st.clock * 1.3 + i) * 5, fl = Math.sin(st.clock * 7 + i * 2) * 3; c.beginPath(); c.moveTo(x - 7, y - fl); c.quadraticCurveTo(x - 3, y - 3, x, y); c.quadraticCurveTo(x + 3, y - 3, x + 7, y - fl); c.stroke(); } }
+      // seen through the break: the channel mud, then the sea coming up
+      c.save(); c.beginPath(); c.rect(G0 - 14, DT - 10, G1 - G0 + 28, DB - DT + 18); c.clip();
+      c.fillStyle = P.mud; c.fillRect(G0 - 14, 200, G1 - G0 + 28, DB - 200 + 10);
+      c.fillStyle = 'rgba(60,45,35,.35)'; for (let i = 0; i < 5; i++) c.fillRect(G0 - 10 + i * 31, 214 + (i % 3) * 22, 22, 2);
+      if (wy < DB + 8) {
+        const wg = c.createLinearGradient(0, wy, 0, DB + 8); wg.addColorStop(0, P.seaHi); wg.addColorStop(0.25, P.sea); wg.addColorStop(1, mix(P.sea, INK, 0.3)); c.fillStyle = wg;
+        c.beginPath(); c.moveTo(G0 - 14, DB + 10); for (let x = G0 - 14; x <= G1 + 14; x += 6) c.lineTo(x, wy + (RM ? 0 : Math.sin(x / 14 + st.clock * 3) * 1.3)); c.lineTo(G1 + 14, DB + 10); c.closePath(); c.fill();
+        c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 1.2; c.beginPath(); for (let x = G0 - 10; x < G1 + 10; x += 22) { const o = RM ? 0 : (st.clock * 9) % 22; c.moveTo(x + o, wy + 1.5); c.lineTo(x + o + 9, wy + 1.5); } c.stroke();
+      }
+      c.restore();
+      c.drawImage(front, 0, 0, W, H);
+      // the mending: boughs under each layer, then the sods
+      for (let r = 0; r < L.rows; r++) if (st.boughs[r]) { const y = yB - r * RH; for (let x = G0 - 3; x < G1 - 6; x += 15) boughFan(c, x, y - 1 + ((x / 15 | 0) % 2), 0.6, -0.12 + ((x / 15 | 0) % 3) * 0.1, P.bough[(r + (x / 15 | 0)) % 3]); }
+      for (const s of slots) if (s.f) { const sh = !s.out && s.wet > 0 && !RM ? Math.sin(st.clock * 40) * 1.2 * Math.min(1, s.wet) : 0; sodFace(c, s.x + sh, s.y, CW, RH, s.out, s.j); }
+      // what comes next, marked on the break
+      if (st.started && !st.closedAt) {
+        const row = curRow();
+        if (row >= 0) {
+          c.setLineDash([5, 4]); c.lineWidth = 2; c.strokeStyle = 'rgba(255,255,255,.95)';
+          if (!st.boughs[row]) { c.beginPath(); c.moveTo(G0 + 2, yB - row * RH - 2); c.lineTo(G1 - 2, yB - row * RH - 2); c.stroke(); c.setLineDash([]); boughFan(c, GXc - 12, yB - row * RH - 8, 0.8, -0.1, '#DDF0C8'); }
+          else { const s = nearest(slots.filter((o) => o.r === row && !o.f)); if (s) c.strokeRect(s.x + 3, s.y + 3, CW - 6, RH - 6); c.setLineDash([]); }
+        }
+      }
+      // salt water getting through
+      for (const s of slots) {
+        if (s.f) continue; const d = depth(s); if (d <= 0) continue;
+        const y0 = s.y + RH, len = GY + 8 - y0;
+        c.fillStyle = `rgba(170,140,122,${0.3 + d * 0.25})`; c.beginPath(); c.moveTo(s.x + 4, y0); c.lineTo(s.x + CW - 4, y0); c.lineTo(s.x + CW + 2, GY + 8); c.lineTo(s.x - 2, GY + 8); c.closePath(); c.fill();
+        c.fillStyle = 'rgba(255,255,255,.6)'; c.fillRect(s.x + 3, y0 - 1.5, CW - 6, 2.5);
+        if (!RM) for (let i = 0; i < 3; i++) { const yy = y0 + ((st.clock * 110 + i * 31 + s.q * 13 + s.r * 7) % Math.max(8, len - 6)); c.fillRect(s.x + 7 + i * (CW - 16) / 2, yy, 2, 7); }
+      }
+      if (st.salt > 0.5) {
+        const k = clamp(st.salt / 100, 0, 1), rx = 40 + k * W * 0.42;
+        c.fillStyle = `rgba(185,183,166,${0.35 + k * 0.4})`; c.beginPath(); c.ellipse(GXc, GY + 22, rx, 12 + k * 24, 0, 0, 7); c.fill();
+        if (st.leaking) { c.fillStyle = 'rgba(156,122,102,.5)'; c.beginPath(); c.ellipse(GXc, GY + 12, Math.min(rx, 40 + k * 120), 6 + k * 8, 0, 0, 7); c.fill(); }
+      }
+      // the spade stands in the turf bank until it is needed
+      if (!(st.busy && st.busy.kind === 'cut')) { c.strokeStyle = '#6B4F33'; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.moveTo(SB + 30, GY - 62); c.lineTo(SB + 26, GY - 26); c.stroke(); c.beginPath(); c.moveTo(SB + 25, GY - 62); c.lineTo(SB + 35, GY - 61); c.stroke(); c.fillStyle = '#4C5358'; c.beginPath(); c.moveTo(SB + 23.5, GY - 27); c.lineTo(SB + 29, GY - 26); c.lineTo(SB + 27.5, GY - 8); c.lineTo(SB + 23, GY - 9); c.closePath(); c.fill(); }
+      // labels on the two places to fetch from
+      c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `700 ${small ? 13 : 12}px ` + FONT;
+      [[SB - 8, 'SODS'], [BP, 'BOUGHS']].forEach(([x, t]) => { const w = c.measureText(t).width + 16; c.fillStyle = 'rgba(27,37,41,.72)'; rr(x - w / 2, GY + 30, w, 18, 9); c.fill(); c.fillStyle = '#FFFFFF'; c.fillText(t, x, GY + 39.5); });
+      drawMan();
+      for (const p of parts) {
+        c.globalAlpha = clamp(p.life * 2.5, 0, 1);
+        if (p.kind === 'dust') { c.fillStyle = 'rgba(120,100,70,.8)'; c.beginPath(); c.arc(p.x, p.y, 2.2, 0, 7); c.fill(); }
+        else if (p.kind === 'drop') { c.fillStyle = 'rgba(235,225,215,.9)'; c.fillRect(p.x, p.y, 2, 4); }
+        else if (p.kind === 'clod') { c.fillStyle = P.earth; c.fillRect(p.x - 3, p.y - 2, 6, 5); }
+        c.globalAlpha = 1;
+      }
+      // what you can read: the tide coming in, and the salt on the field
+      const pill = (x, label, v, col, wide) => {
+        c.fillStyle = 'rgba(255,253,248,.93)'; rr(x, 10, wide, 30, 15); c.fill();
+        c.fillStyle = '#22252B'; c.font = '700 12px ' + FONT; c.textAlign = 'left'; c.fillText(label, x + 12, 25.5);
+        const bx = x + 14 + c.measureText(label).width + 6, bw = x + wide - 12 - bx; c.fillStyle = '#E8E1D2'; rr(bx, 19, bw, 12, 6); c.fill();
+        if (v > 0.02) { c.fillStyle = col; rr(bx, 19, Math.max(12, bw * v), 12, 6); c.fill(); }
+      };
+      pill(12, 'TIDE', clamp((st.h - h0) / (hMax - h0), 0, 1), '#5F88A3', small ? 150 : 170);
+      pill(W - (small ? 162 : 182), 'SALT', clamp(st.salt / 100, 0, 1), st.salt > 40 ? '#B5262E' : '#9A8F6A', small ? 150 : 170);
+      // one line that says what the wall needs next
+      if (st.started && !st.paused && !st.closedAt) {
+        const n = need(); let t = '';
+        if (st.carry && st.carry.kind === 'sod' && !st.carry.out && st.coach) t = 'Turn the sod: grass side out (↑)';
+        else if (n === 'bough') t = st.carry && st.carry.kind === 'bough' ? 'Lay the boughs in the break' : 'Next: spruce boughs  ▶';
+        else if (n === 'sod') t = st.carry && st.carry.kind === 'sod' ? 'Pack the sod in the break' : '◀  Next: cut a sod';
+        else if (n === 'fix') t = 'A sod is grass side in. Pull it out and turn it.';
+        if (t) { c.font = `700 ${small ? 15 : 14}px ` + FONT; c.textAlign = 'center'; const w = c.measureText(t).width + 24; c.fillStyle = 'rgba(27,37,41,.78)'; rr(W / 2 - w / 2, 48, w, 24, 12); c.fill(); c.fillStyle = '#FFFFFF'; c.fillText(t, W / 2, 60.5); }
+      }
+      c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '700 15px ' + FONT;
+      for (const m of st.msg) { const hw = c.measureText(m.text).width / 2 + 8, mx = clamp(m.x, hw, W - hw); c.globalAlpha = clamp(1.9 - m.t, 0, 1); c.lineWidth = 4; c.strokeStyle = 'rgba(20,28,34,.8)'; c.strokeText(m.text, mx, m.y - m.t * 12); c.fillStyle = m.col; c.fillText(m.text, mx, m.y - m.t * 12); }
+      c.globalAlpha = 1;
+      if ((!st.started || st.paused) && !st.hideUI) {
+        c.fillStyle = 'rgba(20,28,34,.45)'; c.fillRect(0, 0, W, H);
+        const cw = Math.min(W - 24, 520); c.fillStyle = 'rgba(255,253,248,.96)'; rr(W / 2 - cw / 2, H / 2 - 56, cw, 112, 16); c.fill();
+        c.fillStyle = '#22252B'; c.font = '700 20px ' + FONT; c.fillText(st.paused ? 'Paused' : 'Ready? The tide is out.', W / 2, H / 2 - 30);
+        c.font = '600 14px ' + FONT;
+        if (st.paused) c.fillText('Press Space or tap to carry on', W / 2, H / 2 + 6);
+        else { c.fillText('Boughs first, then sods, grass side out. Layer by layer.', W / 2, H / 2 - 2); c.fillText('Press Space or tap to start.', W / 2, H / 2 + 24); }
+      }
+    }
+
+    // ---------- loop and controls ----------
+    let raf = 0, last = 0, acc = 0, alive = true, fN = 0, fT = 0;
+    const syncGT = () => { box.dataset.idle = st.started && !st.paused && !st.ended ? '0' : '1'; box.dataset.busy = st.started && !st.ended ? '1' : '0'; };
+    const frame = (now) => {
+      if (!alive) return; if (!cv.isConnected) { stop(); return; }
+      const raw = (now - last) / 1000 || 0, dt = Math.min(0.05, raw); last = now;
+      if (st.started && !st.paused && !st.hold) {
+        acc += dt; while (acc >= 1 / 120) { step(1 / 120); acc -= 1 / 120; if (st.ended) return; }
+        if (!st.low && raw < 0.25 && fN < 90) { fN++; fT += raw; if (fN === 90 && fT / 90 > 0.024) { st.low = true; if (dpr > 1) { dpr = 1; cv.width = W; cv.height = H; c.setTransform(1, 0, 0, 1, 0, 0); } } }
+      }
+      draw(); raf = requestAnimationFrame(frame);
+    };
+    const begin = () => {
+      if (st.ended) return false;
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (e) { /* no sound */ }
+      if (st.paused) { st.paused = false; pauseBtn.textContent = '⏸ Pause'; syncGT(); return true; }
+      if (!st.started) { st.started = true; live.textContent = 'The tide has turned. Spruce boughs first, then sods.'; syncGT(); return true; }
+      return false;
+    };
+    const pause = () => { if (!st.started || st.ended) return; st.paused = !st.paused; st.keyL = st.keyR = false; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; syncGT(); };
+    const LEFT = (e) => e.code === 'ArrowLeft' || e.code === 'KeyA', RIGHT = (e) => e.code === 'ArrowRight' || e.code === 'KeyD', UP = (e) => e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'KeyT';
+    const kd = (e) => {
+      const tg = document.activeElement; if (tg && /INPUT|TEXTAREA|SELECT/.test(tg.tagName)) return;
+      if (LEFT(e) || RIGHT(e)) { e.preventDefault(); if (!st.started || st.paused) begin(); if (LEFT(e)) st.keyL = true; else st.keyR = true; }
+      else if (UP(e)) { e.preventDefault(); if (!e.repeat && !begin()) turn(); }
+      else if (e.code === 'Space' || e.key === ' ' || e.code === 'Enter') { if (tg && tg.tagName === 'BUTTON') return; e.preventDefault(); if (!e.repeat && !begin()) work(); }
+      else if (e.code === 'KeyP') pause();
+    };
+    const ku = (e) => { if (LEFT(e)) st.keyL = false; else if (RIGHT(e)) st.keyR = false; };
+    const vis = () => { if (document.hidden && st.started && !st.ended && !st.paused) pause(); };
+    const toXY = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
+    const goTo = (x) => {
+      let tx = clamp(x, SB, BP);
+      if (Math.abs(x - SB) <= 70 || x < SB) tx = SB; else if (Math.abs(x - BP) <= 70 || x > BP) tx = BP;
+      else if (x >= G0 - 30 && x <= G1 + 30) { const row = curRow(), s = row >= 0 && st.boughs[row] && st.carry && st.carry.kind === 'sod' ? slots.filter((o) => o.r === row && !o.f).reduce((b, o) => (!b || Math.abs(o.x + CW / 2 - x) < Math.abs(b.x + CW / 2 - x) ? o : b), null) : null; tx = s ? s.x + CW / 2 : clamp(x, G0 + 8, G1 - 8); }
+      st.target = tx; st.auto = true;
+    };
+    const pd = (e) => {
+      e.preventDefault(); cv.focus({ preventScroll: true });
+      if (begin() || st.ended || st.closedAt) return;
+      const p = toXY(e);
+      if (Math.abs(p.x - st.x) <= 30 && p.y >= GY - 110 && p.y <= GY + 14 && st.carry && st.carry.kind === 'sod') { turn(); return; }
+      goTo(p.x);
+    };
+    window.addEventListener('keydown', kd); window.addEventListener('keyup', ku); document.addEventListener('visibilitychange', vis);
+    cv.addEventListener('pointerdown', pd); cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    const hold = (btn, key) => {
+      const on = (e) => { e.preventDefault(); begin(); st.target = null; st[key] = true; }, off = () => { st[key] = false; };
+      btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off); btn.addEventListener('contextmenu', (e) => e.preventDefault());
+      btn.addEventListener('keydown', (e) => { if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat) { e.preventDefault(); begin(); st.target = null; st[key] = true; } }); btn.addEventListener('keyup', (e) => { if (e.code === 'Enter' || e.code === 'Space') off(); });
+    };
+    hold(leftBtn, 'keyL'); hold(rightBtn, 'keyR');
+    workBtn.onclick = () => { if (!begin()) work(); };
+    turnBtn.onclick = () => { if (!begin()) turn(); };
+    pauseBtn.onclick = () => { pause(); cv.focus({ preventScroll: true }); };
+    function stop() { alive = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); document.removeEventListener('visibilitychange', vis); if (stopRun === stop) stopRun = null; }
+    stopRun = stop;
+    st.api = { step, work, turn, goTo, begin, pause, zone, curRow, need, draw };   // for tests
+    cv.focus({ preventScroll: true }); raf = requestAnimationFrame(frame);
+
+    // ---------- the end of the low tide ----------
+    function finish() {
+      const total = slots.length, good = slots.filter((s) => s.f && s.out).length, closed = good === total;
+      const fillB = good / total, salt = Math.round(st.salt), dry = salt < 8;
+      const pWall = Math.round(500 * fillB), pDry = Math.round(300 * (1 - st.salt / 100)), pQuick = closed && st.closedAt ? Math.round(200 * clamp((L.secs - st.t) / L.secs * 3, 0, 1)) : 0, pKnit = Math.max(0, 100 - st.wrong * 20);
+      const score = Math.round((pWall + pDry + pQuick + pKnit) * L.mult * (relaxed ? 0.8 : 1));
+      const n = 1 + (closed ? 1 : 0) + (closed && dry ? 1 : 0);
+      PROG.dykeStars = PROG.dykeStars || {}; PROG.dykeStars[L.n] = Math.max(PROG.dykeStars[L.n] || 0, n);
+      const isBest = score > (PROG.dykeBest || 0), best = Math.max(PROG.dykeBest || 0, score); PROG.dykeBest = best; saveProg(); win();
+      stop(); box.innerHTML = '';
+      box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
+      const howFar = fillB >= 0.75 ? 'nearly closed' : fillB >= 0.4 ? 'about half mended' : 'still wide open';
+      const saltLine = st.salt < 1 ? 'Not a drop of salt water reached the field.' : dry ? 'Only a splash of salt water got through.' : st.salt < 40 ? 'Some salt water got onto the field before you closed it.' : 'A lot of salt water got onto the field.';
+      const knitLine = st.wrong === 0 ? 'Every sod went in grass side out.' : `${st.wrong} sod${st.wrong > 1 ? 's' : ''} went in grass side in${st.washed ? `, and the tide washed ${st.washed === 1 ? 'one' : st.washed} out` : ''}.`;
+      const fact = FACTS[((PROG.dykeN = (PROG.dykeN || 0) + 1) - 1) % FACTS.length]; saveProg();
+      box.append(
+        el('h2', { class: 'trail-title readable', text: closed ? '🌱 The break is closed!' : '🌊 The tide is in' }),
+        el('p', { class: 'trail-stars', text: stars(n), role: 'img', 'aria-label': `${n} out of 3 stars` }),
+        el('p', { class: 'readable', text: `${closed ? 'The sea stands against your wall, and the wall holds.' : `The tide is in, and the break is ${howFar}. Nothing is lost for good: a break can be mended at the next low tide.`} ${saltLine} ${knitLine}` }),
+        el('section', { class: 'fact' }, [
+          el('h2', { text: `Score: ${score}${isBest ? '  (your new best!)' : ''}` }),
+          el('p', { text: `Wall ${pWall}  +  dry field ${pDry}  +  quick work ${pQuick}  +  grass side out ${pKnit}${L.mult !== 1 ? `, then × ${L.mult} for this bigger break` : ''}${relaxed ? ', then × 0.8 for relaxed mode' : ''}.` }),
+          el('p', { text: n < 3 ? 'For three stars: close the break before the sea gets through it.' : 'Three stars. The field stayed dry.' }),
+        ]),
+        el('section', { class: 'fact' }, [el('h2', { text: '💡 Did you know?' }), el('p', { text: fact })]),
+        timeUp()
+          ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' })
+          : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '▶ Mend this break again', onclick: () => play(L) }), el('button', { class: 'secondary', type: 'button', text: '🌊 Choose a different break', onclick: () => menu() })]),
+      );
+      window.scrollTo(0, 0);
+    }
+  }
+  menu();
+}
+
 const GAMES = {
   aboiteau: { icon: '🌊', name: 'Work the aboiteau', blurb: 'Open and close the dyke gate with the tides to save the harvest.', where: 'Anne and Pierre at the dykes', run: gAboiteau },
   coffre: { icon: '📦', name: 'Pack the coffre', blurb: 'The ships are waiting. What will your family bring?', where: 'Before the ships, in Anne’s and Pierre’s stories', run: gCoffre },
@@ -9290,10 +9781,11 @@ const GAMES = {
   truck: { icon: '⚖️', name: 'Truckhouse trading', blurb: 'Trade furs for what your family needs, and learn why it still matters.', where: 'Muin at the truckhouse, 1760', run: gTruck },
   morse: { icon: '📡', name: 'Signaller’s Morse code', blurb: 'Decode a message from the front, dot by dash.', where: 'Émile at the signallers’ school', run: gMorse },
   kitchen: { icon: '👩‍🍳', name: 'Kitchen mix-up', blurb: 'Put a recipe’s steps back in order.', where: 'The Kitchens', run: gKitchen },
+  dyke: { icon: '🌾', name: 'Patch the dyke', blurb: 'The sea has broken the dyke. Pack sods and spruce boughs into the break before the tide comes back.', where: 'Pierre at Grand-Pré, 1760', run: gDyke },
   apples: { icon: '🍎', name: 'Apples in the wind', blurb: 'The wind is shaking the ripe apples loose. Catch them in your basket, and let the wormy ones fall.', where: 'The orchard at Grand-Pré', run: gApples },
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
-const GAME_AT = { 756: ['morse'], 54: ['aboiteau'], 204: ['aboiteau'], 5: ['coffre'], 206: ['coffre'], 501: ['eel'], 511: ['route'], 209: ['who'], 250: ['decode'], 565: ['truck'], 577: ['truck'] };
+const GAME_AT = { 756: ['morse'], 54: ['aboiteau'], 204: ['aboiteau'], 5: ['coffre'], 206: ['coffre'], 281: ['dyke'], 284: ['dyke'], 501: ['eel'], 511: ['route'], 209: ['who'], 250: ['decode'], 565: ['truck'], 577: ['truck'] };
 // ================= GAME TIME =================
 // Each student gets 10 minutes of mini-games a day, so that games do not take over the class.
 // The count is kept in this browser and is shared by all four story games on this site, so switching
@@ -9702,6 +10194,10 @@ const SRC_LIST = [
   ] },
   { g: '🏛️ Acadian history', items: [
     ['Parks Canada: Grand-Pré', 'The history of Grand-Pré and the deportation from the people who care for the site.', 'https://parks.canada.ca/lhn-nhs/ns/grandpre/culture/histoire-history'],
+    ['Parks Canada: Dykeland agriculture', 'How the dykes and aboiteaux worked: earth walls, sods and branches, and a wooden valve that the tide pushes shut.', 'https://parks.canada.ca/lhn-nhs/ns/melanson/culture/agriculture'],
+    ['Nova Scotia Department of Agriculture: Maritime Dykelands', 'The story of the dykelands, from the first Acadian dykes to the storm of 1759 and after.', 'https://novascotia.ca/agri/documents/MARITIME-DYKELANDS.pdf'],
+    ['Acadia University: a history driving tour of the Grand-Pré area', 'Made by history students. It tells how sods were cut with narrow spades and stacked with the grass facing out.', 'https://history.acadiau.ca/tl_files/sites/history/Public%20History/Driving%20Tour%20Booklet%20Final%20Copy.pdf'],
+    ['Albert County Museum: The dykes', 'How a dyke was built, step by step, with a picture of a dyking spade.', 'https://www.albertcountymuseum.com/the-dykes'],
     ['Parks Canada: Fort Beauséjour and the Great Upheaval', 'What happened at Chignecto, and how Acadians like Beausoleil fought back.', 'https://parks.canada.ca/lhn-nhs/nb/beausejour/culture/histoire-history/deportation'],
     ['Parks Canada: Boishébert and the Camp of Hope', 'The refugee camp on the Miramichi River.', 'https://pc.gc.ca/apps/dfhd/page_nhs_eng.aspx?id=162'],
     ['Acadian Memorial: Acadians come to Louisiana', 'How Acadians reached Louisiana, including the seven ships of 1785.', 'https://acadianmemorial.org/acadian-immigration-into-south-louisiana-1764-1785/'],
