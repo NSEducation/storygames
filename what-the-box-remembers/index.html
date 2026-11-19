@@ -788,6 +788,9 @@
   }
 </style>
 
+<style id="factpop">
+  .pop-fact .popchip { background: #ECF3F9; border-color: #2E5E83; color: #2E5E83; } .pop-fact .poppanel { background: #ECF3F9; border-color: #2E5E83; color: var(--ink); }
+</style>
 </head>
 <body>
 <header class="bar">
@@ -9019,6 +9022,7 @@ function makeLazyPop(ph, kind, label, build) {
 function popifyScene() {
   POP_OPEN = null;
   const sheet = document.querySelector('.sheet'); if (!sheet) return;
+  sheet.querySelectorAll('section.fact').forEach((sec) => { const h = sec.querySelector(':scope > h2'); if (h && h.textContent.startsWith('💡')) makePop(sec, 'fact'); });
   sheet.querySelectorAll('section.note').forEach((sec) => { const h = sec.querySelector(':scope > h2'); if (h && h.textContent.startsWith('📘')) makePop(sec, 'note'); });
   sheet.querySelectorAll('section.riddle').forEach((sec) => { const h = sec.querySelector(':scope > h2'); if (h && h.textContent.startsWith('🧩')) makePop(sec, 'riddle'); });
   sheet.querySelectorAll('.source-lazy').forEach((ph) => makeLazyPop(ph, 'doc', `📜 Real document, ${ph.dataset.year}: ${(SOURCES[ph.dataset.k] || {}).title || ''}`, () => sourceCard(ph.dataset.k)));
