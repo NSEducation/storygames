@@ -1616,7 +1616,7 @@ const ART = (() => {
     dyketackle: () => frame(SKY.grey, water(120, ['#7C756A', '#A39A88']) + `<path d="M0,170 L600,130 L600,150 L0,196 Z" fill="${INK}"/>` +
       `<path d="M0,250 L0,196 L600,150 L600,250 Z" fill="#5E6B4A"/>` + g(300, 214, 1.2, FIG.LIE, { c: INK }) + fig('KNEEL', 350, 214, 100, { flip: true }) + fig('S', 470, 160, 70, { c: MID }),
       'A soldier catching Anne at the bottom of the dyke'),
-    barnnight: () => frame(['#141B22', '#26323C'], [70, 190, 310, 430, 550].map((x) => `<rect class="anim-glow" x="${x}" y="0" width="3" height="250" fill="#9FB3C4" opacity="0.25"/>`).join('') + ambientFront(SKY.room, 64) +
+    barnnight: () => frame(['#141B22', '#26323C'], '<g class="anim-glow">' + [70, 190, 310, 430, 550].map((x) => `<rect x="${x}" y="0" width="3" height="250" fill="#9FB3C4" opacity="0.25"/>`).join('') + '</g>' + ambientFront(SKY.room, 64) +
       `<rect x="0" y="120" width="600" height="14" fill="${INK}"/><path d="M0,120 Q140,40 300,70 Q420,40 600,90 L600,120 Z" fill="#5E5236"/>` +
       `<path d="M300,250 L320,120 M350,250 L370,120 M312,190 L358,190 M306,226 L354,226 M316,156 L362,156" stroke="${INK}" stroke-width="5"/>` +
       loaf(338, 150, 0.9) + `<rect x="318" y="182" width="24" height="6" fill="#8A4B3A"/>`,
