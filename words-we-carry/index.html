@@ -791,6 +791,17 @@
 <style id="factpop">
   .pop-fact .popchip { background: #EAF2F7; border-color: #2F607E; color: #2F607E; } .pop-fact .poppanel { background: #EAF2F7; border-color: #2F607E; color: var(--ink); }
 </style>
+<style id="birdcss">
+  .art .flywing { transform-box: fill-box; transform-origin: 50% 100%; }
+  .art .chick.found .flybody { filter: drop-shadow(0 0 2px #FFF3C4); }
+  @media (prefers-reduced-motion: no-preference) {
+    .art .flywing { animation: a-flap 0.4s ease-in-out infinite alternate; }
+    .art .flywing.far { animation-delay: -0.06s; }
+    .art .flybody { animation: a-glide 5s ease-in-out infinite; }
+  }
+  @keyframes a-flap { from { transform: scaleY(1); } to { transform: scaleY(0.3); } }
+  @keyframes a-glide { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, -3px); } }
+</style>
 </head>
 <body>
 <header class="bar">
@@ -3547,7 +3558,7 @@ const ANIMALS = {
   bee: ['Bumble bee', 'Amu', 'Bumble bees visit the blueberry and cranberry flowers. Without them there would be no berries.', '', A_DEBERT],
   caribou: ['Caribou', 'Qalipu', 'Caribou were once hunted across Mi’kma’ki. They are gone from Nova Scotia now. The English word “caribou” comes from this Mi’kmaw word.', '', A_DEBERT],
 };
-const ANIMAL_AT = {"701": ["chickadee"], "703": ["tomcod"], "704": ["bluejay"], "705": ["eagle"], "706": ["clam", 470, 214], "707": ["firefly"], "709": ["owl"], "710": ["bear", 520, 170], "711": ["eel", 300, 205], "712": ["beaver"], "713": ["robin"], "714": ["frog"], "715": ["partridge"], "716": ["bee"], "717": ["moose", 455, 150], "718": ["hare"], "719": ["salmon"], "721": ["pigeon"], "722": ["eagle"], "726": ["porcupine"], "729": ["lobster"], "732": ["caribou"], "733": ["greyjay"], "736": ["turtle"], "741": ["sawwhet"], "742": ["chickadee"], "1": ["turtle"], "2": ["partridge"], "3": ["robin"], "5": ["bluejay"], "6": ["pigeon"], "8": ["owl"], "12": ["frog"], "13": ["hare"], "15": ["chickadee"], "22": ["eagle"], "23": ["porcupine"], "24": ["salmon"], "26": ["bear"], "29": ["lobster"], "39": ["robin"], "201": ["eel", 300, 210], "211": ["pigeon"], "214": ["robin"], "215": ["bear"], "219": ["chickadee"], "504": ["eagle"], "505": ["bluejay"], "507": ["turtle"], "535": ["hare"], "508": ["lobster"], "509": ["pigeon"], "511": ["chickadee"], "512": ["porcupine"], "539": ["robin"]};
+const ANIMAL_AT = {"701": ["chickadee"], "703": ["tomcod", 330, 228], "704": ["bluejay"], "705": ["eagle"], "706": ["clam", 470, 214], "707": ["firefly"], "709": ["owl"], "710": ["bear", 520, 170], "711": ["eel", 300, 205], "712": ["beaver", 480, 165], "713": ["robin"], "715": ["partridge"], "716": ["bee"], "717": ["moose", 455, 150], "718": ["hare", 480, 200], "719": ["salmon", 150, 215], "721": ["pigeon"], "722": ["eagle"], "729": ["lobster", 520, 230], "733": ["greyjay"], "736": ["turtle", 70, 190], "741": ["sawwhet"], "742": ["chickadee"], "1": ["turtle", 545, 240], "2": ["partridge"], "3": ["robin"], "5": ["bluejay"], "6": ["pigeon"], "8": ["owl"], "12": ["frog", 520, 242], "13": ["hare", 130, 212], "15": ["chickadee"], "22": ["eagle"], "23": ["porcupine", 120, 120], "24": ["salmon", 120, 205], "26": ["bear", 50, 160], "29": ["lobster", 60, 188], "39": ["robin"], "201": ["eel", 300, 210], "211": ["pigeon"], "214": ["robin"], "215": ["bear", 70, 178], "219": ["chickadee"], "504": ["eagle"], "505": ["bluejay"], "507": ["turtle", 300, 236], "535": ["hare", 480, 236], "508": ["lobster", 110, 228], "509": ["pigeon"], "511": ["chickadee"], "512": ["porcupine", 110, 116], "539": ["robin"], "738": ["caribou", 520, 170], "734": ["frog", 565, 236], "730": ["porcupine", 70, 236]};
 const A_BIRD = (b, belly, cap, crest) => `<ellipse cx="0" cy="1" rx="6.2" ry="4.6" fill="${b}"/><ellipse cx="0.5" cy="2.6" rx="4.6" ry="2.6" fill="${belly}"/><path d="M-5.5,0 L-11,-1.5 L-10.5,1.6 Z" fill="${b}"/><circle cx="4.6" cy="-2.6" r="3.3" fill="${cap}"/>${crest ? `<path d="M3,-5 L1,-9.5 L6.4,-5.4 Z" fill="${cap}"/>` : ''}<path d="M7.6,-2.8 L10.4,-2.1 L7.6,-1.4 Z" fill="#3A3A34"/><circle cx="5.6" cy="-3.1" r="0.75" fill="#FFFFFF"/><path d="M-1,5.4 L-1,8 M2,5.4 L2,8" stroke="#3A3A34" stroke-width="0.8"/>`;
 const A_OWL = (c, s) => `<g transform="scale(${s})"><ellipse cx="0" cy="0" rx="5" ry="7" fill="${c}"/><circle cx="-2" cy="-3" r="1.9" fill="#F4E9C8"/><circle cx="2" cy="-3" r="1.9" fill="#F4E9C8"/><circle cx="-2" cy="-3" r="0.8" fill="#1B2529"/><circle cx="2" cy="-3" r="0.8" fill="#1B2529"/><path d="M-0.8,-1.6 L0.8,-1.6 L0,0 Z" fill="#C99A3B"/></g>`;
 const A_FISH = (c) => `<path d="M-9,0 Q-2,-5 6,0 Q-2,5 -9,0 Z" fill="${c}"/><path d="M6,0 L11,-3.5 L11,3.5 Z" fill="${c}"/><circle cx="-5.6" cy="-0.6" r="0.7" fill="#FFFFFF"/>`;
@@ -3581,10 +3592,61 @@ function chickSpot(svg, where) {
   const id = Number(where), r = ((id * 9301 + 49297) % 233280) / 233280, r2 = ((id * 7919 + 104729) % 233280) / 233280;
   return [Math.round(50 + r * 500), Math.round(84 + r2 * 62)];
 }
+// ================= BIRDS IN FLIGHT =================
+// A bird that is drawn in the open sky is drawn flying, wings open. (A bird at a hand-picked perch keeps its sitting picture.)
+const FLYERS = {
+  //            size, wings, body,      belly,     near wing, far wing,  head,      bill,      tail,      flap (s), extra
+  chickadee: [0.8, 1, '#8E9599', '#E3D2B4', '#6E767A', '#596064', '#F4F1EA', '#1B2529', '#6E767A', 0.24, 'cap bib'],
+  robin:     [0.9, 1, '#6E6A62', '#D96B2B', '#5A564E', '#48453F', '#3A3A38', '#E0A82E', '#48453F', 0.28, ''],
+  bluejay:   [1.0, 1, '#5B8FD0', '#EDEFF2', '#3F74B8', '#335F98', '#5B8FD0', '#1B2529', '#3F74B8', 0.3, 'crest collar'],
+  greyjay:   [1.0, 1, '#9AA3A8', '#E6E6E0', '#6E767A', '#596064', '#F4F1EA', '#1B2529', '#6E767A', 0.3, 'nape'],
+  pigeon:    [1.0, 1, '#7E8FA0', '#D99A7A', '#5E6E80', '#4C5A6A', '#7E8FA0', '#1B2529', '#4C5A6A', 0.3, 'longtail'],
+  blackbird: [0.9, 1, '#1B2529', '#1B2529', '#2B363C', '#111A1D', '#1B2529', '#E58A1F', '#1B2529', 0.28, ''],
+  partridge: [1.0, 1, '#8A6A4A', '#D8C8B0', '#6E5238', '#5A4330', '#8A6A4A', '#3A2C22', '#3A2C22', 0.22, ''],
+  owl:       [1.1, 1.2, '#8A7460', '#D8C8B0', '#6E5A48', '#5A493A', '#9A846E', '#E0A82E', '#6E5A48', 0.7, 'owl'],
+  sawwhet:   [0.85, 1.15, '#8A6A4A', '#E6DCC8', '#6E5238', '#5A4330', '#9A7A58', '#3A2C22', '#6E5238', 0.5, 'owl'],
+  eagle:     [1.25, 1.5, '#3B2A20', '#3B2A20', '#33241B', '#281C15', '#F4F1EA', '#E0A82E', '#F4F1EA', 1.1, 'hook'],
+  osprey:    [1.15, 1.45, '#5A4636', '#F4F1EA', '#5A4636', '#48382B', '#F4F1EA', '#1B2529', '#6B5644', 0.9, 'hook eyeline'],
+  gull:      [1.0, 1.35, '#F4F1EA', '#F4F1EA', '#A9B2B8', '#8E979D', '#F4F1EA', '#E0A82E', '#F4F1EA', 0.7, 'tips'],
+  raven:     [1.05, 1.25, '#1B2529', '#1B2529', '#232E33', '#111A1D', '#1B2529', '#111A1D', '#1B2529', 0.6, 'longtail heavy'],
+  goose:     [1.15, 1.3, '#8A7A68', '#D9CFC0', '#6E5E50', '#5A4C40', '#1B2529', '#1B2529', '#2A2A2A', 0.6, 'goose'],
+  heron:     [1.3, 1.5, '#7E8FA0', '#B8C2CC', '#5E6E80', '#4C5A6A', '#EDEFF2', '#E0A82E', '#5E6E80', 1.0, 'heron'],
+};
+function flyerInner(kind) {
+  const [s, w, body, belly, wing, wing2, head, bill, tail, flap, extra] = FLYERS[kind] || FLYERS.chickadee;
+  const has = (k) => extra.split(' ').includes(k), ink = '#1B2529';
+  const dur = `style="animation-duration:${flap}s"`;
+  let o = `<g transform="scale(${s})">`;
+  o += `<g transform="translate(1 -1) scale(${w})"><path class="flywing far" ${dur} d="M-2,0 Q2,-10 -3,-16 Q4,-10 5,0 Z" fill="${wing2}"/></g>`;
+  if (has('heron')) o += `<path d="M-7,1.4 L-21,3.4 M-7,2 L-20,4.6" stroke="#5A5148" stroke-width="1" fill="none"/>`;
+  o += has('longtail') ? `<path d="M-8,-1.2 L-19,-2 L-18,1.6 L-8,1.5 Z" fill="${tail}"/>` : `<path d="M-8,-1.2 L-15,-2.8 L-14.6,1.6 L-8,1.5 Z" fill="${tail}"/>`;
+  o += `<ellipse cx="0" cy="0" rx="9" ry="3.7" fill="${body}"/><ellipse cx="0.5" cy="1.3" rx="7" ry="2.2" fill="${belly}"/>`;
+  if (has('goose')) {   // a long neck stretched out in front, and a white chinstrap
+    o += `<path d="M7,-1.6 L17,-4 L17.6,-1.4 L7,1.2 Z" fill="${ink}"/><circle cx="18.6" cy="-3" r="2.3" fill="${ink}"/><ellipse cx="18" cy="-2.2" rx="1.1" ry="1.5" fill="#F4F1EA"/><path d="M20.4,-3.6 L23.4,-2.8 L20.4,-2 Z" fill="${ink}"/>`;
+  } else if (has('heron')) {   // the neck folded back in an S, and a long bill
+    o += `<path d="M6,-1 Q11,0.5 10,-3 Q9,-5 6.6,-4" stroke="${head}" stroke-width="2.2" fill="none"/><circle cx="8" cy="-4.4" r="2.2" fill="${head}"/><path d="M6.2,-5.6 L10,-5.2" stroke="${ink}" stroke-width="0.9"/><path d="M9.6,-5 L17.4,-3.8 L9.8,-3.4 Z" fill="${bill}"/><circle cx="8.8" cy="-4.6" r="0.55" fill="${ink}"/>`;
+  } else if (has('owl')) {   // a big round head and a flat face
+    o += `<circle cx="8.6" cy="-1.6" r="4.2" fill="${head}"/><ellipse cx="10.4" cy="-1.4" rx="2.3" ry="3" fill="#E6DCC8"/><circle cx="10.8" cy="-2" r="0.9" fill="${ink}"/><path d="M12.2,-1 L13.2,-0.2 L12,0.2 Z" fill="${bill}"/>`;
+  } else {
+    o += `<circle cx="9.6" cy="-1.6" r="3.1" fill="${head}"/>`;
+    if (has('cap')) o += `<path d="M6.6,-2.4 Q9.6,-6.2 12.7,-2.6 Q9.6,-3.6 6.6,-2.4 Z" fill="${ink}"/>`;
+    if (has('bib')) o += `<path d="M9.8,0.2 Q11.6,1.6 12.6,-0.4 L12.2,1.2 Q10.8,2 9.4,1 Z" fill="${ink}"/>`;
+    if (has('nape')) o += `<path d="M6.6,-2.6 Q7.4,-5 9.6,-4.6 Q7.8,-3.4 7.2,-0.6 Z" fill="#4E565A"/>`;
+    if (has('crest')) o += `<path d="M8.4,-4.2 L4.6,-8 L10.6,-4.4 Z" fill="${head}"/>`;
+    if (has('collar')) o += `<path d="M7,-3.6 Q7.4,-0.4 9.6,1.4" stroke="${ink}" stroke-width="0.9" fill="none"/>`;
+    if (has('eyeline')) o += `<path d="M7.4,-2.4 L12,-1.8" stroke="#48382B" stroke-width="1.3"/>`;
+    o += `<circle cx="10.7" cy="-2.1" r="0.7" fill="${has('eyeline') ? '#E0A82E' : ink}"/>`;
+    o += has('hook') ? `<path d="M12.3,-2.6 L15.6,-2 Q16.4,-0.8 15,0 L14.6,-0.9 L12.3,-0.6 Z" fill="${bill}"/>` : has('heavy') ? `<path d="M12.2,-2.8 L16.6,-1.2 L12.2,-0.2 Z" fill="${bill}"/>` : `<path d="M12.4,-2.2 L15.2,-1.4 L12.4,-0.6 Z" fill="${bill}"/>`;
+  }
+  o += `<g transform="translate(0 -1) scale(${w})"><path class="flywing" ${dur} d="M-4,0 Q-5,-12 -12,-17 Q-1,-13 5,0 Z" fill="${wing}"/>${has('tips') ? '<path class="flywing" ' + dur + ' d="M-12,-17 Q-9.4,-16.2 -7.6,-13.6 L-9.6,-13 Z" fill="#1B2529"/>' : ''}</g>`;
+  return o + '</g>';
+}
+const FLY_SVG = (x, y, flip, kind, label) => `<g class="chick flyer" data-chick="1" data-kind="${kind}" data-animal="${kind}" role="button" tabindex="0" aria-label="${label || 'A bird is flying here'}" transform="translate(${x} ${y}) scale(${flip ? -1.35 : 1.35} 1.35)"><circle r="19" fill="transparent"/><g class="flybody">${flyerInner(kind)}</g></g>`;
 function withChick(svg, where) {
   const spot = chickSpot(svg, where); if (!spot) return svg;
   const i = svg.lastIndexOf('</svg>');
-  return svg.slice(0, i) + CHICK_SVG(spot[0], spot[1], Number(where) % 2, ANIMAL_AT[where][0]) + svg.slice(i);
+  const a = ANIMAL_AT[where], fly = a.length < 3 && FLYERS[a[0]];   // a bird with no perch of its own is drawn flying
+  return svg.slice(0, i) + (fly ? FLY_SVG(spot[0], spot[1], Number(where) % 2, a[0], 'An animal is hiding here') : CHICK_SVG(spot[0], spot[1], Number(where) % 2, a[0])) + svg.slice(i);
 }
 function animalCard(key) {
   const [en, mik, lived, teach, hear] = ANIMALS[key];
