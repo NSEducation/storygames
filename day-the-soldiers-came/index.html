@@ -4493,7 +4493,6 @@ function render(id) {
       el('button', { class: 'secondary', type: 'button', text: 'Back to the title page', onclick: cover }),
     ]));
     const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs);
-    nodes.push(foundList(heroOf(id)));
     undoBtn.hidden = true;
   }
   // From any scene: back to the story's title page, where you choose who to play.
