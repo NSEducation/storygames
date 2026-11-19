@@ -607,6 +607,13 @@
   .meter .mrow { display: grid; grid-template-columns: minmax(110px, 9rem) 1fr 3rem; gap: 0.6rem; align-items: center; margin: 6px 0; }
   .meter .mbar { height: 14px; background: rgba(0,0,0,0.1); border-radius: 7px; overflow: hidden; display: block; }
   .meter .mfill { display: block; height: 100%; background: var(--sea, #2C5266); border-radius: 7px; }
+
+  /* forest challenge box: pine green instead of ochre */
+  .riddle.forestbox { --fb-bd:#2E7D52; --fb-bg:#EAF5EE; --fb-btn:#D6EEDD; border:2px solid var(--fb-bd); background:var(--fb-bg); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; } }
+  :root[data-theme="dark"] .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; }
+  .riddle.forestbox h2 { color: var(--fb-bd); }
+  .riddle.forestbox .gamebtn.secret { background:var(--fb-btn); border-color:var(--fb-bd); }
 </style><style id="wide">
   /* clearer sections: each box has its own colour, a heading band and space around it */
   .story { padding-bottom: 0.5rem; }

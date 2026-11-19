@@ -603,6 +603,13 @@
     .checklist li { border-bottom: 1px solid #999; }
     .checklist li.done > span:not(.box) { text-decoration: none; color: #000; }
   }
+
+  /* forest challenge box: pine green instead of ochre */
+  .riddle.forestbox { --fb-bd:#2E7D52; --fb-bg:#EAF5EE; --fb-btn:#D6EEDD; border:2px solid var(--fb-bd); background:var(--fb-bg); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; } }
+  :root[data-theme="dark"] .riddle.forestbox { --fb-bd:#5DBB85; --fb-bg:#14271D; --fb-btn:#1E3A2A; }
+  .riddle.forestbox h2 { color: var(--fb-bd); }
+  .riddle.forestbox .gamebtn.secret { background:var(--fb-btn); border-color:var(--fb-bd); }
 </style><style id="wide">
   /* clearer sections: each box has its own colour, a heading band and space around it */
   .story { padding-bottom: 0.5rem; }
