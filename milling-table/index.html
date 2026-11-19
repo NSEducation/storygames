@@ -807,6 +807,20 @@
   @keyframes a-flap { from { transform: scaleY(1); } to { transform: scaleY(0.3); } }
   @keyframes a-glide { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, -3px); } }
 </style>
+<style id="quizcss">
+  .quizbox .quizcount { font-size: 0.9rem; opacity: 0.85; margin: 0.2rem 0; }
+  .quizbox .quizq { font-weight: 700; font-size: 1.1rem; margin: 0.3rem 0 0.6rem; }
+  .quizbox .quizq:focus { outline: none; }
+  .quizbox .quizopts { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.4rem 0 0.6rem; }
+  .quizbox .quizopt { text-align: left; font: inherit; padding: 0.7rem 0.9rem; min-height: 44px; border: 2px solid currentColor; border-radius: 10px; background: transparent; color: inherit; cursor: pointer; }
+  .quizbox .quizopt:hover:not(:disabled), .quizbox .quizopt:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+  .quizbox .quizopt:disabled { cursor: default; opacity: 0.75; }
+  .quizbox .quizopt.is-right { opacity: 1; font-weight: 700; border-width: 3px; border-style: solid; }
+  .quizbox .quizopt.is-wrong { opacity: 1; border-style: dashed; text-decoration: line-through; }
+  .quizbox .quizverdict { font-weight: 700; margin: 0.4rem 0; }
+  .quizbox .quizsaid { border-left: 4px solid currentColor; padding-left: 0.7rem; margin: 0.2rem 0 0.6rem; }
+  @media print { .quizbox { display: none !important; } }
+</style>
 </head>
 <body>
 <header class="bar">
@@ -3559,7 +3573,7 @@ function render(id) {
       ...Object.values(HEROES).filter((h) => h !== heroOf(id)).map((h) => el('button', { class: 'secondary', type: 'button', text: `Play as ${h.name}`, onclick: () => go(h.start, false) })),
       el('button', { class: 'secondary', type: 'button', text: 'Back to the title page', onclick: cover }),
     ]));
-    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs);
+    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs); const qz = quizBox(id); if (qz) nodes.splice(nodes.length - 1, 0, qz);
     undoBtn.hidden = true;
   }
   // From any scene: back to the story's title page, where you choose who to play.
@@ -8165,6 +8179,97 @@ function foldCover() {
 })();
 
 homePage();
+
+// ================= END-OF-STORY QUIZ =================
+// True/false and multiple-choice questions, dealt from the "Did you know?" and History Note boxes on the pages read on this path.
+// Nothing is saved or sent anywhere: the score lives only on this screen.
+function quizData() { return {"1f": ["m", "Where did the Hector sail from in 1773?", "Loch Broom, in the Scottish Highlands", "Halifax, in Nova Scotia", "Boston, in the United States"], "1h": ["t", "Historians say most Hector families were forced off their land by soldiers.", false], "4f": ["t", "Before they left in 1773, Hector families went to a last church service at Clachan, on Loch Broom.", true], "8f": ["m", "What language did most of the Hector’s passengers speak?", "Only Gaelic", "Only English", "French"], "9f": ["m", "In the famous story, how did the passengers keep the piper on board the Hector?", "They shared their food with him", "They paid the captain in gold", "They hid him in a barrel"], "13h": ["t", "On ocean crossings like the Hector’s, the youngest children were in the most danger from sickness.", true], "14h": ["t", "On ocean crossings like the Hector’s, the youngest children were in the most danger from sickness.", true], "15f": ["m", "About how long did the Hector’s voyage take?", "Almost three months", "About one week", "More than a year"], "16f": ["t", "Hugh McLeod was a real passenger who saved mouldy crumbs in a bag, and people were glad to have them later.", true], "17h": ["t", "We have a Mi’kmaw account, written that same day, of the Hector’s arrival.", false], "20f": ["t", "A Truro captain named Tom Archibald refused to march against the Hector families.", true], "24h": ["m", "According to an old history of Pictou County, what did the Mi’kmaq teach the Hector families?", "To make and use snowshoes and to call moose", "To build stone castles", "To sail large ships"], "29h": ["m", "Why is Mi’kma’ki called unceded?", "The Mi’kmaq never gave up their land in the treaties", "The Mi’kmaq sold it to land companies", "Nobody lived there before the settlers"], "31h": ["t", "The Peace and Friendship Treaties are still in force today.", true], "32f": ["m", "By 1774, how many of the Hector passengers had stayed at Pictou and were growing crops?", "78", "Only 3", "More than 1,000"], "34f": ["t", "In the first winters, settlers walked to Truro through deep snow and worked for a day for a bushel or two of potatoes.", true], "58n": ["t", "The Gaels have lived on Pictou Harbour far longer than the Mi’kmaq.", false], "51n": ["m", "What did many Hector settlers name their new homes after?", "The places they had left in Scotland", "The ships they sailed on", "The kings of England"], "52n": ["t", "Many Hector families who left Pictou in the first hard years later came back.", true], "53n": ["m", "What did it mean when a Hector child was “bound out”?", "The child worked for another family for their keep until grown", "The child was sent back to Scotland", "The child went to a free boarding school"], "54n": ["t", "Records written by settlers carefully wrote down the names of Mi’kmaw people.", false], "55n": ["m", "What is seanachas?", "The Gaelic tradition of passing down history, songs and tales by telling them", "A kind of woollen cloth", "A dance done at weddings"], "56n": ["t", "The story of the Hector’s piper was told and retold for about a hundred years before anyone wrote it down.", true], "201h": ["m", "Why were almost all the people of the Isle of Rum sent away in 1826?", "To make room for 8,000 sheep", "Because the island flooded", "To join the army"], "202h": ["m", "The Cape Breton question “Who’s your father?” is thought to come from what?", "A Gaelic question about your family line", "An English school rule", "A French song"], "204f": ["t", "A great Gaelic storyteller might know tales so long that they took several evenings to tell.", true], "206f": ["m", "About how long did the Rum emigrants’ crossing take?", "About 37 days", "About 3 days", "About 37 weeks"], "207f": ["t", "When the Rum emigrants arrived, friends who had come from neighbouring islands a few years earlier were there to meet them.", true], "209f": ["m", "What was a “ticket of location”?", "A paper that let a family live on land and clear it, but they had to pay for it later", "A ticket for a ship back to Scotland", "A paper that gave a family land for free, forever"], "210f": ["m", "About how many Gaels settled in mainland Nova Scotia and Cape Breton?", "Nearly 50,000", "About 500", "About 5 million"], "211f": ["t", "Acadians were allowed to settle in Cape Breton after 1764, and founded communities like Chéticamp.", true], "212h": ["m", "What is the Mi’kmaw name for Cape Breton Island?", "Unama’ki", "Epekwitk", "Kjipuktuk"], "213f": ["m", "What did Gaelic bards do?", "They kept history in poems and songs", "They built ships", "They collected rent for landlords"], "215f": ["m", "What happened at a milling frolic?", "Neighbours pounded new wool cloth on a board while they sang together", "Neighbours ground wheat into flour", "Neighbours raced horses"], "216f": ["t", "Cape Breton Gaels kept older styles of music and dance that were lost in Scotland.", true], "220h": ["m", "What reached Cape Breton in 1845 and caused years of hunger?", "Potato blight, a plant disease", "A great forest fire", "A plague of grasshoppers"], "221f": ["t", "During the famine years, relief food was often handed out by merchants who spoke only English.", true], "224h": ["m", "What was the 1855 petition from the Mi’kmaq at Whycocomagh about?", "White men taking over their lands", "The price of fish", "Building a new church"], "240h": ["t", "After the free school law of 1864, Nova Scotia’s schools taught in both Gaelic and English.", false], "240n": ["t", "Gaelic settlement in Nova Scotia meant that Mi’kmaw people lost more of their land.", true], "241n": ["m", "How did Mi’kmaw communities ask the government to protect their reserves in the 1800s?", "They sent many petitions", "They sent a ship to London", "They held a milling frolic"], "242n": ["t", "Some Gaelic settlers took part in pushing Mi’kmaw people off their land, some refused, and many said nothing.", true], "245n": ["m", "During the famine years, where did several hundred Gaelic-speaking families from Cape Breton move?", "The Codroy Valley in Newfoundland", "The Isle of Rum", "Louisiana"], "246n": ["m", "What did Nova Scotians call the New England states?", "The Boston States", "New Scotland", "The Far Shore"], "247n": ["t", "Many Gaelic settlers worked away from their farms in lumber camps, on fishing boats and in coal mines.", true], "248n": ["t", "Milling frolics ended in Nova Scotia before 1800, and nobody holds them now.", false], "501f": ["m", "Why did the army choose Broughton to train the 185th Battalion?", "Partly because it was close to many Gaelic-speaking communities", "Because it was the biggest city in Canada", "Because the ocean liners docked there"], "502f": ["t", "During the First World War, women at Beinn Bhreagh, near Baddeck, built lifeboats.", true], "503f": ["m", "Where was No. 9 Stationary Hospital organized in 1916?", "Antigonish", "Paris", "Toronto"], "504h": ["m", "What happened to many children who spoke Gaelic at school around 1900?", "They were mocked, and some were punished", "They were given prizes", "They were asked to teach the class"], "505f": ["t", "In April 1916, crowds gathered at the Antigonish railway station to see off the hospital unit.", true], "507f": ["m", "Where did Mi’kmaw basket makers sell their work for many years?", "The Halifax City Market", "The Truro train station", "Only in Boston"], "508f": ["m", "What did soldiers call the Canadian nursing sisters?", "Bluebirds", "Redcoats", "Snowbirds"], "510f": ["t", "In the winter of 1916–1917, an outbreak of influenza stretched No. 9 Stationary Hospital to its limit.", true], "512h": ["m", "What happened to the 185th Battalion in February 1918?", "It was broken up, and its men were sent to other units", "It was sent home to Cape Breton", "It was turned into a hospital unit"], "515f": ["m", "What is a cumha?", "A Gaelic lament, a song of sorrow", "A kind of bagpipe", "A soldier’s hat"], "516f": ["m", "What was Mac-Talla?", "A newspaper written entirely in Gaelic, published in Sydney", "A ship that carried Gaels to Cape Breton", "A milling song"], "517f": ["t", "In the federal election of December 1917, women serving as nurses voted for the first time.", true], "518f": ["t", "The Halifax Explosion destroyed the Mi’kmaw community at Kepe’kek (Turtle Grove).", true], "521h": ["t", "In May 1918, hospitals and camps around Étaples, in France, were bombed from the air.", true], "524h": ["t", "When First Nations soldiers came home from the war, they got the same land and loans as other veterans.", false], "525f": ["m", "Where are the nursing sisters of the Llandovery Castle remembered?", "On the Halifax Memorial in Point Pleasant Park", "On a statue in Boston", "On the Hector replica in Pictou"], "528n": ["t", "Canadian nursing sisters served as far away as Greece and Egypt.", true], "529n": ["m", "Why did many young Gaelic women leave eastern Nova Scotia for Boston after the war?", "To find well-paid work", "To learn Gaelic", "To join the army"], "530f": ["m", "What did Captain Angus J. MacNeil collect all his life?", "Pipe music", "Old coins", "Ship models"], "531n": ["t", "In 1918, doctors had no medicine that could cure the flu, so nursing was the most important care there was.", true], "540f": ["t", "In 1890, the Senate of Canada passed a law to allow Gaelic in official proceedings.", false], "541n": ["m", "What did 5,468 people ask for in a petition in 1920?", "That Gaelic be taught in Nova Scotia’s public schools", "That the Hector be rebuilt", "That the war be ended"], "542n": ["t", "The Mi’kmaq helped many of the first Gaelic settlers survive their first winters.", true]}; }
+function quizSeen() { return (window.__qsaw = window.__qsaw || new Set()); }
+function quizNote(e) {
+  try {
+    const w = e.target && e.target.closest && e.target.closest('.popwrap.pop-fact, .popwrap.pop-note');
+    if (!w || !current || !STORY[current]) return;
+    quizSeen().add(current + (w.classList.contains('pop-fact') ? 'f' : (STORY[current].end ? 'n' : 'h')));
+  } catch (err) { /* never break the page */ }
+}
+['mouseover', 'focusin', 'click'].forEach((ev) => document.addEventListener(ev, quizNote, true));
+function quizPool(id) {
+  const Q = quizData(), saw = quizSeen(), out = [], used = new Set();
+  [...trail, String(id)].forEach((p) => ['f', 'h', 'n'].forEach((k) => {
+    const q = Q[p + k]; if (!q || used.has(q[1]) || !STORY[p]) return;
+    used.add(q[1]); out.push({ q, page: p, kind: k, saw: saw.has(p + k) });
+  }));
+  return out;
+}
+function quizShuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function quizDeal(pool, n, asked) {
+  const fresh = pool.filter((x) => !asked.has(x.q[1]));
+  return quizShuffle([...quizShuffle(fresh.filter((x) => x.saw)), ...quizShuffle(fresh.filter((x) => !x.saw))].slice(0, n));
+}
+function quizBox(id) {
+  let pool; try { pool = quizPool(id); } catch (e) { return null; }
+  if (pool.length < 2) return null;
+  const SIZE = 6;
+  const box = el('section', { class: 'runsum quizbox noprint' });
+  const head = el('h2', { class: 'readable', text: '🧠 Quick quiz: what do you remember?' });
+  const body = el('div', { class: 'quizbody' });
+  box.append(head, body);
+  const asked = new Set();
+  const say = (cls, text) => el('p', { class: cls, text });
+  const intro = () => {
+    body.replaceChildren(
+      say('readable', `${Math.min(SIZE, pool.length)} questions, true or false and multiple choice, from the pages you read on this path.`),
+      say('kind', 'The answers were in the 💡 Did you know? and 📘 History Note boxes. Boxes you opened come first. Your score is not saved or sent to anyone.'),
+      el('div', { class: 'row tight' }, [el('button', { class: 'primary', type: 'button', text: 'Start the quiz', onclick: start })]),
+    );
+  };
+  function start() {
+    let qs = quizDeal(pool, SIZE, asked);
+    if (qs.length < 2) { asked.clear(); qs = quizDeal(pool, SIZE, asked); }
+    let i = 0, score = 0;
+    const ask = () => {
+      const it = qs[i], q = it.q; asked.add(q[1]);
+      const isTF = q[0] === 't';
+      const right = isTF ? (q[2] ? 'True' : 'False') : q[2];
+      const opts = isTF ? ['True', 'False'] : quizShuffle([q[2], q[3], q[4]]);
+      const count = el('p', { class: 'quizcount', text: `Question ${i + 1} of ${qs.length}${isTF ? ' · True or false?' : ''}` });
+      const text = el('p', { class: 'quizq readable', tabindex: '-1', text: q[1] });
+      const out = el('div', { class: 'quizout', 'aria-live': 'polite' });
+      const btns = opts.map((o) => el('button', { class: 'quizopt', type: 'button', text: o, onclick: () => answer(o) }));
+      const row = el('div', { class: 'quizopts' }, btns);
+      function answer(o) {
+        const ok = o === right; if (ok) score++;
+        btns.forEach((b) => { b.disabled = true; if (b.textContent === right) { b.classList.add('is-right'); b.textContent = `✓ ${right}`; } else if (b.textContent === o) { b.classList.add('is-wrong'); b.textContent = `✗ ${o}`; } });
+        const good = ['Yes, that is right.', 'Correct.', 'You remembered that.'][i % 3];
+        out.append(say('quizverdict', ok ? good : (isTF ? `Not quite. That one is ${right.toLowerCase()}.` : `Not quite. The answer is: ${right}`)));
+        const s = STORY[it.page], src = s[{ f: 'fact', h: 'hnote', n: 'note' }[it.kind]];
+        if (src) {
+          out.append(say('kind', `What the ${it.kind === 'f' ? '💡 Did you know?' : '📘 History Note'} said${s.place ? ` (${s.place})` : ''}:`));
+          let p; try { p = rich('p', { class: 'readable quizsaid' }, src); } catch (e) { p = say('readable quizsaid', String(src).replace(/\[\[[^|\]]*\|([^\]]*)\]\]/g, '$1')); }
+          out.append(p);
+        }
+        const last = i === qs.length - 1;
+        const nb = el('button', { class: 'primary', type: 'button', text: last ? 'See how you did' : 'Next question', onclick: () => { i++; if (last) done(); else ask(); } });
+        out.append(el('div', { class: 'row tight' }, [nb]));
+        nb.focus({ preventScroll: true });
+      }
+      body.replaceChildren(count, text, row, out);
+      if (i > 0) text.focus({ preventScroll: true });
+    };
+    const done = () => {
+      const n = qs.length;
+      const msg = score === n ? 'Every one. You read closely.' : score * 2 >= n ? 'Well done. You remembered a lot of what you read.' : 'Those were hard ones. Open the 💡 and 📘 boxes as you read, and try again.';
+      const more = pool.some((x) => !asked.has(x.q[1]));
+      const res = el('p', { class: 'quizq readable', tabindex: '-1', text: `You got ${score} of ${n}.` });
+      body.replaceChildren(res, say('readable', msg),
+        el('div', { class: 'row tight' }, [el('button', { class: 'primary', type: 'button', text: more ? 'New questions' : 'Try the quiz again', onclick: start })]));
+      res.focus({ preventScroll: true });
+    };
+    ask();
+  }
+  intro();
+  return box;
+}
 </script>
 </body>
 </html>
