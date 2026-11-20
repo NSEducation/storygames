@@ -1951,7 +1951,7 @@ const STORY = {"701": {"p": ["You are eight winters old, and everyone calls you 
 const WORDNOTE_1700S = 'About the words: laws, court decisions and government papers used the word “Indian” for First Nations people, and older ones spelled Mi’kmaq as “Micmac.” We quote those words only so that we can understand the documents. Today we say Mi’kmaw (for one person, or to describe something), Mi’kmaq (for the people), L’nu’k (the people’s own name for themselves) or First Nations.';
 // ---------- 2. Pack the box (Sam in 1792, or Ruth in 1966) ----------
 const PACK_SETS = {
-  cove: { cap: 7, unit: 'What your family can carry', intro: 'It is November 1917. The Indian agent has ordered everyone at Kepe’kek to move. There are no wagons. Your family can carry 7 loads. What do you take?',
+  cove: { look: 'carry', noRoom: 'Nobody can carry that.', cap: 7, unit: 'What your family can carry', intro: 'It is November 1917. The Indian agent has ordered everyone at Kepe’kek to move. There are no wagons. Your family can carry 7 loads. What do you take?',
     items: [['🪙', 'The basket-money tin', 1, 'Every cent the family has saved.'], ['🔪', 'Papa’s crooked knives and hatchet', 1, 'His whole living is in those tools.'], ['🧺', 'Mama’s ash splints and quills', 2, 'A winter’s work, ready to weave.'], ['🧣', 'Blankets and winter coats', 2, 'It is nearly December.'],
       ['🍲', 'The iron stove', 4, 'Far too heavy to carry.'], ['🏒', 'Twelve finished hockey sticks', 2, 'They are worth money in town.'], ['📜', 'Copies of the letters to Ottawa', 1, 'Proof of what was asked, and what was answered.'], ['🥘', 'The frying pan', 1, 'Every piece of Four Cents this family has eaten came out of it.'], ['🛶', 'The canoe', 3, 'It could carry the rest, if there is somewhere by the water to go.']],
     real: ['On November 6, 1917, the Indian agent ordered the people of Turtle Grove to move. Most families had not yet left when the Halifax Explosion destroyed the community one month later, on December 6.', 'Families lost almost everything they owned. What they kept were their skills, their stories and each other.'] },
@@ -6610,34 +6610,270 @@ function gAboiteau(box, win) {
   }
   play();
 }
-function gCoffre(box, win, set = 'freetown') {
+// ================= PACK IT (redrawn) =================
+// The rule is the old one: there is only so much room, so choose what to bring and what to leave. Each thing
+// takes the same space as before, and the words, notes and history are the game's own. What is new: the chest,
+// box, train car or family's loads are drawn, and what you pack is drawn inside it, fitted by shape. Tap a thing
+// or drag it in; tap it (or drag it out) to take it out again. There is no right answer and no score.
+function gCoffre(box, win, set) {
+  const S = PACK_SETS[set] || PACK_SETS[Object.keys(PACK_SETS)[0]];
+  const ITEMS = S.items, CAP = S.cap, LOOK = S.look || 'chest';
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const INK = '#1B2529', FONT = 'system-ui, -apple-system, Segoe UI, sans-serif';
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const sfx = (kind) => {
+    try {
+      if (typeof SND === 'undefined' || !SND.on) return; const a = SND._audio(); if (!a || !a.ctx || !a.master) return;
+      const t = a.ctx.currentTime, o = a.ctx.createOscillator(), g = a.ctx.createGain();
+      const f = kind === 'in' ? [170, 95] : kind === 'out' ? [120, 210] : [220, 160];
+      o.type = 'triangle'; o.frequency.setValueAtTime(f[0], t); o.frequency.exponentialRampToValueAtTime(f[1], t + 0.12);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+      o.connect(g); g.connect(a.master); o.start(t); o.stop(t + 0.2);
+    } catch (e) { /* sound is a nicety */ }
+  };
+
   box.innerHTML = '';
-  const S = PACK_SETS[set] || PACK_SETS.freetown;
-  const ITEMS = S.items;
-  const CAP = S.cap; const chosen = new Set();
-  const bar = el('div', { class: 'gcap' }); const grid = el('div', { class: 'gitems' }); const msg = gmsg();
-  const used = () => [...chosen].reduce((s, i) => s + ITEMS[i][2], 0);
-  const draw = () => {
+  box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+  if (timeUp() && typeof gtOver === 'function') { gtOver(box); return; }
+  const small = (box.clientWidth || 720) < 520, W = small ? 520 : 720, H = LOOK === 'carry' ? 360 : 320;
+  const cv = document.createElement('canvas'); cv.className = 'trailcv packcv'; cv.style.aspectRatio = `${W} / ${H}`; cv.style.cursor = 'default';
+  cv.setAttribute('role', 'img');
+  const dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr;
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // ---------- the space: one or more bins of square cells ----------
+  const bins = [];
+  if (LOOK === 'carry') {   // the family's loads: each person carries a bundle that holds so many loads
+    const who = S.carry || [['Papa', 3], ['Mama', 2], ['You', 2]], cw = small ? 66 : 72, gap = small ? 56 : 92, ground = H - 66;
+    const tot = who.length * cw + (who.length - 1) * gap; let x = (W - tot) / 2;
+    who.forEach(([name, n], k) => { bins.push({ x, y: ground - 12 - n * cw, cols: 1, rows: n, cs: cw, name, fig: k }); x += cw + gap; });
+  } else {
+    const cols = CAP <= 6 ? 3 : 4, rows = Math.ceil(CAP / cols), cs = LOOK === 'box' ? (small ? 64 : 70) : (small ? 70 : 82);
+    bins.push({ x: (W - cols * cs) / 2 + (LOOK === 'box' ? (small ? 38 : 60) : 0), y: (LOOK === 'train' ? 80 : LOOK === 'box' ? 96 : 92) + (2 - rows) * cs * 0.5, cols, rows, cs });
+  }
+  const SHAPES = { 1: [[[0, 0]]], 2: [[[0, 0], [1, 0]], [[0, 0], [0, 1]]], 3: [[[0, 0], [1, 0], [2, 0]], [[0, 0], [0, 1], [0, 2]], [[0, 0], [1, 0], [0, 1]], [[0, 0], [1, 0], [1, 1]], [[0, 0], [0, 1], [1, 1]], [[1, 0], [0, 1], [1, 1]]], 4: [[[0, 0], [1, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [2, 0], [3, 0]], [[0, 0], [0, 1], [0, 2], [0, 3]]] };
+  // fit every chosen thing into the space; returns { item: { bin, cells } } or null
+  function solve(list) {
+    const order = [...list].sort((a, b) => ITEMS[b][2] - ITEMS[a][2] || a - b), used = bins.map((b) => new Array(b.cols * b.rows).fill(false)), out = {};
+    const go = (k) => {
+      if (k === order.length) return true;
+      const it = order[k], n = ITEMS[it][2];
+      for (let bi = 0; bi < bins.length; bi++) {
+        const b = bins[bi];
+        for (const sh of SHAPES[n] || []) for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
+          const cells = sh.map(([dx, dy]) => [x + dx, y + dy]);
+          if (cells.some(([cx, cy]) => cx >= b.cols || cy >= b.rows || used[bi][cy * b.cols + cx])) continue;
+          cells.forEach(([cx, cy]) => { used[bi][cy * b.cols + cx] = true; }); out[it] = { bin: bi, cells };
+          if (go(k + 1)) return true;
+          cells.forEach(([cx, cy]) => { used[bi][cy * b.cols + cx] = false; }); delete out[it];
+        }
+      }
+      return false;
+    };
+    return go(0) ? out : null;
+  }
+  const fitsAlone = (i) => !!solve([i]);
+
+  // ---------- state ----------
+  const chosen = []; let place = {}, drop = {}, started = false, finished = false, hover = -1;
+  const used = () => chosen.reduce((s, i) => s + ITEMS[i][2], 0);
+  const bar = el('div', { class: 'gcap' }), grid = el('div', { class: 'gitems' }), msg = gmsg();
+  const doneBtn = gbtn('✅ I’m done packing', () => done());
+  const start = () => { if (!started) { started = true; box.dataset.idle = '0'; box.dataset.busy = '1'; } };
+  function add(i, how) {
+    if (finished || chosen.includes(i)) return; start();
+    const [ic, name, size, note] = ITEMS[i];
+    if (!fitsAlone(i)) { msg.textContent = `${ic} ${S.noRoom || 'It won’t fit at all.'} ${note}`; sfx('no'); return; }
+    if (used() + size > CAP) { msg.textContent = `${ic} ${name}: that won’t fit. Take something out first.`; sfx('no'); return; }
+    const p = solve([...chosen, i]);
+    if (!p) { msg.textContent = `${ic} ${name}: there is room, but not the right shape of room. Take something out first.`; sfx('no'); return; }
+    chosen.push(i); place = p; drop[i] = RM ? 0 : 1; sfx('in');
+    msg.textContent = `${ic} Packed: ${name}. ${note}`;
+    refresh(); animate();
+  }
+  function remove(i) {
+    if (finished || !chosen.includes(i)) return; start();
+    chosen.splice(chosen.indexOf(i), 1); place = solve(chosen) || {}; sfx('out');
+    msg.textContent = `${ITEMS[i][0]} Taken out: ${ITEMS[i][1]}.`;
+    refresh(); animate();
+  }
+  const toggle = (i) => (chosen.includes(i) ? remove(i) : add(i));
+
+  // ---------- drawing ----------
+  const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
+  const wood = (x, y, w, h, base, grain) => { c.fillStyle = base; c.fillRect(x, y, w, h); c.strokeStyle = grain; c.lineWidth = 1; for (let k = 0; k < h; k += 7) { c.beginPath(); c.moveTo(x, y + k + 3); c.bezierCurveTo(x + w * 0.3, y + k + 1, x + w * 0.6, y + k + 6, x + w, y + k + 3); c.stroke(); } };
+  const figure = (x, y, k, kind) => {   // a person seen from behind, in ink: the bundle sits on their back
+    c.save(); c.translate(x, y); c.scale(k, k); c.fillStyle = INK;
+    c.beginPath(); c.arc(0, -6, 9, 0, 7); c.fill();
+    if (kind === 0) { c.fillRect(-11, -14, 22, 4); c.beginPath(); c.ellipse(0, -14, 9, 4, 0, Math.PI, 0); c.fill(); }   // flat cap
+    if (kind === 2) { c.beginPath(); c.moveTo(-8, -6); c.quadraticCurveTo(-10, 18, -4, 22); c.lineTo(4, 22); c.quadraticCurveTo(10, 18, 8, -6); c.fill(); }   // long hair
+    c.beginPath();
+    if (kind === 0) { c.moveTo(-14, 6); c.lineTo(14, 6); c.lineTo(15, 50); c.lineTo(-15, 50); }
+    else if (kind === 1) { c.moveTo(-15, 6); c.lineTo(15, 6); c.lineTo(20, 74); c.lineTo(-20, 74); }   // shawl and long skirt
+    else { c.moveTo(-11, 6); c.lineTo(11, 6); c.lineTo(15, 52); c.lineTo(-15, 52); }
+    c.closePath(); c.fill();
+    if (kind !== 1) { c.fillRect(-11, 48, 8, 26); c.fillRect(3, 48, 8, 26); } else { c.fillRect(-9, 72, 7, 6); c.fillRect(2, 72, 7, 6); }
+    c.restore();
+  };
+  function container() {
+    if (LOOK === 'carry') {
+      const gy = H - 66; c.fillStyle = 'rgba(95,80,55,.25)'; c.fillRect(0, gy, W, 3);
+      bins.forEach((b) => {
+        const bx = b.x - 10, by = b.y - 10, bw = b.cs + 20, bh = b.rows * b.cs + 20;
+        c.fillStyle = 'rgba(0,0,0,.2)'; c.beginPath(); c.ellipse(bx + bw / 2, gy + 2, bw * 0.6, 7, 0, 0, 7); c.fill();
+        c.fillStyle = '#B79A6A'; rr(bx, by, bw, bh, 14); c.fill();   // a load tied up in a blanket
+        c.strokeStyle = 'rgba(110,86,56,.6)'; c.lineWidth = 1.2; for (let k = 6; k < bw; k += 9) { c.beginPath(); c.moveTo(bx + k, by + 3); c.lineTo(bx + k, by + bh - 3); c.stroke(); }
+        c.strokeStyle = '#6E5638'; c.lineWidth = 2; rr(bx, by, bw, bh, 14); c.stroke();
+        c.strokeStyle = '#4A3A26'; c.lineWidth = 3; c.beginPath(); c.moveTo(bx + 8, by + 12); c.bezierCurveTo(bx - 4, by - 26, bx + bw + 4, by - 26, bx + bw - 8, by + 12); c.stroke();   // the carrying strap
+        c.fillStyle = 'rgba(255,253,248,.35)'; c.fillRect(b.x, b.y, b.cs, b.rows * b.cs);
+        c.fillStyle = '#22252B'; c.font = `700 ${small ? 14 : 15}px ` + FONT; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText(b.name, b.x + b.cs / 2, by - 24);
+        c.font = `600 ${small ? 12 : 13}px ` + FONT; c.fillStyle = '#5A5F66'; c.fillText(`carries ${b.rows}`, b.x + b.cs / 2, gy + 22);
+      });
+      return;
+    }
+    const b = bins[0], ix = b.x, iy = b.y, iw = b.cols * b.cs, ih = b.rows * b.cs;
+    if (LOOK === 'train') {
+      const ox = ix - 40, oy = iy - 36, ow = iw + 80, oh = ih + 62;
+      c.fillStyle = '#3A3F44'; c.fillRect(ox - 18, oy + oh - 4, ow + 36, 8);   // the rails
+      [ox + 30, ox + 70, ox + ow - 70, ox + ow - 30].forEach((wx) => { c.fillStyle = INK; c.beginPath(); c.arc(wx, oy + oh, 16, 0, 7); c.fill(); c.fillStyle = '#6B7076'; c.beginPath(); c.arc(wx, oy + oh, 5, 0, 7); c.fill(); });
+      c.fillStyle = '#6E4B39'; c.fillRect(ox, oy, ow, oh - 6); c.strokeStyle = 'rgba(30,20,15,.45)'; c.lineWidth = 1.2; for (let k = ox + 14; k < ox + ow; k += 14) { c.beginPath(); c.moveTo(k, oy); c.lineTo(k, oy + oh - 6); c.stroke(); }
+      c.fillStyle = '#4A3328'; c.fillRect(ox - 6, oy - 10, ow + 12, 12);   // roof edge
+      c.fillStyle = '#2B201A'; c.fillRect(ix - 8, iy - 8, iw + 16, ih + 16);   // the open door
+      wood(ix, iy, iw, ih, '#8F6A4E', 'rgba(60,40,28,.35)');
+      c.strokeStyle = '#2B201A'; c.lineWidth = 3; c.strokeRect(ix - 8, iy - 8, iw + 16, ih + 16);
+      c.fillStyle = '#5A3E30'; c.fillRect(ix + iw + 10, iy - 8, 24, ih + 16); c.strokeStyle = '#2B201A'; c.lineWidth = 1.5; c.strokeRect(ix + iw + 10, iy - 8, 24, ih + 16);   // the slid-back door
+      return;
+    }
+    if (LOOK === 'box') {   // Grandpa's pine box: blue cloth inside, and the lid beside it with S.W. 1784
+      const lx = small ? 26 : 70, ly = iy - 6, lw = small ? 100 : 128, lh = ih + 12;
+      c.fillStyle = 'rgba(0,0,0,.2)'; rr(lx + 5, ly + 6, lw, lh, 6); c.fill(); wood(lx, ly, lw, lh, '#E2C99A', 'rgba(150,110,60,.4)'); c.strokeStyle = '#8C6A3E'; c.lineWidth = 2; rr(lx, ly, lw, lh, 6); c.stroke();
+      c.fillStyle = 'rgba(110,80,40,.85)'; c.font = `700 ${small ? 18 : 22}px Georgia, serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('S.W.', lx + lw / 2, ly + lh * 0.38); c.font = `700 ${small ? 15 : 18}px Georgia, serif`; c.fillText('1784', lx + lw / 2, ly + lh * 0.64);
+      c.fillStyle = 'rgba(0,0,0,.22)'; rr(ix - 14 + 6, iy - 14 + 7, iw + 28, ih + 28, 8); c.fill();
+      wood(ix - 14, iy - 14, iw + 28, ih + 28, '#D8BC8A', 'rgba(150,110,60,.4)'); c.strokeStyle = '#8C6A3E'; c.lineWidth = 2; c.strokeRect(ix - 14, iy - 14, iw + 28, ih + 28);
+      c.fillStyle = '#4C6F9A'; c.fillRect(ix, iy, iw, ih); c.strokeStyle = 'rgba(30,50,80,.35)'; c.lineWidth = 1; for (let k = 0; k < iw; k += 6) { c.beginPath(); c.moveTo(ix + k, iy); c.lineTo(ix + k + 10, iy + ih); c.stroke(); }
+      c.strokeStyle = '#6C4F2C'; c.lineWidth = 2; c.strokeRect(ix, iy, iw, ih);
+      return;
+    }
+    // a wooden chest, open, seen from above: the lid stands up behind it
+    const lx = ix - 22, lw = iw + 44;
+    c.fillStyle = '#5E4128'; rr(lx, iy - 66, lw, 46, 8); c.fill(); wood(lx + 6, iy - 60, lw - 12, 34, '#8A6240', 'rgba(50,30,15,.35)');
+    c.fillStyle = '#3B3F42'; [lx + 30, lx + lw - 30].forEach((bx) => c.fillRect(bx - 6, iy - 66, 12, 46));
+    c.fillStyle = 'rgba(0,0,0,.25)'; rr(ix - 22 + 6, iy - 20 + 8, iw + 44, ih + 42, 8); c.fill();
+    c.fillStyle = '#6B4A2E'; rr(ix - 22, iy - 20, iw + 44, ih + 42, 8); c.fill(); wood(ix - 16, iy - 14, iw + 32, ih + 30, '#7C5634', 'rgba(50,30,15,.3)');
+    c.fillStyle = '#3B3F42'; [ix - 22, ix + iw + 10].forEach((bx) => { c.fillRect(bx, iy - 20, 12, 12); c.fillRect(bx, iy + ih + 10, 12, 12); });
+    c.fillStyle = '#5B3E25'; c.fillRect(ix, iy, iw, ih); wood(ix + 2, iy + 2, iw - 4, ih - 4, '#9A7450', 'rgba(60,38,20,.3)');
+    c.strokeStyle = '#3E2A18'; c.lineWidth = 2; c.strokeRect(ix, iy, iw, ih);
+  }
+  const PARCEL = { chest: ['#E9DDC0', '#8A6E45'], box: ['#F3ECDD', '#7C6648'], train: ['#E5D9BE', '#7A6143'], carry: ['#F1E6CC', '#7D6444'] };
+  function parcel(i) {
+    const p = place[i]; if (!p) return; const b = bins[p.bin], cs = b.cs, d = drop[i] || 0;
+    const [fill, edge] = PARCEL[LOOK] || PARCEL.chest, oy = -d * d * 70;
+    c.save(); c.globalAlpha = 1 - d * 0.5;
+    p.cells.forEach(([x, y]) => { const px = b.x + x * cs, py = b.y + y * cs + oy; c.fillStyle = fill; c.fillRect(px + 3, py + 3, cs - 6, cs - 6); });
+    // join the cells of one thing, so it reads as one parcel
+    p.cells.forEach(([x, y]) => p.cells.forEach(([x2, y2]) => { const px = b.x + Math.min(x, x2) * cs, py = b.y + Math.min(y, y2) * cs + oy; if (x2 === x + 1 && y2 === y) c.fillRect(px + cs - 4, py + 3, 8, cs - 6); if (y2 === y + 1 && x2 === x) c.fillRect(px + 3, py + cs - 4, cs - 6, 8); }));
+    c.strokeStyle = hover === i ? '#B5262E' : edge; c.lineWidth = hover === i ? 3 : 1.6;
+    p.cells.forEach(([x, y]) => { const px = b.x + x * cs, py = b.y + y * cs + oy, has = (dx, dy) => p.cells.some(([a, z]) => a === x + dx && z === y + dy); c.beginPath(); if (!has(0, -1)) { c.moveTo(px + 3, py + 3); c.lineTo(px + cs - 3, py + 3); } if (!has(1, 0)) { c.moveTo(px + cs - 3, py + 3); c.lineTo(px + cs - 3, py + cs - 3); } if (!has(0, 1)) { c.moveTo(px + 3, py + cs - 3); c.lineTo(px + cs - 3, py + cs - 3); } if (!has(-1, 0)) { c.moveTo(px + 3, py + 3); c.lineTo(px + 3, py + cs - 3); } c.stroke(); });
+    const mx = p.cells.reduce((s, [x]) => s + x, 0) / p.cells.length, my = p.cells.reduce((s, [, y]) => s + y, 0) / p.cells.length;
+    const line = (dx, dy) => p.cells.some(([x, y]) => x === Math.floor(mx) + dx && y === Math.floor(my) + dy);
+    const solid = p.cells.length === 1 || p.cells.every(([x, y]) => p.cells.some(([a, z]) => (a === x + 1 || a === x - 1) && z === y) || p.cells.some(([a, z]) => (z === y + 1 || z === y - 1) && a === x)) && (Number.isInteger(mx * 2) && Number.isInteger(my * 2)) && (p.cells.length !== 3 || mx === Math.round(mx) || my === Math.round(my));
+    let cx = b.x + (mx + 0.5) * cs, cy = b.y + (my + 0.5) * cs, span = cs;
+    if (!solid) { const near = p.cells.reduce((best, q) => (Math.hypot(q[0] - mx, q[1] - my) < Math.hypot(best[0] - mx, best[1] - my) ? q : best)); cx = b.x + (near[0] + 0.5) * cs; cy = b.y + (near[1] + 0.5) * cs; }
+    else { const xs = p.cells.map((q) => q[0]); span = (Math.max(...xs) - Math.min(...xs) + 1) * cs; }
+    cy += oy;
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `${Math.round(cs * 0.42)}px ` + FONT; c.fillText(ITEMS[i][0], cx, cy - cs * 0.08);
+    c.font = `600 ${small ? 10 : 11}px ` + FONT; c.fillStyle = '#2B2A26';
+    let nm = ITEMS[i][1]; const room = span - 10; if (c.measureText(nm).width > room) { while (nm.length > 3 && c.measureText(nm + '…').width > room) nm = nm.slice(0, -1); nm = nm.replace(/[\s,]+$/, '') + '…'; }
+    c.fillText(nm, cx, cy + cs * 0.3);
+    c.restore();
+  }
+  function draw() {
+    c.clearRect(0, 0, W, H);
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#EFE6D3'); g.addColorStop(1, '#E2D5BA'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.strokeStyle = 'rgba(120,95,60,.18)'; c.lineWidth = 1; for (let y = 22; y < H; y += 24) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }   // floorboards
+    container();
+    chosen.forEach((i) => parcel(i));
+    if (dragging !== null && overCanvas) { c.fillStyle = 'rgba(30,58,72,.12)'; bins.forEach((b) => c.fillRect(b.x, b.y, b.cols * b.cs, b.rows * b.cs)); }
+    // the space meter, drawn as a strip of squares
+    const u = used(); c.textAlign = 'left'; c.textBaseline = 'middle'; c.font = `700 ${small ? 13 : 14}px ` + FONT; c.fillStyle = '#22252B';
+    const label = `${S.unit}: ${u} of ${CAP}`, lw = c.measureText(label).width; c.fillStyle = 'rgba(255,253,248,.9)'; rr(10, H - 34, lw + 24 + CAP * 15, 26, 13); c.fill();
+    c.fillStyle = '#22252B'; c.fillText(label, 22, H - 21);
+    for (let k = 0; k < CAP; k++) { const x = 30 + lw + k * 15, on = k < u; c.fillStyle = on ? '#1E5B54' : 'rgba(0,0,0,0)'; c.strokeStyle = on ? '#1E5B54' : '#9A9180'; c.lineWidth = 1.6; c.fillRect(x - 5, H - 26, 10, 10); c.strokeRect(x - 5, H - 26, 10, 10); }
+    cv.setAttribute('aria-label', `${S.unit}: ${u} of ${CAP}. Packed: ${chosen.length ? chosen.map((i) => ITEMS[i][1]).join(', ') : 'nothing yet'}.`);
+  }
+  let raf = 0;
+  function animate() {
+    cancelAnimationFrame(raf); let last = performance.now();
+    const tick = (now) => { if (!cv.isConnected) return; const dt = Math.min(0.05, (now - last) / 1000); last = now; let more = false; for (const k in drop) { drop[k] = Math.max(0, drop[k] - dt * 4.5); if (drop[k] > 0) more = true; } draw(); if (more) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  }
+
+  // ---------- the things to choose from ----------
+  const dots = (n) => '▪'.repeat(n);
+  function refresh() {
     bar.innerHTML = ''; bar.append(el('strong', { text: `${S.unit}: ${used()} of ${CAP}` }), el('div', { class: 'gcapbar' }, [el('span', { style: `width:${(used() / CAP) * 100}%` })]));
+    const ae = document.activeElement, keep = ae && grid.contains(ae) ? ae.dataset.i : null;
     grid.innerHTML = '';
     ITEMS.forEach(([ic, name, size], i) => {
-      const on = chosen.has(i);
-      grid.append(el('button', { type: 'button', class: 'gitem' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', onclick: () => {
-        if (on) chosen.delete(i); else if (used() + size > CAP) { msg.textContent = `That won’t fit. Take something out first.`; return; } else chosen.add(i);
-        msg.textContent = ''; draw();
-      } }, [el('span', { class: 'gicon', text: ic }), el('span', { text: name }), el('span', { class: 'gsize', text: `takes ${size}` })]));
+      const on = chosen.includes(i);
+      const b = el('button', { type: 'button', class: 'gitem' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', 'data-i': String(i), style: 'touch-action:none' }, [el('span', { class: 'gicon', text: ic }), el('span', { text: name }), el('span', { class: 'gsize', text: on ? `✔ packed (takes ${size})` : `takes ${size} ${dots(size)}` })]);
+      b.addEventListener('pointerdown', (e) => pdown(e, i, b));
+      b.addEventListener('click', (e) => { if (b.dataset.dragged) { delete b.dataset.dragged; return; } if (e.detail === 0) toggle(i); });   // keyboard: Enter or Space
+      grid.append(b);
     });
-  };
-  const done = () => {
-    if (!chosen.size) { msg.textContent = 'Choose at least one thing to bring.'; return; }
+    if (keep !== null) { const nb = grid.querySelector(`[data-i="${keep}"]`); if (nb) nb.focus({ preventScroll: true }); }   // keep the keyboard where it was
+    draw();
+  }
+  // drag a thing from the list into the picture (or a packed thing out of it), or just tap it
+  let dragging = null, ghost = null, sx = 0, sy = 0, moved = false, overCanvas = false, srcBtn = null;
+  const overCv = (e) => { const r = cv.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
+  function pdown(e, i, btn) {
+    if (finished) return; e.preventDefault(); dragging = i; srcBtn = btn; sx = e.clientX; sy = e.clientY; moved = false;
+    window.addEventListener('pointermove', pmove); window.addEventListener('pointerup', pup); window.addEventListener('pointercancel', pcancel);
+  }
+  function pmove(e) {
+    if (dragging === null) return;
+    if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) {
+      moved = true; ghost = el('div', { class: 'gitem on', style: 'position:fixed;z-index:9999;pointer-events:none;opacity:.92;transform:translate(-50%,-60%) rotate(-3deg);box-shadow:0 8px 20px rgba(0,0,0,.25);max-width:12rem' }, [el('span', { class: 'gicon', text: ITEMS[dragging][0] }), el('span', { text: ITEMS[dragging][1] })]); document.body.append(ghost);
+    }
+    if (moved) { ghost.style.left = e.clientX + 'px'; ghost.style.top = e.clientY + 'px'; const o = overCv(e); if (o !== overCanvas) { overCanvas = o; draw(); } }
+  }
+  function endDrag() { window.removeEventListener('pointermove', pmove); window.removeEventListener('pointerup', pup); window.removeEventListener('pointercancel', pcancel); if (ghost) ghost.remove(); ghost = null; const was = dragging; dragging = null; overCanvas = false; return was; }
+  function pup(e) {
+    const i = dragging, m = moved, inCv = overCv(e), from = srcBtn; endDrag();
+    if (i === null) return;
+    if (!m) { if (from === cv) remove(i); else if (from) { from.dataset.dragged = '1'; toggle(i); } return; }
+    if (from && from !== cv) from.dataset.dragged = '1';
+    if (from === cv) { if (!inCv) remove(i); else draw(); } else if (inCv) add(i); else draw();
+  }
+  function pcancel() { endDrag(); draw(); }
+  const hit = (e) => { const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H; for (const i of chosen) { const p = place[i]; if (!p) continue; const b = bins[p.bin]; if (p.cells.some(([cx, cy]) => x >= b.x + cx * b.cs && x <= b.x + (cx + 1) * b.cs && y >= b.y + cy * b.cs && y <= b.y + (cy + 1) * b.cs)) return i; } return -1; };
+  cv.addEventListener('pointerdown', (e) => { const i = hit(e); if (i < 0 || finished) return; pdown(e, i, cv); });
+  cv.addEventListener('pointermove', (e) => { if (dragging !== null) return; const i = hit(e); if (i !== hover) { hover = i; cv.style.cursor = i >= 0 ? 'pointer' : 'default'; draw(); } });
+  cv.addEventListener('pointerleave', () => { if (hover !== -1) { hover = -1; draw(); } });
+
+  function done() {
+    if (finished) return;
+    if (!chosen.length) { msg.textContent = 'Choose at least one thing to bring.'; return; }
+    finished = true; hover = -1; draw();
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
+    const left = ITEMS.map((_, i) => i).filter((i) => !chosen.includes(i));
+    const pic = el('div', { class: 'trailwrap' }, [cv]);
     box.innerHTML = '';
-    box.append(el('h2', { class: 'readable', text: 'You packed:' }), el('ul', {}, [...chosen].map((i) => el('li', { class: 'readable', text: `${ITEMS[i][0]} ${ITEMS[i][1]}: ${ITEMS[i][3]}` }))),
-      el('h2', { class: 'readable', text: 'You left behind:' }), el('p', { class: 'readable', text: ITEMS.filter((_, i) => !chosen.has(i)).map((x) => x[1]).join(' · ') }),
-      winBox('📦 What really happened', S.real));
+    box.append(
+      el('h2', { class: 'readable', text: S.doneTitle || 'You packed:' }), pic,
+      el('ul', {}, chosen.map((i) => el('li', { class: 'readable', text: `${ITEMS[i][0]} ${ITEMS[i][1]}: ${ITEMS[i][3]}` }))),
+      el('h2', { class: 'readable', text: 'You left behind:' }),
+      el('div', { class: 'gitems' }, left.map((i) => el('div', { class: 'gitem', style: 'opacity:.6;cursor:default' }, [el('span', { class: 'gicon', text: ITEMS[i][0] }), el('span', { text: ITEMS[i][1] })]))),
+      winBox('📦 What really happened', S.real),
+      timeUp() ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' }) : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '↺ Pack again', onclick: () => gCoffre(box, win, set) })]),
+    );
     win();
-  };
-  box.append(el('p', { class: 'readable', text: S.intro }), bar, grid, msg, el('div', { class: 'row tight' }, [gbtn('✅ I’m done packing', done)]));
-  draw();
+  }
+  box._pack = { chosen, get place() { return place; }, bins, add, remove, toggle, done, solve, used, W, H, look: LOOK };   // for tests
+  box.append(el('p', { class: 'readable', text: S.intro.replace('Tap things to pack them, and tap again to take them out.', 'Tap things to pack them, or drag them in. Tap a packed thing to take it out.').replace('Tap things to pack them.', 'Tap things to pack them, or drag them in. Tap a packed thing to take it out.') }), el('div', { class: 'trailwrap' }, [cv]), msg, grid, el('div', { class: 'row tight' }, [doneBtn]));
+  refresh();
 }
 // ---------- 3. Fishing the Basin ----------
 const EEL = { theme: 'weir', aria: 'The river at the stone weir. You move a circle that shows where your spear will strike, while eels swim through.', stat: 'Eels speared', miss: 'Missed. Move so an eel is inside the circle, then strike.', intro: 'Spear 6 eels at the weir. Move with your mouse, trackpad or finger (or the arrow keys). When an eel is inside the circle, click, tap or press Space to strike.', btn: '🎯 Strike! (Space)', winTitle: '🐟 Enough for everyone!', winParas: ['In early fall, eels swim down the rivers toward the sea, and Mi’kmaw families have met them at stone weirs for thousands of years. Eels were eaten fresh, and dried and smoked for winter.', 'Eels are still important to Mi’kmaw families. In 1999, a case about catching and selling eels led the Supreme Court of Canada to uphold the Mi’kmaw treaty right to fish.'] };
