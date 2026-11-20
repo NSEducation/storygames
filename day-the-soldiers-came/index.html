@@ -9478,7 +9478,7 @@ function gApples(box, win) {
       const score = Math.round((pBasket + pQuick + pHands + pClean) * L.mult * (relaxed ? 0.8 : 1));
       const n = 1 + (full ? 1 : 0) + (full && st.bruised <= 3 && st.wormy === 0 ? 1 : 0);
       PROG.applesStars = PROG.applesStars || {}; PROG.applesStars[L.n] = Math.max(PROG.applesStars[L.n] || 0, n);
-      const isBest = score > (PROG.applesBest || 0), best = Math.max(PROG.applesBest || 0, score); PROG.applesBest = best; saveProg(); win();
+      const isBest = score > (PROG.applesBest || 0), best = Math.max(PROG.applesBest || 0, score); PROG.applesBest = best; saveProg(); cloudSend(true); win();
       stop(); box.innerHTML = '';
       box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
       const howFull = fillB >= 0.75 ? 'nearly full' : fillB >= 0.45 ? 'about half full' : 'not very full this time';
@@ -9965,7 +9965,7 @@ function gDyke(box, win) {
       const score = Math.round((pWall + pDry + pQuick + pKnit) * L.mult * (relaxed ? 0.8 : 1));
       const n = 1 + (closed ? 1 : 0) + (closed && dry ? 1 : 0);
       PROG.dykeStars = PROG.dykeStars || {}; PROG.dykeStars[L.n] = Math.max(PROG.dykeStars[L.n] || 0, n);
-      const isBest = score > (PROG.dykeBest || 0), best = Math.max(PROG.dykeBest || 0, score); PROG.dykeBest = best; saveProg(); win();
+      const isBest = score > (PROG.dykeBest || 0), best = Math.max(PROG.dykeBest || 0, score); PROG.dykeBest = best; saveProg(); cloudSend(true); win();
       stop(); box.innerHTML = '';
       box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
       const howFar = fillB >= 0.75 ? 'nearly closed' : fillB >= 0.4 ? 'about half mended' : 'still wide open';
@@ -11007,6 +11007,8 @@ function cloudStats() {
     h: n('doors'),
     f: P.chase || 0,
     r: P.frun || 0,
+    y: P.dykeBest || 0,
+    a: P.applesBest || 0,
   };
 }
 function cloudPacket() {
@@ -11087,6 +11089,8 @@ async function cloudPull() {
   Object.entries(mine.d.tr || {}).forEach(([k, v]) => { if ((PROG.tr[k] || 0) < v) { PROG.tr[k] = v; added++; } });
   const cf = (mine.d.st || {}).f || 0; if (cf > (PROG.chase || 0)) { PROG.chase = cf; added++; }
   const crun = (mine.d.st || {}).r || 0; if (crun > (PROG.frun || 0)) { PROG.frun = crun; added++; }
+  const cdyke = (mine.d.st || {}).y || 0; if (cdyke > (PROG.dykeBest || 0)) { PROG.dykeBest = cdyke; added++; }
+  const capple = (mine.d.st || {}).a || 0; if (capple > (PROG.applesBest || 0)) { PROG.applesBest = capple; added++; }
   const found = load(KEY_FOUND, []);
   (mine.d.f || []).forEach((e) => { if (!found.includes(e)) { found.push(e); added++; } });
   save(KEY_FOUND, found); saveProg();
@@ -11183,6 +11187,8 @@ const BOARDS = [
   ['h', '🔓 Most hidden paths opened'],
   ['f', '🏃 Best chase score'],
   ['r', '🌲 Best trail run'],
+  ['y', '🌾 Best dyke mending'],
+  ['a', '🍎 Best apple catch'],
 ];
 function topTrait(tr) {
   const t = Object.entries(tr || {}).filter(([k, v]) => v > 0 && LEARN.traits[k]).sort((a, b) => b[1] - a[1])[0];
