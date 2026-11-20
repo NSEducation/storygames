@@ -1951,11 +1951,6 @@ const STORY = {"701": {"p": ["You are eight winters old, and everyone calls you 
 const WORDNOTE_1700S = 'About the words: laws, court decisions and government papers used the word “Indian” for First Nations people, and older ones spelled Mi’kmaq as “Micmac.” We quote those words only so that we can understand the documents. Today we say Mi’kmaw (for one person, or to describe something), Mi’kmaq (for the people), L’nu’k (the people’s own name for themselves) or First Nations.';
 // ---------- 2. Pack the box (Sam in 1792, or Ruth in 1966) ----------
 const PACK_SETS = {
-  canoe: { cap: 8, unit: 'Space in the canoe', intro: 'The sap is running, and the family is leaving the winter camp for the Narrows. The canoe holds 8 spaces. Tap things to pack them. Nukumi’s rule: carry what you cannot make again by tomorrow.',
-    items: [['🧺', 'Rolled birchbark for the wikuom', 2, 'Good bark takes a season to gather. The poles can be cut again anywhere.'], ['🪨', 'Stone tools and a hammer stone', 1, 'Fine stone comes from far away and takes skill to shape.'], ['🦴', 'Bone needles and points', 1, 'Small, light, and slow to make.'],
-      ['🐟', 'Dried eel and berries', 2, 'Food for the trip, until the smelt and the clams.'], ['🥣', 'The good wooden bowl and dice', 1, 'For waltes, and for everything else.'], ['🧥', 'Hides and furs', 2, 'Warm bedding. Spring nights are cold.'],
-      ['🪵', 'The wikuom poles', 4, 'Too long and heavy. New poles are cut at the summer place.'], ['🏺', 'Aunt’s biggest clay pot', 2, 'Heavy, and it can break. But it took days to make.'], ['❄️', 'The snowshoes', 2, 'Not needed until next winter. They can hang in a tree here.'], ['🧒', 'Your leaky birchbark dish', 1, 'It leaks. You made it. It is coming.']],
-    real: ['Mi’kmaw families moved with the seasons, and what they owned was made to be carried or made again. Birchbark was rolled and taken along. Poles were left standing or cut new.', 'Moving was not wandering. Families went back to the same places, year after year, for thousands of years, and knew exactly what each place would give them.'] },
   cove: { cap: 7, unit: 'What your family can carry', intro: 'It is November 1917. The Indian agent has ordered everyone at Kepe’kek to move. There are no wagons. Your family can carry 7 loads. What do you take?',
     items: [['🪙', 'The basket-money tin', 1, 'Every cent the family has saved.'], ['🔪', 'Papa’s crooked knives and hatchet', 1, 'His whole living is in those tools.'], ['🧺', 'Mama’s ash splints and quills', 2, 'A winter’s work, ready to weave.'], ['🧣', 'Blankets and winter coats', 2, 'It is nearly December.'],
       ['🍲', 'The iron stove', 4, 'Far too heavy to carry.'], ['🏒', 'Twelve finished hockey sticks', 2, 'They are worth money in town.'], ['📜', 'Copies of the letters to Ottawa', 1, 'Proof of what was asked, and what was answered.'], ['🥘', 'The frying pan', 1, 'Every piece of Four Cents this family has eaten came out of it.'], ['🛶', 'The canoe', 3, 'It could carry the rest, if there is somewhere by the water to go.']],
@@ -7793,10 +7788,615 @@ function gForestRun(box, win) {
   menu();
 }
 
+const PADDLE = {"intro1": "The snow is soft and the sap is running. The long winter on the lakes is ending, and your family is taking the canoes down the chain of lakes to the sea, to the summer place at the Narrows of Kjipuktuk.", "intro2": "The canoes ride low with bundles. Nukumi sits behind you and steers. You help her keep the canoe in deep water, away from the rocks and the shore. At every point, cove and carrying place, she says its name. Say it back.", "endCamp": "The canoes come in to a beach, and the fire is lit. Tomorrow, more lakes.", "endSalt": "You smell salt. Then the great harbour opens out in front of you, and the summer place at the Narrows is loud with cousins you have not seen since last year.", "endDark": "The light is going, so Nukumi turns into a quiet cove to camp for the night. Tomorrow you will go on.", "facts": ["Mi’kmaw families moved with the seasons, and what they owned was made to be carried or made again. Birchbark was rolled and taken along. Poles were left standing or cut new.", "Moving was not wandering. Families went back to the same places, year after year, for thousands of years, and knew exactly what each place would give them.", "Mi’kmaw place names often describe a place: what grows there, how the water moves, or what people do there. Kjipuktuk means “the great harbour.” The lakes in this story are in the district of Sipekne’katik.", "A chain of lakes and the Shubenacadie River link Halifax Harbour with the Bay of Fundy. Mi’kmaw travellers used this route for thousands of years, carrying their canoes between the lakes. In the 1800s, settlers dug the Shubenacadie Canal along the same route."]};
+// ================= PADDLE TO THE NARROWS =================
+// Chickadee's trip in scene 705: "The canoes ride low with bundles. A chain of lakes and small streams leads
+// toward the sea, with short walks where you carry the canoes from one water to the next. Nukumi sits behind
+// you. At every point, cove and carrying place, she says its name." Seen from above, scrolling to the right.
+// Nukumi steers from the back; you help keep the canoe in deep water, and say each place name back.
+// No Mi'kmaw place names are given: as in the story, each name is told by what it means.
+// There is no way to lose: a scrape costs a little time; if the light goes, the family camps and goes on tomorrow.
+function gPaddle(box, win) {
+  const C = PADDLE;
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const mulb = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const hsh = (i, s) => { let t = Math.imul((i | 0) * 374761393 + s * 668265263, 1274126177); t ^= t >>> 13; t = Math.imul(t, 1274126177); return ((t ^ (t >>> 16)) >>> 0) / 4294967296; };
+  const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => Math.max(a, Math.min(b, v)), sstep = (t) => t * t * (3 - 2 * t);
+  const INK = '#1B2529', INKF = '#3B4B54', FONT = 'system-ui, -apple-system, Segoe UI, sans-serif';
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+  const NAMES = {
+    eels: ['🐟', 'where the eels gather', 'eels gather'],
+    bank: ['⛰️', 'where the bank is steep', 'steep bank'],
+    clay: ['🏺', 'where the good clay is', 'good clay'],
+    birch: ['🌳', 'where the birches grow', 'birches grow'],
+    fast: ['💨', 'where the water runs fast', 'water runs fast'],
+    carry: ['🛶', 'where the canoes are carried', 'canoes carried'],
+  };
+  const DAYS = [
+    { n: 1, icon: '🌅', name: 'Day one', tag: 'Nukumi says every name. You say it back.', mode: 'say', mult: 1, light: 58, seed: 11, end: 'camp',
+      segs: [{ k: 'lake', len: 1500, pl: [['birch', 't', 520], ['bank', 'b', 1080]] }, { k: 'stream', len: 450 }, { k: 'fast', len: 320, pl: [['fast', 'c', 150]] }, { k: 'stream', len: 300 }, { k: 'lake', len: 900, pl: [['clay', 't', 400]] }, { k: 'camp', len: 420 }] },
+    { n: 3, icon: '☀️', name: 'Day three', tag: 'A carrying place. Some names you know now.', mode: 'mixed', mult: 1.25, light: 82, seed: 23, end: 'camp',
+      segs: [{ k: 'lake', len: 1300, pl: [['birch', 'b', 450], ['eels', 't', 950]] }, { k: 'stream', len: 500 }, { k: 'fast', len: 320, pl: [['fast', 'c', 150]] }, { k: 'stream', len: 400 }, { k: 'lake', len: 760, pl: [['clay', 'b', 330]] }, { k: 'carry', len: 460 },
+        { k: 'lake', len: 1400, pl: [['birch', 't', 320], ['bank', 'b', 760], ['eels', 'b', 1180]] }, { k: 'camp', len: 420 }] },
+    { n: 5, icon: '🌊', name: 'Day five', tag: 'Wind on the big lake. You know the names now.', mode: 'pick', mult: 1.5, light: 96, seed: 37, end: 'salt',
+      segs: [{ k: 'lake', len: 1500, wind: 1, pl: [['bank', 't', 420], ['clay', 'b', 900], ['birch', 't', 1300]] }, { k: 'stream', len: 450 }, { k: 'fast', len: 300, pl: [['fast', 'c', 140]] }, { k: 'stream', len: 500, pl: [['eels', 'b', 280]] },
+        { k: 'lake', len: 760, pl: [['birch', 'b', 340]] }, { k: 'carry', len: 460 }, { k: 'lake', len: 1000, pl: [['clay', 't', 380], ['bank', 'b', 760]] }, { k: 'stream', len: 300 }, { k: 'fast', len: 260, pl: [['fast', 'c', 120]] }, { k: 'salt', len: 900 }] },
+  ];
+  const KIND = { lake: 0, stream: 1, fast: 2, carry: 3, camp: 4, salt: 5 };
+  let stopRun = null;
+  const sfx = (() => {
+    const A = () => { try { if (typeof SND === 'undefined' || !SND.on) return null; const a = SND._audio(); return a && a.ctx && a.master ? a : null; } catch (e) { return null; } };
+    const tone = (a, type, f0, f1, dur, vol, delay) => {
+      const t = a.ctx.currentTime + (delay || 0), o = a.ctx.createOscillator(), g = a.ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.03);
+    };
+    return (kind) => {
+      const a = A(); if (!a) return;
+      try {
+        if (kind === 'dip') tone(a, 'sine', 240, 150, 0.12, 0.018);
+        else if (kind === 'scrape') { tone(a, 'triangle', 140, 90, 0.18, 0.05); tone(a, 'sine', 90, 70, 0.2, 0.04, 0.05); }
+        else if (kind === 'right') { tone(a, 'triangle', 523, 523, 0.14, 0.045); tone(a, 'triangle', 659, 659, 0.18, 0.045, 0.12); }
+        else if (kind === 'again') tone(a, 'sine', 330, 260, 0.2, 0.04);
+        else if (kind === 'done') [392, 523, 659].forEach((f, i) => tone(a, 'triangle', f, f, 0.28, 0.05, i * 0.14));
+      } catch (e) { /* sound is a nicety; never let it stop the game */ }
+    };
+  })();
+
+  function menu() {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp() && typeof gtOver === 'function') { gtOver(box); return; }
+    const best = PROG.paddleBest || 0, bs = PROG.paddleStars || {};
+    box.append(
+      el('p', { class: 'readable', text: C.intro1 }),
+      el('p', { class: 'readable', text: C.intro2 }),
+      el('p', { class: 'hint', text: 'Steer with ↑ and ↓ (or W and S), or press and hold above or below the canoe. Say a name back with the buttons under the picture, or the keys 1, 2 and 3. P pauses.' }),
+      el('h2', { class: 'readable', text: 'Choose a day' }),
+      el('div', { class: 'trail-courses' }, DAYS.map((D) => el('button', { type: 'button', class: 'ghcard' + (bs[D.n] ? ' done' : ''), onclick: () => play(D) }, [
+        el('span', { class: 'ghicon', text: D.icon }), el('strong', { text: D.name }), el('span', { text: D.tag }),
+        el('span', { class: 'ghwhere', text: bs[D.n] ? `Best: ${stars(bs[D.n])}` : 'Not paddled yet' }),
+      ]))),
+      el('label', { class: 'grelax' }, [
+        el('input', { type: 'checkbox', checked: RELAXED ? 'checked' : null, onchange: (e) => { RELAXED = e.target.checked; } }),
+        document.createTextNode(' Relaxed mode (slower, with a wider way through the rocks and more daylight; it scores a little less)'),
+      ]),
+      el('p', { class: 'hint', text: best ? `Your best score: ${best}` : 'Paddle a day to set your first score.' }),
+    );
+  }
+
+  function play(D) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp() && typeof gtOver === 'function') { gtOver(box); return; }
+    const small = (box.clientWidth || 720) < 520, W = small ? 520 : 720, H = small ? 330 : 360, S = small ? 0.9 : 1;
+    const relaxed = !!RELAXED, SPD = relaxed ? 0.8 : 1, V = 100 * S * SPD, GAP = (relaxed ? 72 : 56) * S;
+    const cv = document.createElement('canvas'); cv.className = 'trailcv paddlecv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`;
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'A chain of lakes and streams seen from above at the end of winter, with snow under the trees. A birchbark canoe with Chickadee, Nukumi and a cousin goes down toward the sea, with the family’s other canoes ahead.');
+    let dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const nameRow = el('div', { class: 'row tight paddle-names', style: 'min-height:3.1rem;align-items:center' });
+    const live = el('p', { class: 'hint', 'aria-live': 'polite', text: '' });
+    const upBtn = el('button', { class: 'gamebtn trail-jump', type: 'button', text: '▲ Up', 'aria-label': 'Steer up' });
+    const downBtn = el('button', { class: 'gamebtn trail-jump', type: 'button', text: '▼ Down', 'aria-label': 'Steer down' });
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' });
+    box.append(el('div', { class: 'trailwrap' }, [cv]), nameRow, el('div', { class: 'row tight' }, [upBtn, downBtn, pauseBtn, el('button', { class: 'gamebtn', type: 'button', text: '↩ Choose a day', onclick: () => menu() })]), live);
+
+    // ---------- the course: shores sampled every DX pixels ----------
+    const R = mulb(D.seed * 7919 + (small ? 3 : 0)), DX = 4;
+    let total = 0; D.segs.forEach((s) => { s.x0 = total; total += s.len * S; s.x1 = total; });
+    const N = Math.ceil(total / DX) + 60, top = new Float32Array(N), bot = new Float32Array(N), kind = new Uint8Array(N), safe = new Float32Array(N), wind = new Uint8Array(N);
+    const mid = H / 2, LT = 56 * S, LB = H - 56 * S;
+    for (const s of D.segs) {
+      const ph = R() * 6, ph2 = R() * 6, i0 = Math.floor(s.x0 / DX), i1 = Math.min(N - 1, Math.ceil(s.x1 / DX));
+      const bumps = [];
+      if (s.k === 'lake' || s.k === 'camp') { const nb = Math.max(1, Math.round(s.len / 520)); for (let j = 0; j < nb; j++) bumps.push({ u: (j + 0.5 + (R() - 0.5) * 0.4) / nb * s.len * S, side: (j + (R() < 0.5 ? 0 : 1)) % 2 ? 't' : 'b', a: (112 + R() * 40) * S, w: (85 + R() * 35) * S }); }
+      for (let i = i0; i <= i1; i++) {
+        const u = i * DX - s.x0, f = u / (s.len * S);
+        let t, b;
+        if (s.k === 'lake' || s.k === 'camp') {
+          t = LT + Math.sin(u / (150 * S) + ph) * 14 * S + Math.sin(u / (61 * S) + ph2) * 5 * S;
+          b = LB + Math.sin(u / (170 * S) + ph2) * 14 * S + Math.sin(u / (53 * S) + ph) * 5 * S;
+          for (const p of bumps) { const g = Math.exp(-Math.pow((u - p.u) / p.w, 2)); if (p.side === 't') t += p.a * g; else b -= p.a * g; }
+          if (s.k === 'camp') { const e = sstep(clamp((f - 0.45) / 0.5, 0, 1)); t = lerp(t, mid, e); b = lerp(b, mid, e); }
+        } else if (s.k === 'stream' || s.k === 'fast') {
+          const A = (s.k === 'fast' ? 34 : 58) * S, hw = (s.k === 'fast' ? 41 : 47) * S + Math.sin(u / (40 * S) + ph) * 3 * S;
+          const cy = mid + Math.sin(u / (175 * S) + ph) * A;
+          t = cy - hw; b = cy + hw;
+        } else if (s.k === 'carry') { t = mid; b = mid; }
+        else { // salt: the harbour opens out; the summer place is on the top shore
+          const e = sstep(clamp(f / 0.35, 0, 1)); t = lerp(LT, 132 * S, e) + Math.sin(u / (90 * S) + ph) * 6 * S; b = lerp(LB, H + 60 * S, e);
+        }
+        top[i] = t; bot[i] = b; kind[i] = KIND[s.k]; wind[i] = s.wind ? 1 : 0;
+      }
+    }
+    { const iEnd = Math.min(N - 1, Math.ceil(total / DX)); for (let i = iEnd + 1; i < N; i++) { top[i] = top[iEnd]; bot[i] = bot[iEnd]; kind[i] = kind[iEnd]; wind[i] = wind[iEnd]; } }
+    // smooth the shores, so the lakes narrow into the streams, and into a landing at each carrying place
+    const smooth = (a, r) => { const o = new Float32Array(a.length); let sum = 0; const n = a.length; for (let i = -r; i <= r; i++) sum += a[clamp(i, 0, n - 1)]; for (let i = 0; i < n; i++) { o[i] = sum / (2 * r + 1); sum += a[clamp(i + r + 1, 0, n - 1)] - a[clamp(i - r, 0, n - 1)]; } return o; };
+    const T0 = smooth(top, 22), B0 = smooth(bot, 22); top.set(T0); bot.set(B0);
+    const ix = (x) => clamp(Math.round(x / DX), 0, N - 1);
+    const tAt = (x) => top[ix(x)], bAt = (x) => bot[ix(x)], kAt = (x) => kind[ix(x)];
+    const wet = (x) => bAt(x) - tAt(x) > 2;
+    // rocks: in the streams, in lines across the water with one gap; a few by the shore in the lakes
+    const rocks = [], gates = [];
+    for (const s of D.segs) {
+      if (s.k === 'stream' || s.k === 'fast') {
+        const step = (s.k === 'fast' ? 125 : 175) * S;
+        for (let u = 110 * S; u < s.len * S - 60 * S; u += step * (0.85 + R() * 0.3)) {
+          const x = s.x0 + u, t = tAt(x), b = bAt(x), m = GAP / 2 + 8 * S;
+          if (b - t < GAP + 22 * S) continue;
+                    const side = gates.length % 2 ? 1 : -1, gy = clamp((t + b) / 2 + side * (b - t) * (0.2 + R() * 0.15), t + m, b - m);
+          gates.push({ x, gy });
+          for (let y = t + 4 * S; y < b - 4 * S;) { const r = (6 + R() * 4) * S; if (Math.abs(y + r - gy) > GAP / 2 + r) rocks.push({ x: x + (R() - 0.5) * 14 * S, y: y + r, r, j: R() }); y += r * 2 + 2 * S; }
+        }
+      } else if (s.k === 'lake' || s.k === 'camp') {
+        for (let u = 200 * S; u < s.len * S - 200 * S; u += (260 + R() * 260) * S) { const x = s.x0 + u, side = R() < 0.5, y = side ? tAt(x) + (14 + R() * 10) * S : bAt(x) - (14 + R() * 10) * S; rocks.push({ x, y, r: (7 + R() * 5) * S, j: R(), lake: 1 }); }
+      }
+    }
+    rocks.sort((a, b) => a.x - b.x);
+    // the safe line: down the middle, and through each gap in the rocks
+    for (let i = 0; i < N; i++) {
+      const x = i * DX, t = top[i], b = bot[i]; let y = (t + b) / 2;
+      const k = kind[i];
+      if (k === KIND.stream || k === KIND.fast) {
+        let a = null, z = null; for (const g of gates) { if (g.x <= x) a = g; else { z = g; break; } }
+        if (a && z && z.x - a.x < 260 * S) y = lerp(a.gy, z.gy, sstep((x - a.x) / (z.x - a.x)));
+        else if (a && x - a.x < 50 * S) y = a.gy; else if (z && z.x - x < 50 * S) y = z.gy;
+      }
+      if (k === KIND.salt) y = Math.min(y, mid);
+      safe[i] = b - t > 30 * S ? clamp(y, t + 15 * S, b - 15 * S) : (t + b) / 2;
+    }
+    safe.set(smooth(safe, 8));
+    const sAt = (x) => safe[ix(x)];
+    // carrying places, and where the day ends
+    const carries = D.segs.filter((s) => s.k === 'carry').map((s) => {
+      let tip = s.x0; while (tip < s.x1 && bot[ix(tip)] - top[ix(tip)] > 16 * S) tip += DX;
+      let put = s.x1; while (put > tip && bot[ix(put)] - top[ix(put)] > 16 * S) put -= DX;
+      return { x0: s.x0, x1: s.x1, tip, put };
+    });
+    const lastSeg = D.segs[D.segs.length - 1], endX = D.end === 'salt' ? lastSeg.x0 + lastSeg.len * S * 0.62 : lastSeg.x1 - 70 * S;
+    // the places Nukumi names
+    const places = [], seen = {};
+    for (const s of D.segs) for (const [type, side, u] of (s.pl || [])) {
+      const x = s.x0 + u * S, first = !seen[type]; seen[type] = 1;
+      const say = D.mode === 'say' || (D.mode === 'mixed' && first);
+      const others = Object.keys(NAMES).filter((k) => k !== type); for (let i = others.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [others[i], others[j]] = [others[j], others[i]]; }
+      const opts = [type, others[0], others[1]]; for (let i = 2; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+      places.push({ type, side, x, y: side === 't' ? tAt(x) : side === 'b' ? bAt(x) : sAt(x), say, opts, state: 'wait', first: true });
+    }
+    carries.forEach((cy) => { places.push({ type: 'carry', side: 'c', x: cy.tip - 6 * S, y: mid, say: D.mode === 'say' || (D.mode === 'mixed' && !seen.carry), opts: null, state: 'wait', first: true }); seen.carry = 1; });
+    places.sort((a, b) => a.x - b.x);
+    places.forEach((p) => { if (!p.opts) { const others = Object.keys(NAMES).filter((k) => k !== p.type).sort(() => R() - 0.5); p.opts = [p.type, others[0], others[1]].sort(() => R() - 0.5); } });
+    // trees on the land: spruce and fir stay dark; maples and other leafless trees are grey; birches by the birch places
+    const trees = [];
+    const birchNear = (x, side) => places.some((p) => p.type === 'birch' && p.side === side && Math.abs(p.x - x) < 95 * S);
+    const clearAt = (x, y, side, d) => places.some((p) => p.type !== 'birch' && p.type !== 'fast' && p.side === side && Math.abs(p.x - x) < 92 * S && d < 80 * S)
+      || carries.some((q) => (Math.abs(x - q.tip) < 46 * S || Math.abs(x - q.put) < 46 * S) && Math.abs(y - mid) < 48 * S)
+      || (D.end === 'camp' && Math.hypot((x - endX - 70 * S) / 1.4, y - mid) < 62 * S)
+      || (D.end === 'salt' && side === 't' && x > endX - 175 * S && x < endX + 400 * S && d < 120 * S);
+    for (let x = -40; x < total + W; x += 16 * S) {
+      for (const side of ['t', 'b']) {
+        const edge = side === 't' ? tAt(x) : bAt(x), w = wet(x);
+        const span = w ? (side === 't' ? edge : H - edge) : H / 2 - 24 * S;
+        const n = Math.max(0, Math.ceil(span / (38 * S)));
+        for (let j = 0; j < n; j++) {
+          const r0 = hsh(Math.round(x), side === 't' ? 3 + j : 9 + j);
+          if (r0 < 0.18) continue;
+          const d = (12 + hsh(Math.round(x), 17 + j) * Math.max(4, span - 12 * S)) ;
+          const y = w ? (side === 't' ? edge - d : edge + d) : (side === 't' ? mid - 24 * S - d * 0.9 : mid + 24 * S + d * 0.9);
+          if (y < -20 || y > H + 20) continue;
+          if (clearAt(x, y, side, d)) continue;
+          const bir = w && d < 50 * S && birchNear(x, side);
+          trees.push({ x: x + (hsh(Math.round(x), 31 + j) - 0.5) * 10 * S, y, t: bir ? 2 : hsh(Math.round(x), 41 + j) < 0.58 ? 0 : 1, s: 0.8 + hsh(Math.round(x), 51 + j) * 0.45 });
+        }
+      }
+    }
+    trees.sort((a, b) => a.y - b.y || a.x - b.x);
+
+    const st = { t: 0, x: 40 * S, y: sAt(40 * S), vx: V, vy: 0, steer: 0, ptr: null, keyU: false, keyD: false, slow: 0, bumpCool: 0, bumps: 0, light: 1, mode: 'water', carry: null, phase: 0, dipT: 0,
+      started: false, paused: false, ended: false, over: false, endAt: 0, said: 0, firstTry: 0, missed: 0, active: null, msg: [], low: false, W, H, S, total, endX, places, rocks, D };
+    box._paddle = st;
+    const LIGHT = D.light * (relaxed ? 1.35 : 1);
+    const say = (text, x, y, col) => { st.msg = st.msg.filter((m) => m.text !== text); st.msg.push({ text, x, y, t: 0, col: col || '#FFFFFF' }); live.textContent = text; };
+
+    // ---------- the name buttons under the picture ----------
+    let chipsFor = undefined;
+    function chips() {
+      const p = st.active, key = p ? p.x + ':' + p.state : 'none';
+      if (key === chipsFor) return; chipsFor = key;
+      nameRow.innerHTML = '';
+      if (!p || p.state === 'done') { nameRow.append(el('span', { class: 'hint', text: st.started ? 'Watch the shore. At every point, cove and carrying place, Nukumi says its name.' : '' })); return; }
+      if (p.say && p.state === 'wait') {
+        const [ic, ph] = NAMES[p.type];
+        nameRow.append(el('button', { class: 'gamebtn primary', type: 'button', text: `🔁 Say it back: ${ic} ${ph}`, onclick: () => answer(p.type) }));
+      } else {
+        p.opts.forEach((k, i) => { const [ic, , sh] = NAMES[k]; nameRow.append(el('button', { class: 'gamebtn' + (p.state === 'again' && k === p.type ? ' primary' : ''), type: 'button', text: `${i + 1}  ${ic} ${sh}`, 'aria-label': `${i + 1}: ${NAMES[k][1]}`, onclick: () => answer(k) })); });
+      }
+    }
+    function answer(k) {
+      const p = st.active; if (!p || p.state === 'done' || !st.started || st.paused || st.ended) return;
+      if (k === p.type) {
+        p.state = 'done'; st.said++; if (p.first) st.firstTry++; sfx('right');
+        say(p.first ? (p.say ? 'You say it back.' : 'Right!') : 'Again, and right.', st.x, st.y - 46 * S, '#FFF3B8');
+        live.textContent = `${NAMES[p.type][0]} ${NAMES[p.type][1]}: said back.`;
+      } else {
+        p.first = false; p.state = 'again'; sfx('again');
+        say('Close. Nukumi says it again.', st.x, st.y - 46 * S, '#FFE3B0');
+        live.textContent = `Close. Nukumi says it again: ${NAMES[p.type][1]}.`;
+      }
+      chips();
+    }
+
+    // ---------- moving ----------
+    function bump(text) {
+      if (st.bumpCool > 0) return;
+      st.bumpCool = 0.8; st.bumps++; st.slow = 1.1; sfx('scrape');
+      say(text, st.x, st.y - 42 * S, '#FFE3B0');
+    }
+    function step(dt) {
+      st.t += dt; st.phase += dt; st.bumpCool = Math.max(0, st.bumpCool - dt); st.slow = Math.max(0, st.slow - dt);
+      st.msg.forEach((m) => { m.t += dt; }); st.msg = st.msg.filter((m) => m.t < 1.9);
+      if (st.mode !== 'arrived') st.light = Math.max(0, st.light - dt / LIGHT);
+      if (st.over) { if (st.t >= st.endAt) { st.ended = true; finish(); } return; }
+      if (st.mode === 'carry') {
+        st.x += 76 * S * SPD * dt; st.y = lerp(st.y, mid, Math.min(1, dt * 3));
+        if (st.x >= st.carry.put + 40 * S) { st.mode = 'water'; st.x = st.carry.put + 40 * S; st.y = sAt(st.x); st.vx = V * 0.6; st.vy = 0; st.carry = null; say('In the water again.', st.x, st.y - 40 * S); }
+      } else if (st.mode === 'water') {
+        const k = kAt(st.x), wd = wind[ix(st.x)];
+        const want = (k === KIND.fast ? 1.42 : k === KIND.stream ? 1.15 : wd ? 0.9 : 1) * V * (st.slow > 0 ? 0.22 : 1);
+        st.vx += (want - st.vx) * Math.min(1, dt * 2.2);
+        // steering: keys and buttons, or press and hold toward a point
+        let steer = (st.keyD ? 1 : 0) - (st.keyU ? 1 : 0);
+        if (!steer && st.ptr !== null) { const d = st.ptr - st.y; steer = Math.abs(d) < 6 * S ? 0 : clamp(d / (40 * S), -1, 1); }
+        const vyT = steer * 150 * S * SPD;
+        st.vy += (vyT - st.vy) * Math.min(1, dt * 7);
+        // streams carry the canoe round their bends; the wind on the big lake pushes it toward the far shore
+        const slope = (tAt(st.x + 10) + bAt(st.x + 10) - tAt(st.x - 10) - bAt(st.x - 10)) / 40;
+        let drift = (k === KIND.stream || k === KIND.fast) ? slope * st.vx * 0.35 : 0;
+        if (wd && !RM) drift += (34 + Math.sin(st.t * 0.9) * 22) * S * SPD; else if (wd) drift += 34 * S * SPD;
+        st.x += st.vx * dt; st.y += (st.vy + drift) * dt;
+        // the shore and the rocks
+        const L2 = 32 * S, ang = Math.atan2(st.vy + drift, st.vx), cs = Math.cos(ang), sn = Math.sin(ang), hb = 7 * S;
+        for (const f of [-1, 0, 1]) {
+          const px = st.x + cs * L2 * f, py = st.y + sn * L2 * f, t = tAt(px), b = bAt(px);
+          if (b - t < 2 * hb + 4) continue;
+          if (py < t + hb) { st.y += t + hb - py; st.vy = Math.max(0, st.vy); if (Math.abs(st.vy + drift) > 30 * S || f === 1) bump('Scrape! Steer away from the shore.'); }
+          else if (py > b - hb) { st.y -= py - (b - hb); st.vy = Math.min(0, st.vy); if (Math.abs(st.vy + drift) > 30 * S || f === 1) bump('Scrape! Steer away from the shore.'); }
+        }
+        for (let i = lowerRock(st.x - 40 * S); i < rocks.length && rocks[i].x < st.x + 40 * S; i++) {
+          const r = rocks[i];
+          for (const f of [-1, 0, 1]) {
+            const px = st.x + cs * L2 * f, py = st.y + sn * L2 * f, d = Math.hypot(px - r.x, py - r.y), need = r.r + hb;
+            if (d < need) { const dir = Math.sign(sAt(st.x) - r.y) || (py >= r.y ? 1 : -1); st.y += dir * (need - d + 1); bump(r.lake ? 'Scrape! A rock by the shore.' : 'Scrape! Through the gap in the rocks.'); }
+          }
+        }
+        // a lake that ends at a carrying place narrows to a landing: the canoe always reaches it
+        const cy = carries.find((q) => st.x >= q.tip - 46 * S && st.x < q.put);
+        if (cy) { st.mode = 'carry'; st.carry = cy; st.vy = 0; say('A carrying place. Everyone carries something.', st.x + 40 * S, mid - 50 * S, '#FFF3B8'); }
+        if (st.x >= endX) { st.mode = 'arrived'; st.over = true; st.endAt = st.t + 1.4; sfx('done'); say(D.end === 'salt' ? 'Salt water! The Narrows!' : 'Camp for the night!', st.x, st.y - 48 * S, '#FFF3B8'); }
+        st.dipT -= dt; if (st.dipT <= 0) { st.dipT = 0.95; sfx('dip'); }
+      }
+      if (st.mode === 'arrived') { st.vx *= Math.pow(0.4, dt); st.x += st.vx * dt; st.y = lerp(st.y, D.end === 'salt' ? Math.max(tAt(st.x) + 18 * S, st.y - 20 * dt) : sAt(st.x), Math.min(1, dt * 2)); }
+      // names: the next place comes into view; once the canoe has passed it, it is gone
+      const p = places.find((q) => q.state !== 'done' && q.state !== 'gone' && st.x > q.x - 270 * S && st.x < q.x + 40 * S);
+      places.forEach((q) => { if ((q.state === 'wait' || q.state === 'again') && st.x >= q.x + 40 * S) { q.state = 'gone'; st.missed++; } });
+      if (p !== st.active) { st.active = p || null; if (p) { live.textContent = p.say ? `Nukumi: ${NAMES[p.type][1]}. Say it back.` : 'Nukumi: What does its name tell? Pick one.'; } }
+      chips();
+      if (!st.over && st.light <= 0) { st.mode = 'dusk'; st.over = true; st.endAt = st.t + 1.4; say('The light is going.', st.x, st.y - 48 * S, '#FFE3B0'); }
+    }
+    function lowerRock(x) { let lo = 0, hi = rocks.length; while (lo < hi) { const m = (lo + hi) >> 1; if (rocks[m].x < x) lo = m + 1; else hi = m; } return lo; }
+    function lowerTree(x) { let lo = 0, hi = trees.length; while (lo < hi) { const m = (lo + hi) >> 1; if (trees[m].x < x) lo = m + 1; else hi = m; } return lo; }
+
+    // ---------- pictures drawn once ----------
+    const sprite = (w, h, fn) => { const s = document.createElement('canvas'); s.width = Math.ceil(w * 2); s.height = Math.ceil(h * 2); const g = s.getContext('2d'); g.scale(2, 2); fn(g); return s; };
+    const TW = Math.round(560 * S);
+    const landTile = sprite(TW, H, (g) => {
+      const Q = mulb(D.seed + 5); g.fillStyle = '#6F6B52'; g.fillRect(0, 0, TW, H);
+      for (let i = 0; i < 70; i++) { g.globalAlpha = 0.18 + Q() * 0.2; g.fillStyle = Q() < 0.5 ? '#5E5A44' : '#837C5C'; const x = Q() * TW, y = Q() * H, a = (14 + Q() * 30) * S, b = (8 + Q() * 16) * S, r = Q() * 3; for (const ox of [-TW, 0, TW]) { g.beginPath(); g.ellipse(x + ox, y, a, b, r, 0, 7); g.fill(); } }
+      // the last of the snow, soft and grey-white under the trees
+      for (let i = 0; i < 26; i++) { const x = Q() * TW, y = Q() * H, rx = (16 + Q() * 34) * S, ry = rx * (0.45 + Q() * 0.3), a = Q() * 3; for (const ox of [-TW, 0, TW]) { g.globalAlpha = 0.85; g.fillStyle = '#E9EDEE'; g.beginPath(); g.ellipse(x + ox, y, rx, ry, a, 0, 7); g.fill(); g.globalAlpha = 0.5; g.fillStyle = '#C9D3D8'; g.beginPath(); g.ellipse(x + ox + rx * 0.15, y + ry * 0.2, rx * 0.8, ry * 0.65, a, 0, 7); g.fill(); } }
+      g.globalAlpha = 0.45; g.strokeStyle = '#3F3A2B'; g.lineWidth = 1; g.lineCap = 'round'; for (let i = 0; i < 60; i++) { const x = Q() * TW, y = Q() * H, a = Q() * 3; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * 9 * S, y + Math.sin(a) * 9 * S); g.stroke(); }
+      g.globalAlpha = 1;
+    });
+    const TR = 15 * S;
+    const treeSpr = [
+      sprite(TR * 2.4, TR * 2.4, (g) => { // spruce or fir: a dark star of branches
+        const o = TR * 1.2; g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.ellipse(o + 3 * S, o + 4 * S, TR, TR * 0.9, 0, 0, 7); g.fill();
+        for (let ring = 0; ring < 3; ring++) { const r = TR * (1 - ring * 0.28), n = 9 - ring * 2; g.fillStyle = ['#1F3A2C', '#28473A', '#335646'][ring]; g.beginPath(); for (let i = 0; i <= n * 2; i++) { const a = i / (n * 2) * Math.PI * 2 + ring * 0.4, rr = i % 2 ? r * 0.55 : r; g.lineTo(o + Math.cos(a) * rr, o + Math.sin(a) * rr); } g.closePath(); g.fill(); }
+        g.fillStyle = 'rgba(235,240,240,.55)'; for (let i = 0; i < 4; i++) { const a = i * 1.7; g.beginPath(); g.arc(o + Math.cos(a) * TR * 0.5, o + Math.sin(a) * TR * 0.5, 1.6 * S, 0, 7); g.fill(); }
+      }),
+      sprite(TR * 2.4, TR * 2.4, (g) => { // a leafless hardwood: grey branches spreading from the middle
+        const o = TR * 1.2; g.fillStyle = 'rgba(0,0,0,.14)'; g.beginPath(); g.ellipse(o + 3 * S, o + 4 * S, TR, TR * 0.9, 0, 0, 7); g.fill();
+        g.globalAlpha = 0.5; g.fillStyle = '#8A8478'; g.beginPath(); g.arc(o, o, TR * 0.95, 0, 7); g.fill(); g.globalAlpha = 1;
+        g.strokeStyle = '#4B463D'; g.lineCap = 'round';
+        for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2 + 0.3, r = TR * (0.75 + (i % 3) * 0.1); g.lineWidth = 1.8 * S; g.beginPath(); g.moveTo(o, o); g.lineTo(o + Math.cos(a) * r, o + Math.sin(a) * r); g.stroke(); g.lineWidth = 1 * S; g.beginPath(); g.moveTo(o + Math.cos(a) * r * 0.6, o + Math.sin(a) * r * 0.6); g.lineTo(o + Math.cos(a + 0.35) * r, o + Math.sin(a + 0.35) * r); g.stroke(); }
+      }),
+      sprite(TR * 2.4, TR * 2.4, (g) => { // birches: white trunks with black marks, leaning a little
+        const o = TR * 1.2; g.lineCap = 'round';
+        for (let i = 0; i < 3; i++) { const x = o + (i - 1) * 6 * S, y = o + (i % 2) * 4 * S; g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 4 * S; g.beginPath(); g.moveTo(x + 2 * S, y + 9 * S); g.lineTo(x + 5 * S, y - 9 * S); g.stroke(); g.strokeStyle = '#F4F1E8'; g.lineWidth = 3.4 * S; g.beginPath(); g.moveTo(x, y + 8 * S); g.lineTo(x + 3 * S, y - 10 * S); g.stroke(); g.strokeStyle = '#1B2529'; g.lineWidth = 1.2 * S; for (let k = 0; k < 3; k++) { const yy = y + 5 * S - k * 6 * S; g.beginPath(); g.moveTo(x + k * 1 * S - 1 * S, yy); g.lineTo(x + k * 1 * S + 1.4 * S, yy - 0.6 * S); g.stroke(); } }
+        g.strokeStyle = 'rgba(80,60,50,.6)'; g.lineWidth = 1; for (let i = 0; i < 7; i++) { const a = -1.9 + i * 0.25; g.beginPath(); g.moveTo(o + 3 * S, o - 8 * S); g.lineTo(o + 3 * S + Math.cos(a) * 9 * S, o - 8 * S + Math.sin(a) * 9 * S); g.stroke(); }
+      }),
+    ];
+
+    // ---------- drawing ----------
+    const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
+    const hull = (g, L, B) => { g.beginPath(); g.moveTo(L / 2, 0); g.bezierCurveTo(L * 0.3, -B * 0.62, -L * 0.3, -B * 0.62, -L / 2, 0); g.bezierCurveTo(-L * 0.3, B * 0.62, L * 0.3, B * 0.62, L / 2, 0); g.closePath(); };
+    // a person from above: head with long dark hair, shoulders, and a paddle that dips on one side
+    const person = (g, x, k, side, ph, paddling) => {
+      g.save(); g.translate(x, 0); g.scale(1.22, 1.22);
+      if (paddling) {
+        const sw = Math.sin(ph), bx = -sw * 7 * S, by = side * 15 * S;
+        g.strokeStyle = '#8A6A45'; g.lineWidth = 1.8 * S; g.lineCap = 'round'; g.beginPath(); g.moveTo(1 * S, side * 2 * S); g.lineTo(bx, by); g.stroke();
+        g.fillStyle = '#9A7650'; g.beginPath(); g.ellipse(bx - 2 * S, by + side * 2 * S, 6 * S, 1.9 * S, 0, 0, 7); g.fill();
+        if (!RM && sw > 0.2) { g.strokeStyle = 'rgba(235,245,248,.7)'; g.lineWidth = 1; g.beginPath(); g.arc(bx - 6 * S, by + side * 2 * S, 3 * S, 0, 7); g.stroke(); }
+      }
+      g.fillStyle = INKF; g.beginPath(); g.ellipse(-1 * S, 0, 3.6 * S * k, 6.4 * S * k, 0, 0, 7); g.fill();
+      g.fillStyle = INK; g.beginPath(); g.arc(1.2 * S, 0, 3.3 * S * k, 0, 7); g.fill();
+      g.beginPath(); g.ellipse(-2.4 * S * k, 0, 3 * S * k, 2.2 * S * k, 0, 0, 7); g.fill();   // long hair, tied back
+      g.restore();
+    };
+    const canoe = (x, y, ang, o) => {
+      const L = 72 * S * (o.k || 1), B = 17 * S * (o.k || 1);
+      c.save(); c.translate(x, y); c.rotate(ang);
+      c.fillStyle = 'rgba(10,25,35,.28)'; c.save(); c.translate(3 * S, 4 * S); hull(c, L, B); c.fill(); c.restore();
+      if (!RM && o.moving) { c.strokeStyle = 'rgba(225,238,242,.55)'; c.lineWidth = 1.3; c.beginPath(); c.moveTo(-L / 2, 0); c.quadraticCurveTo(-L * 0.8, -B * 0.7, -L * 1.25, -B * 1.1); c.moveTo(-L / 2, 0); c.quadraticCurveTo(-L * 0.8, B * 0.7, -L * 1.25, B * 1.1); c.stroke(); }
+      c.fillStyle = '#C8A673'; hull(c, L, B); c.fill();
+      c.fillStyle = '#E2CDA1'; c.save(); c.scale(0.86, 0.72); hull(c, L, B); c.fill(); c.restore();
+      c.strokeStyle = 'rgba(90,60,35,.55)'; c.lineWidth = 1; for (let i = -3; i <= 3; i++) { const xx = i * L * 0.11, hh = B * 0.36 * Math.sqrt(1 - Math.pow(i / 4, 2)); c.beginPath(); c.moveTo(xx, -hh); c.lineTo(xx, hh); c.stroke(); }
+      c.strokeStyle = '#5E4128'; c.lineWidth = 1.6 * S; hull(c, L, B); c.stroke();
+      // bundles: rolled birchbark and folded hides
+      (o.bundles || []).forEach(([bx, t]) => { if (t === 'bark') { c.fillStyle = '#EFE3C4'; rr(bx * L - 5 * S, -4 * S, 10 * S, 8 * S, 3 * S); c.fill(); c.strokeStyle = '#7A6040'; c.lineWidth = 1; c.beginPath(); c.arc(bx * L - 5 * S, 0, 3.6 * S, 0, 7); c.stroke(); } else { c.fillStyle = '#7A5A3E'; c.beginPath(); c.ellipse(bx * L, 0, 5.5 * S, 4.2 * S, 0.3, 0, 7); c.fill(); } });
+      (o.people || []).forEach(([px, k, side, off, pad]) => person(c, px * L, k, side, st.phase * 5.2 + off, pad && o.moving));
+      c.restore();
+    };
+    const ME = { people: [[0.3, 1, 1, 0, 1], [-0.02, 0.8, 1, 0, 0], [-0.33, 1, -1, 1.6, 1]], bundles: [[0.13, 'bark'], [-0.17, 'hide'], [0.03, 'bark']] };
+    const FAM = [{ people: [[0.28, 1, -1, 0.7, 1], [-0.3, 1, 1, 2.2, 1]], bundles: [[0.0, 'bark'], [0.12, 'hide'], [-0.13, 'bark']] }, { people: [[0.28, 1, 1, 1.1, 1], [-0.3, 1, -1, 2.9, 1]], bundles: [[0.02, 'hide'], [-0.12, 'bark']] }];
+    const carried = (x, y, k, ph, feet = true) => { // a canoe carried upside down along the path; feet show at each end
+      const L = 72 * S * k, B = 17 * S * k, w = Math.sin(ph * 6);
+      c.save(); c.translate(x, y);
+      if (feet) c.fillStyle = INK; if (feet) [[-L * 0.32, 1], [L * 0.3, -1]].forEach(([fx, s]) => { c.beginPath(); c.ellipse(fx + w * 3 * S * s, -4 * S, 3 * S, 1.8 * S, 0, 0, 7); c.ellipse(fx - w * 3 * S * s, 4 * S, 3 * S, 1.8 * S, 0, 0, 7); c.fill(); });
+      c.fillStyle = 'rgba(10,25,35,.25)'; c.save(); c.translate(4 * S, 6 * S); hull(c, L, B); c.fill(); c.restore();
+      c.fillStyle = '#A98757'; hull(c, L, B); c.fill(); c.strokeStyle = '#5E4128'; c.lineWidth = 1.6 * S; hull(c, L, B); c.stroke();
+      c.strokeStyle = 'rgba(70,45,25,.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-L / 2, 0); c.lineTo(L / 2, 0); for (let i = -2; i <= 2; i++) { c.moveTo(i * L * 0.16, -B * 0.4); c.lineTo(i * L * 0.16 + 4 * S, B * 0.4); } c.stroke();
+      c.restore();
+    };
+    const walker = (x, y, k, ph, load) => { c.save(); c.translate(x, y); const w = Math.sin(ph * 6); c.fillStyle = INK; c.beginPath(); c.ellipse(w * 3 * S, -3 * S, 2.6 * S, 1.6 * S, 0, 0, 7); c.ellipse(-w * 3 * S, 3 * S, 2.6 * S, 1.6 * S, 0, 0, 7); c.fill(); if (load) { c.fillStyle = load === 'bark' ? '#EFE3C4' : '#7A5A3E'; rr(-9 * S, -5 * S, 7 * S, 10 * S, 3 * S); c.fill(); } person(c, 0, k, 1, 0, false); c.restore(); };
+
+    function draw() {
+      const camX = clamp(st.x - W * 0.3, -20, total - W * 0.7), x0 = camX, x1 = camX + W, t = st.t, low = st.low;
+      // land
+      const off = ((x0 % TW) + TW) % TW; for (let x = -off; x < W; x += TW) c.drawImage(landTile, x, 0, TW, H);
+      // water, in runs where there is water
+      let run = null; const runs = [];
+      for (let sx = -8; sx <= W + 8; sx += 6) { const wx = x0 + sx, tt = tAt(wx), bb = bAt(wx); if (bb - tt > 3) { if (!run) runs.push(run = []); run.push([sx, tt, bb, kAt(wx)]); } else run = null; }
+      for (const r of runs) {
+        if (r.length < 2) continue;
+        c.beginPath(); r.forEach(([sx, tt], i) => (i ? c.lineTo(sx, tt) : c.moveTo(sx, tt))); for (let i = r.length - 1; i >= 0; i--) c.lineTo(r[i][0], r[i][2]); c.closePath();
+        c.fillStyle = '#C6B58C'; c.save(); c.lineWidth = 9 * S; c.strokeStyle = '#B9A77D'; c.stroke(); c.restore();   // a stony, sandy edge
+        const wg = c.createLinearGradient(0, 0, 0, H); wg.addColorStop(0, '#3E6577'); wg.addColorStop(0.5, '#2F5163'); wg.addColorStop(1, '#3E6577'); c.fillStyle = wg; c.fill();
+        c.save(); c.clip();
+        c.lineWidth = 7 * S; c.strokeStyle = 'rgba(120,170,180,.35)'; c.stroke();   // shallow water near the shore
+        // salt water at the end of day five: greener, with long swells
+        const salt = r.filter((q) => q[3] === KIND.salt); if (salt.length) { const sx0 = salt[0][0]; const sg = c.createLinearGradient(sx0, 0, sx0 + 140 * S, 0); sg.addColorStop(0, 'rgba(36,96,102,0)'); sg.addColorStop(1, 'rgba(36,96,102,.85)'); c.fillStyle = sg; c.fillRect(sx0, 0, W - sx0 + 10, H); c.strokeStyle = 'rgba(210,235,232,.35)'; c.lineWidth = 1.4; c.beginPath(); for (let i = 0; i < 9; i++) { const yy = 120 * S + i * 26 * S, xx = sx0 + ((i * 97 + t * (RM ? 0 : 10)) % 400); c.moveTo(xx, yy); c.quadraticCurveTo(xx + 30 * S, yy - 5 * S, xx + 60 * S, yy); } c.stroke(); }
+        // the current in the streams, and white water where it runs fast
+        c.strokeStyle = 'rgba(225,240,244,.45)'; c.lineCap = 'round'; c.lineWidth = 1.3;
+        c.beginPath();
+        r.forEach(([sx, tt, bb, k], i) => {
+          if (k !== KIND.stream && k !== KIND.fast) return;
+          if (i % (k === KIND.fast ? 2 : 4)) return;
+          const wx = x0 + sx, n = k === KIND.fast ? 4 : 2;
+          for (let j = 0; j < n; j++) { const h = hsh(Math.round(wx / 6), j + 3), yy = lerp(tt + 8 * S, bb - 8 * S, h), ox = RM ? 0 : ((t * (k === KIND.fast ? 120 : 60) * S + h * 300) % 60) - 30; c.moveTo(sx + ox, yy); c.lineTo(sx + ox + (k === KIND.fast ? 16 : 10) * S, yy); }
+        });
+        c.stroke();
+        // whitecaps on the windy lake
+        if (!low) { c.strokeStyle = 'rgba(240,248,250,.55)'; c.lineWidth = 1.5; c.beginPath(); r.forEach(([sx, tt, bb], i) => { if (!wind[ix(x0 + sx)] || i % 5) return; for (let j = 0; j < 2; j++) { const h = hsh(Math.round((x0 + sx) / 6), j + 11), yy = lerp(tt + 10 * S, bb - 10 * S, (h + (RM ? 0 : t * 0.08)) % 1); c.moveTo(sx - 5 * S, yy); c.quadraticCurveTo(sx, yy - 3 * S, sx + 5 * S, yy); } }); c.stroke(); }
+        c.restore();
+      }
+      // the carrying-place path, worn deep into the ground
+      for (const q of carries) { const a = q.tip - 4 * S - x0, b = q.put + 4 * S - x0; if (b < 0 || a > W) continue; c.strokeStyle = '#7C6448'; c.lineWidth = 16 * S; c.lineCap = 'round'; c.beginPath(); for (let sx = a; sx <= b; sx += 10) c.lineTo(sx, mid + Math.sin((x0 + sx) / (60 * S)) * 6 * S); c.stroke(); c.strokeStyle = 'rgba(40,30,20,.35)'; c.lineWidth = 2; c.stroke(); }
+      // the places Nukumi names
+      for (const p of places) {
+        const sx = p.x - x0; if (sx < -140 * S || sx > W + 140 * S) continue;
+        const sgn = p.side === 't' ? -1 : 1;
+        if (p.type === 'bank' || p.type === 'clay') {
+          // a ragged band along the shore: a bare, steep face of earth and stone, or a bank of blue-grey clay
+          const ext = 105 * S, wide = (p.type === 'bank' ? 30 : 24) * S, pts = [];
+          for (let u = -ext; u <= ext; u += 4) { const wx = p.x + u, ey = p.side === 't' ? tAt(wx) : bAt(wx), end = clamp((ext - Math.abs(u)) / (0.22 * ext), 0, 1), j = 0.7 + 0.45 * hsh(Math.round(wx / 4), p.type === 'bank' ? 21 : 23); pts.push([sx + u, ey, end * j]); }
+          const band = (k) => { c.beginPath(); pts.forEach(([x, y, f], i) => (i ? c.lineTo(x, y + sgn * wide * f * k) : c.moveTo(x, y + sgn * wide * f * k))); for (let i = pts.length - 1; i >= 0; i--) c.lineTo(pts[i][0], pts[i][1] - sgn * 1); c.closePath(); };
+          if (p.type === 'bank') {
+            c.fillStyle = 'rgba(15,25,30,.4)'; c.beginPath(); pts.forEach(([x, y, f], i) => (i ? c.lineTo(x + 4 * S, y - sgn * 7 * S * f) : c.moveTo(x, y))); for (let i = pts.length - 1; i >= 0; i--) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); c.fill();   // its shadow on the water
+            c.fillStyle = '#5B4232'; band(1); c.fill();
+            c.lineCap = 'round'; pts.forEach(([x, y, f], i) => { if (f < 0.2) return; c.strokeStyle = i % 2 ? 'rgba(40,28,20,.8)' : 'rgba(140,110,85,.7)'; c.lineWidth = i % 2 ? 2 : 1.3; c.beginPath(); c.moveTo(x, y + sgn * 2 * S); c.lineTo(x + (hsh(i, 8) - 0.5) * 3 * S, y + sgn * wide * f * 0.92); c.stroke(); });   // gullies down the face
+            c.fillStyle = '#A29C92'; pts.forEach(([x, y, f], i) => { if (i % 4 === 1 && f > 0.4) { c.beginPath(); c.ellipse(x, y + sgn * wide * f * (0.3 + hsh(i, 4) * 0.5), 2.4 * S, 1.8 * S, 0, 0, 7); c.fill(); } });
+            c.strokeStyle = '#2E2219'; c.lineWidth = 2.4; c.beginPath(); pts.forEach(([x, y, f], i) => (i ? c.lineTo(x, y + sgn * wide * f) : c.moveTo(x, y + sgn * wide * f))); c.stroke();   // the top edge
+            c.strokeStyle = '#7E8B4A'; c.lineWidth = 1.4; pts.forEach(([x, y, f], i) => { if (i % 3 || f < 0.3) return; const yy = y + sgn * wide * f; c.beginPath(); c.moveTo(x, yy); c.lineTo(x - 1.5 * S, yy + sgn * 4 * S); c.moveTo(x, yy); c.lineTo(x + 2 * S, yy + sgn * 4 * S); c.stroke(); });   // dry grass at the top
+          } else {
+            c.fillStyle = 'rgba(120,138,146,.5)'; c.beginPath(); pts.forEach(([x, y, f], i) => (i ? c.lineTo(x, y - sgn * 9 * S * f) : c.moveTo(x, y))); for (let i = pts.length - 1; i >= 0; i--) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); c.fill();   // clay clouding the shallow water
+            c.fillStyle = '#6F828C'; band(1); c.fill();
+            c.strokeStyle = 'rgba(196,210,217,.9)'; c.lineWidth = 1.5; c.lineCap = 'round'; pts.forEach(([x, y, f], i) => { if (i % 2 || f < 0.3) return; const yy = y + sgn * wide * f * (0.25 + hsh(i, 6) * 0.55); c.beginPath(); c.moveTo(x - 3 * S, yy); c.quadraticCurveTo(x, yy - 1.5, x + 3 * S, yy); c.stroke(); });   // wet, smooth shine
+            c.strokeStyle = '#46555D'; c.lineWidth = 1.8; c.beginPath(); pts.forEach(([x, y, f], i) => (i ? c.lineTo(x, y + sgn * wide * f) : c.moveTo(x, y + sgn * wide * f))); c.stroke();
+            c.fillStyle = 'rgba(48,60,66,.7)'; for (let i = 0; i < 4; i++) { const [x, y, f] = pts[Math.floor(pts.length * (0.25 + i * 0.17))]; c.beginPath(); c.ellipse(x, y + sgn * wide * f * 0.5, 4.5 * S, 3 * S, 0, 0, 7); c.fill(); }   // hollows where clay has been dug
+            c.fillStyle = '#8697A0'; for (let i = 0; i < 3; i++) { const [x, y] = pts[Math.floor(pts.length * (0.35 + i * 0.12))]; c.beginPath(); c.arc(x + 3 * S, y - sgn * 3 * S, 2.6 * S, 0, 7); c.fill(); }   // lumps on the edge
+          }
+        }
+        if (p.type === 'eels') { // a brook coming in, with a V of stones in the water where it meets the lake
+          const ey = p.side === 't' ? tAt(p.x) : bAt(p.x); c.strokeStyle = '#3E6577'; c.lineWidth = 7 * S; c.lineCap = 'round'; c.beginPath(); c.moveTo(sx, ey); c.quadraticCurveTo(sx - 18 * S, ey + sgn * 30 * S, sx - 6 * S, ey + sgn * 70 * S); c.stroke();
+          for (let i = -4; i <= 4; i++) { const xx = sx + 12 * S - Math.abs(i) * 6 * S, yy = ey - sgn * 22 * S + i * 5 * S; c.fillStyle = '#8C8F8A'; c.beginPath(); c.ellipse(xx, yy, 4 * S, 3 * S, 0, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.3)'; c.beginPath(); c.ellipse(xx - 1, yy - 1, 1.8 * S, 1.2 * S, 0, 0, 7); c.fill(); }
+          c.strokeStyle = 'rgba(20,32,30,.75)'; c.lineWidth = 2.4 * S; for (let i = 0; i < 2; i++) { const xx = sx + 24 * S + i * 14 * S, yy = ey - sgn * (22 + i * 6) * S, w = RM ? 0 : Math.sin(t * 4 + i) * 2 * S; c.beginPath(); c.moveTo(xx - 8 * S, yy); c.quadraticCurveTo(xx - 3 * S, yy - 3 * S + w, xx, yy); c.quadraticCurveTo(xx + 3 * S, yy + 3 * S - w, xx + 8 * S, yy); c.stroke(); }
+        }
+        if (p.type === 'carry') { const lx = sx; c.fillStyle = '#CDB98C'; c.beginPath(); c.ellipse(lx, mid, 26 * S, 20 * S, 0, 0, 7); c.fill(); }
+      }
+      // rocks, with the water parting round them
+      for (let i = lowerRock(x0 - 30); i < rocks.length && rocks[i].x < x1 + 30; i++) {
+        const r = rocks[i], sx = r.x - x0;
+        if (!low) { c.strokeStyle = 'rgba(232,244,246,.6)'; c.lineWidth = 1.3; c.beginPath(); c.arc(sx + r.r * 0.4, r.y, r.r * 1.35, -1, 1); c.stroke(); }
+        c.fillStyle = 'rgba(10,25,35,.35)'; c.beginPath(); c.ellipse(sx + 2 * S, r.y + 3 * S, r.r * 1.05, r.r * 0.85, 0, 0, 7); c.fill();
+        c.fillStyle = r.j < 0.33 ? '#8C8F8A' : r.j < 0.66 ? '#7A7F7C' : '#9A968B'; c.beginPath(); c.ellipse(sx, r.y, r.r, r.r * 0.8, r.j * 2, 0, 7); c.fill();
+        c.fillStyle = 'rgba(255,255,255,.3)'; c.beginPath(); c.ellipse(sx - r.r * 0.3, r.y - r.r * 0.25, r.r * 0.45, r.r * 0.3, -0.4, 0, 7); c.fill();
+      }
+      // the trees, drawn over the land and the edges of the water
+      for (let i = 0; i < trees.length; i++) { const tr = trees[i]; if (tr.x < x0 - 30 || tr.x > x1 + 30) continue; if (low && (i & 1)) continue; const s = TR * 2.4 * tr.s; c.drawImage(treeSpr[tr.t], tr.x - x0 - s / 2, tr.y - s / 2, s, s); }
+      // the end of the day: a camp on the beach, or the summer place at the Narrows
+      const ex = endX - x0;
+      if (ex < W + 200 * S) {
+        if (D.end === 'camp') {
+          const bx = ex + 70 * S; c.fillStyle = '#CDB98C'; c.beginPath(); c.ellipse(bx, mid, 70 * S, 46 * S, 0, 0, 7); c.fill();
+          [[bx - 26 * S, mid - 26 * S, 0.25], [bx - 30 * S, mid + 26 * S, -0.2]].forEach(([cx_, cy_]) => carried(cx_, cy_, 0.85, 0, false));
+          const fl = RM ? 1 : 1 + Math.sin(t * 9) * 0.15; const gl = c.createRadialGradient(bx + 22 * S, mid, 0, bx + 22 * S, mid, 30 * S * fl); gl.addColorStop(0, 'rgba(255,200,110,.9)'); gl.addColorStop(1, 'rgba(255,170,80,0)'); c.fillStyle = gl; c.beginPath(); c.arc(bx + 22 * S, mid, 30 * S * fl, 0, 7); c.fill();
+          c.fillStyle = '#E8792A'; c.beginPath(); c.arc(bx + 22 * S, mid, 5 * S, 0, 7); c.fill();
+          if (!low) { c.fillStyle = 'rgba(230,230,230,.35)'; for (let i = 0; i < 4; i++) { const k = ((t * 0.4 + i * 0.25) % 1); c.beginPath(); c.arc(bx + 22 * S + k * 30 * S, mid - k * 40 * S, (4 + k * 10) * S, 0, 7); c.fill(); } }
+        } else {
+          for (let i = 0; i < 6; i++) { const wx = endX - 120 * S + i * 70 * S, sx = wx - x0, ty = tAt(wx) - (36 + (i % 2) * 20) * S;
+            c.fillStyle = 'rgba(0,0,0,.2)'; c.beginPath(); c.arc(sx + 3 * S, ty + 4 * S, 15 * S, 0, 7); c.fill(); c.fillStyle = '#D9C9A3'; c.beginPath(); c.arc(sx, ty, 15 * S, 0, 7); c.fill();
+            c.strokeStyle = 'rgba(90,70,45,.6)'; c.lineWidth = 1; for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; c.beginPath(); c.moveTo(sx + Math.cos(a) * 4 * S, ty + Math.sin(a) * 4 * S); c.lineTo(sx + Math.cos(a) * 15 * S, ty + Math.sin(a) * 15 * S); c.stroke(); }
+            c.fillStyle = INK; c.beginPath(); c.arc(sx, ty, 3.4 * S, 0, 7); c.fill();
+            if (!low) { c.fillStyle = 'rgba(235,235,235,.4)'; const k = ((t * 0.35 + i * 0.3) % 1); c.beginPath(); c.arc(sx + k * 24 * S, ty - k * 26 * S, (3 + k * 8) * S, 0, 7); c.fill(); } }
+          const hx = endX + 330 * S - x0, hy = tAt(endX + 330 * S) - 44 * S; c.fillStyle = '#E7E2D6'; c.beginPath(); c.ellipse(hx, hy, 38 * S, 22 * S, 0, 0, 7); c.fill(); c.fillStyle = 'rgba(120,115,105,.5)'; for (let i = 0; i < 26; i++) { c.beginPath(); c.arc(hx + (hsh(i, 2) - 0.5) * 60 * S, hy + (hsh(i, 3) - 0.5) * 32 * S, 1.4 * S, 0, 7); c.fill(); }
+          for (let i = 0; i < 2; i++) { const cx_ = endX + 40 * S + i * 120 * S - x0, cy_ = tAt(endX + 40 * S + i * 120 * S) - 9 * S; carried(cx_, cy_, 0.85, 0, false); }
+        }
+      }
+      // the family's other canoes, ahead on the safe line
+      [215, 360].forEach((lead, i) => {
+        const fx = st.x + lead * S; if (fx > endX - 10 * S) return;
+        const cyq = carries.find((q) => fx >= q.tip - 46 * S && fx < q.put + 40 * S);
+        const fy = sAt(fx) + Math.sin(t * 0.7 + i * 2) * 3 * S, sx = fx - x0;
+        if (cyq) { carried(sx, mid + (i ? 10 : -10) * S, 0.95, t + i); walker(sx + 30 * S, mid - 22 * S, 1, t + i * 0.5, 'bark'); }
+        else canoe(sx, fy, Math.atan2(sAt(fx + 20) - sAt(fx - 20), 40) * 0.8, Object.assign({ moving: st.started && !st.paused && st.mode === 'water', k: 0.95 }, FAM[i]));
+      });
+      // your canoe
+      const sx = st.x - x0;
+      if (st.mode === 'carry') { carried(sx, st.y, 1, t); walker(sx - 18 * S, st.y + 22 * S, 0.8, t + 0.3, 'bark'); walker(sx + 34 * S, st.y + 20 * S, 1, t + 0.7, 'hide'); }
+      else canoe(sx, st.y, clamp(Math.atan2(st.vy, Math.max(30, st.vx)), -0.55, 0.55), Object.assign({ moving: st.started && !st.paused && (st.mode === 'water' || st.mode === 'arrived') && st.vx > 10 }, ME));
+      // the place being named: a ring on the shore, and Nukumi's words
+      const p = st.active;
+      if (p && p.state !== 'done' && st.started) {
+        const px = p.x - x0, py = p.type === 'carry' ? mid : p.side === 't' ? tAt(p.x) - 12 * S : p.side === 'b' ? bAt(p.x) + 12 * S : sAt(p.x);
+        const pul = RM ? 0 : (Math.sin(t * 5) + 1) * 3 * S;
+        c.setLineDash([5, 4]); c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = 2.2; c.beginPath(); c.arc(px, py, 34 * S + pul, 0, 7); c.stroke(); c.setLineDash([]);
+        if (p.say || p.state === 'again') { c.font = `${Math.round(20 * S)}px ` + FONT; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(NAMES[p.type][0], px, py + (p.side === 'b' ? 1 : -1) * (36 * S + pul + 10 * S)); }
+        const line = p.say || p.state === 'again' ? `${NAMES[p.type][1]}` : 'What does its name tell?', sub = p.state === 'again' ? 'Say it again.' : p.say ? 'Say it back.' : '';
+        c.font = `700 ${small ? 15 : 14}px ` + FONT; const w1 = c.measureText('Nukumi: ' + line).width; c.font = `600 ${small ? 14 : 13}px ` + FONT; const w2 = c.measureText(sub).width;
+        const bw = Math.max(w1, w2) + 26, bh = sub ? 46 : 30, bxp = clamp(sx - 40 * S, 8, W - bw - 8), byp = clamp(st.y + (st.y > H / 2 ? -bh - 34 * S : 30 * S), 46, H - bh - 8);
+        c.fillStyle = 'rgba(255,253,248,.95)'; rr(bxp, byp, bw, bh, 12); c.fill();
+        c.fillStyle = '#22252B'; c.textAlign = 'left'; c.font = `700 ${small ? 15 : 14}px ` + FONT; c.fillText('Nukumi: ' + line, bxp + 13, byp + 15);
+        if (sub) { c.font = `600 ${small ? 14 : 13}px ` + FONT; c.fillStyle = '#5A5F66'; c.fillText(sub, bxp + 13, byp + 33); }
+      }
+      // the light: late in the day the picture warms, then dims
+      if (st.light < 0.45) { const k = 1 - st.light / 0.45; c.fillStyle = `rgba(${Math.round(lerp(240, 30, k))},${Math.round(lerp(150, 40, k))},${Math.round(lerp(80, 90, k))},${0.08 + k * 0.32})`; c.fillRect(0, 0, W, H); }
+      // what you can read: daylight, and the names said back
+      const pill = (x, w) => { c.fillStyle = 'rgba(255,253,248,.93)'; rr(x, 10, w, 30, 15); c.fill(); };
+      const lw = small ? 150 : 176; pill(12, lw); c.font = '700 12px ' + FONT; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = '#22252B'; c.fillText('LIGHT', 24, 25.5);
+      const bx0 = 24 + c.measureText('LIGHT').width + 8, bw0 = 12 + lw - 12 - bx0; c.fillStyle = '#E8E1D2'; rr(bx0, 19, bw0, 12, 6); c.fill(); if (st.light > 0.01) { c.fillStyle = st.light < 0.25 ? '#C8612A' : '#E0A93A'; rr(bx0, 19, Math.max(12, bw0 * st.light), 12, 6); c.fill(); }
+      const nw = 20 + places.length * 15; pill(W - nw - 12, nw);
+      places.forEach((q, i) => { const cx_ = W - nw - 12 + 17 + i * 15; c.beginPath(); c.arc(cx_, 25, 5, 0, 7); if (q.state === 'done') { c.fillStyle = q.first ? '#1E5B54' : '#7FA9A0'; c.fill(); } else { c.strokeStyle = q.state === 'gone' ? '#C9C2B4' : '#8A8F94'; c.lineWidth = 2; c.stroke(); } });
+      c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '700 15px ' + FONT;
+      for (const m of st.msg) { const hw = c.measureText(m.text).width / 2 + 8, mx = clamp(m.x - x0, hw, W - hw), my = clamp(m.y - m.t * 12, 56, H - 12); c.globalAlpha = clamp(1.9 - m.t, 0, 1); c.lineWidth = 4; c.strokeStyle = 'rgba(20,28,34,.8)'; c.strokeText(m.text, mx, my); c.fillStyle = m.col; c.fillText(m.text, mx, my); }
+      c.globalAlpha = 1;
+      if (!st.started || st.paused) {
+        c.fillStyle = 'rgba(20,28,34,.45)'; c.fillRect(0, 0, W, H);
+        const cw = Math.min(W - 24, 470); c.fillStyle = 'rgba(255,253,248,.96)'; rr(W / 2 - cw / 2, H / 2 - 52, cw, 104, 16); c.fill();
+        c.fillStyle = '#22252B'; c.textAlign = 'center'; c.font = '700 20px ' + FONT; c.fillText(st.paused ? 'Paused' : `Ready? ${D.name}.`, W / 2, H / 2 - 24);
+        c.font = '600 14px ' + FONT;
+        if (st.paused) c.fillText('Press Space or tap to carry on', W / 2, H / 2 + 10);
+        else { c.fillText('Keep to deep water. Say each name back.', W / 2, H / 2 + 4); c.fillText('Press Space or tap to start.', W / 2, H / 2 + 28); }
+      }
+    }
+
+    // ---------- loop and controls ----------
+    let raf = 0, last = 0, acc = 0, alive = true, fN = 0, fT = 0;
+    const syncGT = () => { box.dataset.idle = st.started && !st.paused && !st.ended ? '0' : '1'; box.dataset.busy = st.started && !st.ended ? '1' : '0'; };
+    const frame = (now) => {
+      if (!alive) return; if (!cv.isConnected) { stop(); return; }
+      const raw = (now - last) / 1000 || 0, dt = Math.min(0.05, raw); last = now;
+      if (st.started && !st.paused && !st.hold) {
+        acc += dt; while (acc >= 1 / 120) { step(1 / 120); acc -= 1 / 120; if (st.ended) return; }
+        if (!st.low && raw < 0.25 && fN < 90) { fN++; fT += raw; if (fN === 90 && fT / 90 > 0.024) { st.low = true; if (dpr > 1) { dpr = 1; cv.width = W; cv.height = H; c.setTransform(1, 0, 0, 1, 0, 0); } } }
+      }
+      draw(); raf = requestAnimationFrame(frame);
+    };
+    const begin = () => {
+      if (st.ended || st.over) return false;
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (e) { /* no sound */ }
+      if (st.paused) { st.paused = false; pauseBtn.textContent = '⏸ Pause'; syncGT(); return true; }
+      if (!st.started) { st.started = true; live.textContent = 'Off you go, down the chain of lakes.'; chipsFor = undefined; chips(); syncGT(); return true; }
+      return false;
+    };
+    const pause = () => { if (!st.started || st.ended || st.over) return; st.paused = !st.paused; st.keyU = st.keyD = false; st.ptr = null; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; syncGT(); };
+    const UP = (e) => e.code === 'ArrowUp' || e.code === 'KeyW', DOWN = (e) => e.code === 'ArrowDown' || e.code === 'KeyS';
+    const NUM = { Digit1: 0, Digit2: 1, Digit3: 2, Numpad1: 0, Numpad2: 1, Numpad3: 2 };
+    const kd = (e) => {
+      const tg = document.activeElement; if (tg && /INPUT|TEXTAREA|SELECT/.test(tg.tagName)) return;
+      if (UP(e) || DOWN(e)) { e.preventDefault(); if (!st.started || st.paused) begin(); if (UP(e)) st.keyU = true; else st.keyD = true; }
+      else if (e.code in NUM) { e.preventDefault(); const p = st.active; if (!p || e.repeat) return; if (p.say && p.state === 'wait') { if (NUM[e.code] === 0) answer(p.type); } else answer(p.opts[NUM[e.code]]); }
+      else if (e.code === 'Space' || e.key === ' ' || e.code === 'Enter') { if (tg && tg.tagName === 'BUTTON' && tg !== cv) return; e.preventDefault(); if (e.repeat) return; if (!begin()) { const p = st.active; if (p && p.say && p.state === 'wait') answer(p.type); } }
+      else if (e.code === 'KeyP') pause();
+    };
+    const ku = (e) => { if (UP(e)) st.keyU = false; else if (DOWN(e)) st.keyD = false; };
+    const vis = () => { if (document.hidden && st.started && !st.ended && !st.paused) pause(); };
+    const toY = (ev) => { const r = cv.getBoundingClientRect(); return clamp((ev.clientY - r.top) / r.height * H, 0, H); };
+    let ptrId = null;
+    cv.addEventListener('pointerdown', (ev) => { ev.preventDefault(); cv.focus({ preventScroll: true }); if (begin()) return; ptrId = ev.pointerId; try { cv.setPointerCapture(ev.pointerId); } catch (e) { /* older browsers */ } st.ptr = toY(ev); });
+    cv.addEventListener('pointermove', (ev) => { if (ptrId === ev.pointerId) st.ptr = toY(ev); });
+    const up = (ev) => { if (ptrId === ev.pointerId) { ptrId = null; st.ptr = null; } };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    const hold = (btn, key) => {
+      const on = (e) => { e.preventDefault(); begin(); st[key] = true; }, off = () => { st[key] = false; };
+      btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off); btn.addEventListener('contextmenu', (e) => e.preventDefault());
+      btn.addEventListener('keydown', (e) => { if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat) { e.preventDefault(); begin(); st[key] = true; } }); btn.addEventListener('keyup', (e) => { if (e.code === 'Enter' || e.code === 'Space') off(); });
+    };
+    hold(upBtn, 'keyU'); hold(downBtn, 'keyD');
+    pauseBtn.onclick = () => { pause(); cv.focus({ preventScroll: true }); };
+    window.addEventListener('keydown', kd); window.addEventListener('keyup', ku); document.addEventListener('visibilitychange', vis);
+    function stop() { alive = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); document.removeEventListener('visibilitychange', vis); if (stopRun === stop) stopRun = null; }
+    stopRun = stop;
+    st.api = { step, answer, begin, pause, draw, sAt, tAt, bAt };   // for tests
+    chips(); cv.focus({ preventScroll: true }); raf = requestAnimationFrame(frame);
+
+    // ---------- the end of the day ----------
+    function finish() {
+      draw(); stop();
+      box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
+      const arrived = st.mode === 'arrived', total_ = places.length, all = st.firstTry === total_;
+      const n = 1 + (arrived ? 1 : 0) + (arrived && all && st.bumps <= 3 ? 1 : 0);
+      const pNames = st.firstTry * 100, pArrive = arrived ? 300 : 0, pLight = arrived ? Math.round(300 * st.light) : 0, pSmooth = arrived ? Math.max(0, 200 - 40 * st.bumps) : 0;
+      const score = Math.round((pNames + pArrive + pLight + pSmooth) * D.mult * (relaxed ? 0.8 : 1));
+      PROG.paddleStars = PROG.paddleStars || {}; PROG.paddleStars[D.n] = Math.max(PROG.paddleStars[D.n] || 0, n);
+      const isBest = score > (PROG.paddleBest || 0); PROG.paddleBest = Math.max(PROG.paddleBest || 0, score);
+      const fact = C.facts[((PROG.paddleN = (PROG.paddleN || 0) + 1) - 1) % C.facts.length]; saveProg();
+      if (typeof cloudSend === 'function') cloudSend(true);
+      win();
+      box.innerHTML = '';
+      const title = arrived ? (D.end === 'salt' ? '🌊 The Narrows of Kjipuktuk!' : '🔥 Camp for the night') : '🌙 The light is going';
+      const story = arrived ? (D.end === 'salt' ? C.endSalt : C.endCamp) : C.endDark;
+      const nameLine = st.firstTry === total_ ? `You said every name back the first time: ${total_} of ${total_}.` : `You said ${st.firstTry} of ${total_} names back the first time${st.said > st.firstTry ? `, and ${st.said - st.firstTry} more when Nukumi said ${st.said - st.firstTry === 1 ? 'it' : 'them'} again` : ''}.`;
+      const scrapeLine = st.bumps === 0 ? 'The canoe never touched a rock or the shore.' : `The canoe scraped ${st.bumps === 1 ? 'once' : `${st.bumps} times`}.`;
+      box.append(
+        el('h2', { class: 'trail-title readable', text: title }),
+        el('p', { class: 'trail-stars', text: stars(n), role: 'img', 'aria-label': `${n} out of 3 stars` }),
+        el('p', { class: 'readable', text: `${story} ${nameLine} ${scrapeLine}` }),
+        el('section', { class: 'fact' }, [
+          el('h2', { text: `Score: ${score}${isBest ? '  (your new best!)' : ''}` }),
+          el('p', { text: `Names ${pNames}  +  arriving ${pArrive}  +  daylight left ${pLight}  +  no scrapes ${pSmooth}${D.mult !== 1 ? `, then × ${D.mult} for ${D.name.toLowerCase()}` : ''}${relaxed ? ', then × 0.8 for relaxed mode' : ''}.` }),
+          el('p', { text: n === 3 ? 'Three stars.' : arrived ? 'For three stars: say every name the first time, and keep the scrapes to three or fewer.' : 'For two stars: reach the end before the light goes.' }),
+        ]),
+        el('section', { class: 'fact' }, [el('h2', { text: '💡 Did you know?' }), el('p', { text: fact })]),
+        timeUp()
+          ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' })
+          : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: `▶ Paddle ${D.name.toLowerCase()} again`, onclick: () => play(D) }), el('button', { class: 'secondary', type: 'button', text: '🛶 Choose a different day', onclick: () => menu() })]),
+      );
+      window.scrollTo(0, 0);
+    }
+  }
+  menu();
+}
 const GAMES = {
   fire: { icon: '🔥', name: 'Keep the wikuom warm', blurb: 'Open and close the smoke hole with the wind to keep the fire going.', where: 'Chickadee’s winter on the lakes', run: gAboiteau },
   eel: { icon: '🐟', name: 'Eels at the weir', blurb: 'Spear six eels as they come down the river in the fall.', where: 'Chickadee at the stone weir', run: gEel },
-  canoe: { icon: '🛶', name: 'What do we carry?', blurb: 'The family is leaving the winter camp. What goes in the canoe?', where: 'Chickadee in the Maple Sugar moon', run: (b, w) => gCoffre(b, w, 'canoe') },
+  paddle: { icon: '🛶', name: 'Paddle to the Narrows', blurb: 'Help Nukumi steer down the chain of lakes to the sea, and say each place name back.', where: 'Chickadee in the Maple Sugar moon', run: gPaddle },
   route: { icon: '🧺', name: 'From tree to basket', blurb: 'Make the right choice at each step of making an ash basket.', where: 'Lizzie and her mother', run: gRoute },
   wages: { icon: '🪙', name: 'Market day', blurb: 'You have the basket money. What does the family need before winter?', where: 'Lizzie at the Halifax market', run: gTruck },
   cove: { icon: '📦', name: 'What do we take?', blurb: 'The agent has ordered everyone to move. What can your family carry?', where: 'Lizzie in November 1917', run: (b, w) => gCoffre(b, w, 'cove') },
@@ -7808,7 +8408,7 @@ const GAMES = {
   kitchen: { icon: '👩‍🍳', name: 'Kitchen mix-up', blurb: 'Put a recipe’s steps back in order.', where: 'The Kitchen', run: gKitchen },
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
-const GAME_AT = { 701: ['fire'], 702: ['canoe'], 711: ['eel'], 2: ['route'], 29: ['route'], 6: ['wages'], 17: ['cove'], 212: ['who'], 504: ['who'], 507: ['decode'], 215: ['memory'], 505: ['memory'], 514: ['kitchen'] };
+const GAME_AT = { 701: ['fire'], 705: ['paddle'], 711: ['eel'], 2: ['route'], 29: ['route'], 6: ['wages'], 17: ['cove'], 212: ['who'], 504: ['who'], 507: ['decode'], 215: ['memory'], 505: ['memory'], 514: ['kitchen'] };
 // ================= GAME TIME =================
 // Each student gets 10 minutes of mini-games a day, so that games do not take over the class.
 // The count is kept in this browser and is shared by all four story games on this site, so switching
@@ -8979,6 +9579,7 @@ function cloudStats() {
     h: n('doors'),
     f: P.chase || 0,
     r: P.frun || 0,
+    p: P.paddleBest || 0,
   };
 }
 function cloudPacket() {
@@ -9059,6 +9660,7 @@ async function cloudPull() {
   Object.entries(mine.d.tr || {}).forEach(([k, v]) => { if ((PROG.tr[k] || 0) < v) { PROG.tr[k] = v; added++; } });
   const cf = (mine.d.st || {}).f || 0; if (cf > (PROG.chase || 0)) { PROG.chase = cf; added++; }
   const crun = (mine.d.st || {}).r || 0; if (crun > (PROG.frun || 0)) { PROG.frun = crun; added++; }
+  const cpad = (mine.d.st || {}).p || 0; if (cpad > (PROG.paddleBest || 0)) { PROG.paddleBest = cpad; added++; }
   const found = load(KEY_FOUND, []);
   (mine.d.f || []).forEach((e) => { if (!found.includes(e)) { found.push(e); added++; } });
   save(KEY_FOUND, found); saveProg();
@@ -9155,6 +9757,7 @@ const BOARDS = [
   ['h', '🔓 Most hidden paths opened'],
   ['f', '🏃 Best chase score'],
   ['r', '🌲 Best trail run'],
+  ['p', '🛶 Best paddle to the Narrows'],
 ];
 function topTrait(tr) {
   const t = Object.entries(tr || {}).filter(([k, v]) => v > 0 && LEARN.traits[k]).sort((a, b) => b[1] - a[1])[0];
