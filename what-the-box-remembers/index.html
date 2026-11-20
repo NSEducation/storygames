@@ -8053,7 +8053,7 @@ function gForestRun(box, win) {
   menu();
 }
 
-const PHOTO = {"intro": "August 1964. Your uncle has lent you his old Brownie camera. One roll of film holds twelve square pictures. Ruth wants the church, the store, the train and Grandpa on the rocks. Turn the camera with ◀ ▶, the arrow keys or by dragging. Stop and hold it steady, then press Space or tap to take the picture.", "winTitle": "📷 What really happened", "real": ["Africville families lost their homes, their church and the community where they gathered with family and friends. What many families kept were photographs, papers, Bibles, objects, and above all their memories and stories.", "Photographs are one of the most important records of Africville today. Together with residents’ memories, they help show what Africville really was: a community.", "Those things became the heart of the Africville Museum, the Africville Genealogy Society and the yearly Africville Reunion. Seaview church was destroyed in 1967. Today a copy of the church stands on the land again, and the Africville Museum is inside it.", "Talk about it: Ruth takes pictures “so somebody remembers.” What would you photograph in your own community, and why?"]};
+const PHOTO = {"intro": "August 1964. Your uncle has lent you his old Brownie camera. One roll of film holds twelve square pictures. Ruth wants the church, the store, the train and Grandpa on the rocks, and then anything else that shows what life here is like. Turn the camera with ◀ ▶, the arrow keys or by dragging. Stop and hold it steady, then press Space or tap to take the picture.", "winTitle": "📷 What really happened", "real": ["Africville families lost their homes, their church and the community where they gathered with family and friends. What many families kept were photographs, papers, Bibles, objects, and above all their memories and stories.", "Photographs are one of the most important records of Africville today. Together with residents’ memories, they help show what Africville really was: a community.", "Those things became the heart of the Africville Museum, the Africville Genealogy Society and the yearly Africville Reunion. Seaview church was destroyed in 1967. Today a copy of the church stands on the land again, and the Africville Museum is inside it.", "Talk about it: Ruth takes pictures “so somebody remembers.” What would you photograph in your own community, and why?"]};
 // ================= SO SOMEBODY REMEMBERS =================
 // Ruth in scene 511, August 1964: "Your uncle has an old Brownie camera. He shows you how to load the film and
 // hold it steady. You take pictures of everything: the church, the store, the train, Grandpa on the rocks."
@@ -8069,7 +8069,7 @@ function gPhotos(box, win) {
   const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
   const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
   const LIST = ['church', 'store', 'train', 'grandpa'];
-  const NAME = { church: 'the church', store: 'the store', train: 'the train', grandpa: 'Grandpa on the rocks', bev: 'Bev', lot: 'where the Johnsons’ house was', ships: 'ships in the Basin', houses: 'houses along the road' };
+  const NAME = { church: 'the church', store: 'the store', train: 'the train', grandpa: 'Grandpa on the rocks', bev: 'Bev', lot: 'where the Johnsons’ house was', ships: 'ships in the Basin', houses: 'houses along the road', catch: 'children playing catch', swings: 'children on the swings', gather: 'neighbours at the church', walk: 'neighbours out walking', car: 'a parked car', wash: 'washing on the line' };
   const cap1 = (t) => t[0].toUpperCase() + t.slice(1);
   const sfx = (kind) => {
     try {
@@ -8092,7 +8092,7 @@ function gPhotos(box, win) {
     const relaxed = !!RELAXED, STEADY = relaxed ? 0.35 : 0.7, TRAIN_GAP = relaxed ? 9 : 14, TRAIN_V = relaxed ? 130 : 175;
     const F = small ? 200 : 214, FX = W / 2, FY = 176, X0 = FX - F / 2, Y0 = FY - F / 2;   // the square viewfinder
     const cv = document.createElement('canvas'); cv.className = 'trailcv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`; cv.style.cursor = 'grab';
-    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'Africville in August 1964, seen through the square viewfinder of a box camera. Along the road are houses, the store, the church on the hill and Grandpa on the rocks by the water. Behind them are the railway and the Bedford Basin with ships at anchor.');
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'Africville in August 1964, seen through the square viewfinder of a box camera. Along the road are houses, parked cars, washing on a line, the store, children playing catch, neighbours talking by the church on the hill, children on the swings, and Grandpa on the rocks by the water. Neighbours walk along the road. Behind them are the railway and the Bedford Basin with ships at anchor, with gulls and clouds overhead.');
     let dpr = Math.min(2, window.devicePixelRatio || 1); const PD = dpr;
     cv.width = W * dpr; cv.height = H * dpr; const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
     const view = document.createElement('canvas'); view.width = W * dpr; view.height = H * dpr; const v = view.getContext('2d'); v.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -8107,11 +8107,13 @@ function gPhotos(box, win) {
 
     // ---------- what is where (world x; the road side of the houses is at y G) ----------
     const G = 266, SH = 2490, HILL = (x) => { const d = (x - 1830) / 330; return Math.abs(d) < 1 ? 20 * (0.5 + 0.5 * Math.cos(d * Math.PI)) : 0; };
-    const HOUSES = [[220, 120, 96, '#C9B79A', '#7A3A2E'], [375, 104, 84, '#9FB3B8', '#4E4A46'], [940, 112, 92, '#D9C27E', '#6E3B2C'], [1090, 98, 80, '#B7A3B9', '#4E4A46'], [1240, 116, 98, '#C7D0C1', '#7A3A2E'], [2130, 108, 88, '#D4B3A0', '#5A4B44'], [2285, 120, 96, '#C9B79A', '#6E3B2C']];
+    const HOUSES = [[220, 120, 96, '#C9B79A', '#7A3A2E'], [375, 104, 84, '#9FB3B8', '#4E4A46'], [940, 112, 92, '#D9C27E', '#6E3B2C'], [1240, 116, 98, '#C7D0C1', '#7A3A2E'], [2130, 108, 88, '#D4B3A0', '#5A4B44'], [2285, 120, 96, '#C9B79A', '#6E3B2C']];
     const STORE = [630, 150, 104], CHURCH = [1735, 190], LOT = [1430, 150], GC = G - 20;
+    const CARS = [[300, '#4E7C8A', 'car'], [852, '#8A3B3B', 'car'], [2408, '#5E6E4A', 'truck']], CLOUDS = [];
     const SUBJ = {
-      church: [[CHURCH[0] - 8, 80, CHURCH[0] + CHURCH[1] + 8, GC]], store: [[STORE[0] - 6, G - STORE[2] - 34, STORE[0] + STORE[1] + 6, G]], grandpa: [[2560, 176, 2690, 288]],
-      bev: [[796, 188, 846, G + 4]], lot: [[1420, G - 46, 1590, G + 6]], ships: [[2022, 114, 2102, 158]], houses: [[220, 126, 479, G], [940, 128, 1356, G], [2130, 132, 2405, G]],
+      church: [[CHURCH[0] - 8, 78, CHURCH[0] + CHURCH[1] + 12, GC]], store: [[STORE[0] - 6, G - STORE[2] - 34, STORE[0] + STORE[1] + 6, G]], grandpa: [[2560, 176, 2690, 288]],
+      bev: [[778, 188, 828, G + 4]], lot: [[1420, G - 46, 1590, G + 6]], ships: [[2022, 114, 2102, 158]], houses: [[220, 126, 479, G], [940, 128, 1052, G], [1240, 124, 1356, G], [2130, 132, 2405, G]],
+      catch: [[1072, 196, 1222, G + 6]], swings: [[1978, 180, 2096, G]], gather: [[1588, 184, 1716, G - 6]], wash: [[508, 192, 612, 246]], car: CARS.map((c) => [c[0] - 2, G - 26, c[0] + 90, G + 12]),
     };
     // ---------- the picture, drawn once in two layers: behind the train, and in front of it ----------
     const mk = () => { const k = document.createElement('canvas'); k.width = Math.ceil(WW * PD); k.height = Math.ceil(H * PD); const g = k.getContext('2d'); g.setTransform(PD, 0, 0, PD, 0, 0); return [k, g]; };
@@ -8119,7 +8121,7 @@ function gPhotos(box, win) {
     (function paint() {
       const R = mulb(1964);
       const sky = b.createLinearGradient(0, 0, 0, 130); sky.addColorStop(0, '#9FC6DA'); sky.addColorStop(1, '#E4EEE8'); b.fillStyle = sky; b.fillRect(0, 0, WW, 132);
-      b.fillStyle = 'rgba(255,255,255,.75)'; for (let k = 0; k < 10; k++) { const x = R() * WW, y = 16 + R() * 46, s = 0.7 + R() * 0.8; b.beginPath(); b.ellipse(x, y, 46 * s, 9 * s, 0, 0, 7); b.ellipse(x - 18 * s, y - 7 * s, 22 * s, 10 * s, 0, 0, 7); b.ellipse(x + 16 * s, y - 9 * s, 26 * s, 12 * s, 0, 0, 7); b.fill(); }
+      for (let k = 0; k < 10; k++) CLOUDS.push([R() * WW, 16 + R() * 46, 0.7 + R() * 0.8, 5 + R() * 6]);
       b.fillStyle = '#8FA6A0'; b.beginPath(); b.moveTo(0, 124); for (let x = 0; x <= WW; x += 40) b.lineTo(x, 116 - Math.sin(x / 260) * 8 - Math.sin(x / 97) * 3); b.lineTo(WW, 126); b.lineTo(0, 126); b.fill();   // the far shore of the Basin
       const wat = b.createLinearGradient(0, 124, 0, 178); wat.addColorStop(0, '#5E8FA3'); wat.addColorStop(1, '#3E6E84'); b.fillStyle = wat; b.fillRect(0, 124, WW, 56);   // the Bedford Basin
       b.strokeStyle = 'rgba(230,242,245,.5)'; b.lineWidth = 1.2; for (let k = 0; k < 80; k++) { const x = R() * WW, y = 130 + R() * 38; b.beginPath(); b.moveTo(x, y); b.lineTo(x + 10 + R() * 14, y); b.stroke(); }
@@ -8152,56 +8154,86 @@ function gPhotos(box, win) {
       { const [x, w, h] = STORE; house(x, w, h, '#D6CDB8', '#5A3E30'); p.fillStyle = '#5A3E30'; p.fillRect(x - 6, G - h - 30, w + 12, 26); p.fillStyle = '#EFE6CF'; p.font = '700 15px ' + FONT; p.textAlign = 'center'; p.textBaseline = 'middle'; p.fillText('STORE', x + w / 2, G - h - 17); p.fillStyle = '#7E6650'; p.fillRect(x - 10, G - 46, w + 20, 6); p.fillRect(x - 6, G - 46, 4, 46); p.fillRect(x + w + 2, G - 46, 4, 46); }
       // where the Johnsons' house used to be (scene 510): a pile of boards and the stones it stood on
       { const [x, w] = LOT; p.fillStyle = '#9A8F7C'; for (let k = 0; k < 6; k++) p.fillRect(x + k * w / 6, G - 6, 14, 8); p.save(); p.translate(x + w / 2, G - 10); for (let k = 0; k < 9; k++) { p.save(); p.rotate((k - 4) * 0.16 + (R() - 0.5) * 0.2); p.fillStyle = k % 2 ? '#A88E6A' : '#8E7556'; p.fillRect(-w * 0.32, -k * 4, w * 0.64, 5); p.restore(); } p.restore(); }
-      // Seaview church on the hill: yellow walls with red trim, a steep roof, round-topped windows, a lower addition
-      // along the side with the main door, and the four-sided steeple with its bell on the end toward the water
-      { const [x, w] = CHURCH, bodyH = 92, add = 34, bw = w - 40, B = GC;
-        p.fillStyle = 'rgba(0,0,0,.15)'; p.fillRect(x + 8, B - 4, w, 8);
-        p.fillStyle = '#E8D9A0'; p.fillRect(x, B - bodyH, bw, bodyH);
-        p.fillStyle = '#9A3A30'; p.beginPath(); p.moveTo(x - 8, B - bodyH); p.lineTo(x + bw / 2, B - bodyH - 56); p.lineTo(x + bw + 8, B - bodyH); p.fill();
-        p.fillStyle = '#E2D296'; p.fillRect(x - 2, B - add - 6, bw + 4, add + 6); p.fillStyle = '#B5262E'; p.fillRect(x - 8, B - add - 12, bw + 16, 7);
-        p.fillStyle = '#4A3A2E'; p.fillRect(x + 72, B - add + 4, 26, add - 4); p.fillStyle = '#8E7556'; p.fillRect(x + 66, B - 4, 38, 4); p.fillRect(x + 62, B, 46, 4);   // wooden steps
-        const rw = (wx, wy) => { p.fillStyle = '#DDE6EA'; p.beginPath(); p.moveTo(wx, wy + 28); p.lineTo(wx, wy + 9); p.arc(wx + 9, wy + 9, 9, Math.PI, 0); p.lineTo(wx + 18, wy + 28); p.closePath(); p.fill(); p.strokeStyle = '#B5262E'; p.lineWidth = 2.4; p.stroke(); };
-        [x + 14, x + 58, x + 102].forEach((wx) => rw(wx, B - bodyH + 12));
-        p.strokeStyle = '#B5262E'; p.lineWidth = 3; p.strokeRect(x, B - bodyH, bw, bodyH - add - 12);
-        const tx = x + w - 52, tt = B - bodyH - 36;
-        p.fillStyle = '#E8D9A0'; p.fillRect(tx, tt, 44, B - tt); p.strokeStyle = '#B5262E'; p.lineWidth = 3; p.strokeRect(tx, tt, 44, B - tt);
-        p.fillStyle = '#9A3A30'; p.beginPath(); p.moveTo(tx - 6, tt); p.lineTo(tx + 22, tt - 34); p.lineTo(tx + 50, tt); p.fill();
-        p.fillStyle = '#3A3330'; p.fillRect(tx + 12, tt + 10, 20, 22); p.fillStyle = '#B08A3A'; p.beginPath(); p.arc(tx + 22, tt + 24, 7, Math.PI, 0); p.lineTo(tx + 29, tt + 28); p.lineTo(tx + 15, tt + 28); p.fill();
-        p.fillStyle = '#4A3A2E'; p.fillRect(tx + 12, B - 32, 20, 32); rw(tx + 13, B - bodyH + 12); }
+      // Seaview church on the hill, as written descriptions of it in the 1960s give it: cream walls with white trim,
+      // a red gabled roof, round-topped windows, and a square bell tower in the middle of the gable end, with the
+      // double front door at its foot and wooden stairs up to it. Seen from a corner: the gable end and one long side.
+      { const [x] = CHURCH, B = GC, fw = 84, sw = 106, wh = 78, CREAM = '#F3EACB', SIDE = '#E7DBB6', RED = '#9A3A30', TRIM = '#FFFFFF';
+        p.fillStyle = 'rgba(0,0,0,.15)'; p.fillRect(x + 8, B - 4, fw + sw, 8);
+        p.fillStyle = SIDE; p.fillRect(x + fw, B - wh, sw, wh); p.strokeStyle = 'rgba(0,0,0,.09)'; p.lineWidth = 1; for (let y = B - wh + 5; y < B - 6; y += 5) { p.beginPath(); p.moveTo(x + fw, y); p.lineTo(x + fw + sw, y); p.stroke(); }   // the long side
+        p.fillStyle = '#7B2E27'; p.beginPath(); p.moveTo(x + fw / 2, B - wh - 42); p.lineTo(x + fw / 2 + sw + 4, B - wh - 42); p.lineTo(x + fw + sw + 8, B - wh); p.lineTo(x + fw + 4, B - wh); p.fill();   // the roof
+        p.strokeStyle = 'rgba(0,0,0,.14)'; for (let k = 1; k < 6; k++) { const yy = B - wh - 42 + k * 7; p.beginPath(); p.moveTo(x + fw / 2 + k * 7, yy); p.lineTo(x + fw / 2 + sw + 4 + k * 0.7, yy); p.stroke(); }
+        p.fillStyle = '#5A4B44'; p.fillRect(x + fw + sw - 14, B - wh - 52, 9, 22);   // the chimney at the far end
+        p.fillStyle = CREAM; p.beginPath(); p.moveTo(x, B); p.lineTo(x, B - wh); p.lineTo(x + fw / 2, B - wh - 42); p.lineTo(x + fw, B - wh); p.lineTo(x + fw, B); p.fill();   // the gable end
+        p.strokeStyle = 'rgba(0,0,0,.08)'; for (let y = B - wh + 5; y < B - 6; y += 5) { p.beginPath(); p.moveTo(x, y); p.lineTo(x + fw, y); p.stroke(); }
+        p.strokeStyle = RED; p.lineWidth = 5; p.lineJoin = 'miter'; p.beginPath(); p.moveTo(x - 6, B - wh + 3); p.lineTo(x + fw / 2, B - wh - 43); p.lineTo(x + fw + 6, B - wh + 3); p.stroke();
+        p.strokeStyle = TRIM; p.lineWidth = 2; p.beginPath(); p.moveTo(x - 3, B - wh + 6); p.lineTo(x + fw / 2, B - wh - 37); p.lineTo(x + fw + 3, B - wh + 6); p.stroke();
+        p.strokeStyle = TRIM; p.lineWidth = 2.5; p.beginPath(); p.moveTo(x + 1, B - wh + 4); p.lineTo(x + 1, B); p.moveTo(x + fw, B - wh + 4); p.lineTo(x + fw, B); p.moveTo(x + fw + sw - 1, B - wh); p.lineTo(x + fw + sw - 1, B); p.moveTo(x + fw, B - wh + 1); p.lineTo(x + fw + sw, B - wh + 1); p.stroke();
+        p.fillStyle = '#A9A59B'; p.fillRect(x, B - 6, fw + sw, 6);   // the concrete foundation
+        const rw = (wx, wy, w2, h2) => { p.fillStyle = '#C9D6DC'; p.beginPath(); p.moveTo(wx, wy + h2); p.lineTo(wx, wy + w2 / 2); p.arc(wx + w2 / 2, wy + w2 / 2, w2 / 2, Math.PI, 0); p.lineTo(wx + w2, wy + h2); p.closePath(); p.fill(); p.strokeStyle = TRIM; p.lineWidth = 2.2; p.stroke(); p.strokeStyle = 'rgba(60,70,80,.55)'; p.lineWidth = 1; p.beginPath(); p.moveTo(wx + w2 / 2, wy + 1); p.lineTo(wx + w2 / 2, wy + h2); p.moveTo(wx, wy + h2 * 0.55); p.lineTo(wx + w2, wy + h2 * 0.55); p.stroke(); };
+        [0, 1, 2, 3].forEach((k) => rw(x + fw + 12 + k * 23, B - wh + 20, 14, 34));   // round-topped windows along the side
+        rw(x + 6, B - wh + 22, 13, 32); rw(x + fw - 19, B - wh + 22, 13, 32);
+        const tw = 36, tx = x + fw / 2 - tw / 2, tt = B - 139;   // the bell tower, in the middle of the gable end
+        p.fillStyle = CREAM; p.fillRect(tx, tt, tw, B - tt); p.strokeStyle = 'rgba(0,0,0,.08)'; p.lineWidth = 1; for (let y = tt + 5; y < B - 6; y += 5) { p.beginPath(); p.moveTo(tx, y); p.lineTo(tx + tw, y); p.stroke(); }
+        p.strokeStyle = TRIM; p.lineWidth = 2.5; p.strokeRect(tx, tt, tw, B - tt - 1); p.beginPath(); p.moveTo(tx, tt + 44); p.lineTo(tx + tw, tt + 44); p.stroke();
+        p.fillStyle = RED; p.beginPath(); p.moveTo(tx - 5, tt + 1); p.lineTo(tx + tw / 2, tt - 27); p.lineTo(tx + tw + 5, tt + 1); p.fill();
+        p.fillStyle = '#3A3330'; p.beginPath(); p.moveTo(tx + 10, tt + 36); p.lineTo(tx + 10, tt + 18); p.arc(tx + tw / 2, tt + 18, 8, Math.PI, 0); p.lineTo(tx + tw - 10, tt + 36); p.closePath(); p.fill(); p.strokeStyle = TRIM; p.lineWidth = 2; p.stroke();   // the belfry, with its bell
+        p.fillStyle = '#B08A3A'; p.beginPath(); p.arc(tx + tw / 2, tt + 26, 5, Math.PI, 0); p.lineTo(tx + tw / 2 + 6, tt + 31); p.lineTo(tx + tw / 2 - 6, tt + 31); p.fill();
+        rw(tx + 11, tt + 52, 14, 24);
+        p.fillStyle = '#FFFFFF'; p.fillRect(tx + 5, B - 52, tw - 10, 7); p.fillStyle = 'rgba(40,40,40,.6)'; p.fillRect(tx + 8, B - 49.5, tw - 16, 1.6);   // a sign board over the doors
+        p.fillStyle = '#5B3A2A'; p.fillRect(tx + 7, B - 42, tw - 14, 32); p.strokeStyle = TRIM; p.lineWidth = 2; p.strokeRect(tx + 7, B - 42, tw - 14, 32); p.strokeStyle = '#2E1E16'; p.lineWidth = 1.2; p.beginPath(); p.moveTo(tx + tw / 2, B - 42); p.lineTo(tx + tw / 2, B - 10); p.stroke();   // the double door
+        p.fillStyle = '#A88E6A'; p.fillRect(tx + 4, B - 10, tw - 8, 4); p.fillStyle = '#97805E'; p.fillRect(tx + 1, B - 6, tw - 2, 4); p.fillStyle = '#8A7354'; p.fillRect(tx - 2, B - 2, tw + 4, 4); }   // wooden stairs
+      // cars of the time, parked along the road
+      CARS.forEach(([x, col, kind]) => { const y = G + 9; p.fillStyle = 'rgba(0,0,0,.18)'; p.beginPath(); p.ellipse(x + 44, y, 46, 4, 0, 0, 7); p.fill();
+        p.fillStyle = col; p.beginPath();
+        if (kind === 'truck') { p.moveTo(x, y - 6); p.lineTo(x, y - 20); p.lineTo(x + 44, y - 20); p.lineTo(x + 44, y - 34); p.quadraticCurveTo(x + 46, y - 38, x + 52, y - 38); p.lineTo(x + 66, y - 38); p.quadraticCurveTo(x + 72, y - 37, x + 74, y - 24); p.lineTo(x + 86, y - 21); p.quadraticCurveTo(x + 90, y - 19, x + 90, y - 6); }
+        else { p.moveTo(x, y - 6); p.quadraticCurveTo(x - 2, y - 20, x + 8, y - 22); p.lineTo(x + 22, y - 23); p.quadraticCurveTo(x + 28, y - 36, x + 36, y - 36); p.lineTo(x + 56, y - 36); p.quadraticCurveTo(x + 62, y - 35, x + 68, y - 23); p.lineTo(x + 84, y - 21); p.quadraticCurveTo(x + 90, y - 19, x + 90, y - 6); }
+        p.closePath(); p.fill();
+        p.fillStyle = '#DCE8EC'; p.beginPath(); if (kind === 'truck') { p.moveTo(x + 48, y - 23); p.lineTo(x + 48, y - 34); p.lineTo(x + 65, y - 34); p.lineTo(x + 70, y - 23); } else { p.moveTo(x + 27, y - 24); p.lineTo(x + 32, y - 33); p.lineTo(x + 43, y - 33); p.lineTo(x + 43, y - 24); p.closePath(); p.moveTo(x + 46, y - 24); p.lineTo(x + 46, y - 33); p.lineTo(x + 57, y - 33); p.lineTo(x + 63, y - 24); } p.closePath(); p.fill();
+        p.fillStyle = '#D9D9D4'; p.fillRect(x - 2, y - 9, 6, 3); p.fillRect(x + 87, y - 9, 6, 3); p.fillStyle = '#F2E3A8'; p.beginPath(); p.arc(x + 88, y - 15, 2.4, 0, 7); p.fill();
+        [x + 18, x + 70].forEach((wx) => { p.fillStyle = '#1B2529'; p.beginPath(); p.arc(wx, y - 5, 7.5, 0, 7); p.fill(); p.fillStyle = '#D9D9D4'; p.beginPath(); p.arc(wx, y - 5, 3, 0, 7); p.fill(); }); });
       p.strokeStyle = '#5A4A3A'; p.lineWidth = 3; p.beginPath(); p.moveTo(512, G); p.lineTo(512, 196); p.moveTo(608, G); p.lineTo(608, 196); p.stroke();   // a washing line's posts
     })();
     const slice = (g, src) => { const sx = clamp(st.cam - 40, 0, WW - (W + 80)); g.drawImage(src, sx * PD, 0, (W + 80) * PD, H * PD, sx, 0, W + 80, H); };
     // ---------- people, drawn as ink figures like the story pictures ----------
-    function fig(g, x, y, k, L) {   // standing, facing right; or sitting, for Grandpa on his rock
-      g.save(); g.translate(x, y); g.scale(k, k); g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = INK; g.fillStyle = INK;
+    function fig(g, x, y, k, L) {   // standing or walking; or sitting, for Grandpa on his rock
+      g.save(); g.translate(x, y); g.scale(L.flip ? -k : k, k); g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = INK; g.fillStyle = INK;
+      let hx, hy;
       if (L.sit) {
         g.lineWidth = 5.4; g.beginPath(); g.moveTo(0, -4); g.lineTo(14, -4); g.lineTo(17, 10); g.stroke(); g.lineWidth = 4.4; g.beginPath(); g.moveTo(17, 10); g.lineTo(22, 10); g.stroke();
         g.lineWidth = 10.5; g.beginPath(); g.moveTo(0, -5); g.lineTo(3, -22); g.stroke(); g.lineWidth = 5; g.beginPath(); g.moveTo(3, -23); g.lineTo(4.5, -27); g.stroke();
         g.lineWidth = 4.2; g.beginPath(); g.moveTo(3, -20); g.lineTo(11, -14); g.lineTo(19, -17); g.stroke();
-        var hx = 5.5, hy = -32;
+        hx = 5.5; hy = -32;
       } else {
-        g.lineWidth = 5.2; g.beginPath(); g.moveTo(0, -24); g.lineTo(-1.5, -12); g.lineTo(-2, 0); g.moveTo(0, -24); g.lineTo(2, -12); g.lineTo(3, 0); g.stroke();
-        g.lineWidth = 4.4; g.beginPath(); g.moveTo(-2, 0); g.lineTo(3.4, 0); g.moveTo(3, 0); g.lineTo(8.4, 0); g.stroke();
+        const sw = L.walk === undefined ? 0 : Math.sin(L.walk) * 6.5, a = -2 - sw, c2 = 3 + sw;
+        g.lineWidth = 5.2; g.beginPath(); g.moveTo(0, -24); g.lineTo((a - 1) / 2, -12); g.lineTo(a, 0); g.moveTo(0, -24); g.lineTo((c2 + 1) / 2, -12); g.lineTo(c2, 0); g.stroke();
+        g.lineWidth = 4.4; g.beginPath(); g.moveTo(a, 0); g.lineTo(a + 5.4, 0); g.moveTo(c2, 0); g.lineTo(c2 + 5.4, 0); g.stroke();
         g.lineWidth = 10; g.beginPath(); g.moveTo(0, -25.5); g.lineTo(3, -42.5); g.stroke(); g.lineWidth = 5; g.beginPath(); g.moveTo(3.2, -43); g.lineTo(4.4, -47.5); g.stroke();
-        if (L.skirt) { g.beginPath(); g.moveTo(-5.6, -29); g.lineTo(6.2, -29); g.lineTo(11, -14.5); g.quadraticCurveTo(1, -11, -10, -13.5); g.closePath(); g.fill(); }
-        g.lineWidth = 4.2; g.beginPath(); g.moveTo(2.4, -41.5); g.lineTo(4, -32.5); g.lineTo(8.5, -26); g.stroke();
-        var hx = 5.2, hy = -52;
+        if (L.skirt) { g.beginPath(); g.moveTo(-5.6, -29); g.lineTo(6.2, -29); g.lineTo(11, -13); g.quadraticCurveTo(1, -9.5, -10, -12); g.closePath(); g.fill(); }
+        g.lineWidth = 4.2; g.beginPath(); g.moveTo(2.4, -41.5);
+        if (L.arm) { g.lineTo(9, -46); g.lineTo(13, -55 - L.arm * 3); } else { g.lineTo(4 + sw * 0.5, -32.5); g.lineTo(8.5 + sw * 0.8, -26); }
+        g.stroke();
+        hx = 5.2; hy = -52;
       }
       if (L.head === 'puffs') { g.beginPath(); g.arc(hx - 6.2, hy - 4.6, 4.1, 0, 7); g.fill(); g.beginPath(); g.arc(hx - 0.8, hy - 7.6, 3.3, 0, 7); g.fill(); }
       g.beginPath(); g.arc(hx, hy, 6.4, 0, 7); g.fill();
       g.beginPath(); g.moveTo(hx + 5.2, hy - 1.4); g.lineTo(hx + 8, hy + 1); g.lineTo(hx + 5, hy + 2.4); g.closePath(); g.fill();
       if (L.head === 'flatcap') { g.beginPath(); g.ellipse(hx - 1.2, hy - 3.2, 8, 5.3, -0.12, Math.PI, 0); g.closePath(); g.fill(); g.lineWidth = 2.6; g.beginPath(); g.moveTo(hx + 3, hy - 3.6); g.lineTo(hx + 11.6, hy - 2.2); g.stroke(); }
+      if (L.head === 'hat') { g.beginPath(); g.ellipse(hx - 0.5, hy - 4.2, 10, 2.4, -0.08, 0, 7); g.fill(); g.beginPath(); g.ellipse(hx - 1, hy - 6, 6, 4.4, 0, Math.PI, 0); g.closePath(); g.fill(); }
+      if (L.head === 'bun') { g.beginPath(); g.arc(hx - 6.4, hy - 1.5, 3.6, 0, 7); g.fill(); }
       g.restore();
     }
     // ---------- state ----------
-    const st = { t: 0, cam: 0, vx: 0, keyL: false, keyR: false, drag: null, steady: 0, film: 12, shots: [], started: false, paused: false, over: false, ended: false, endAt: 0, flash: 0, train: -999, nextTrain: 6, low: false, W, H, F, WW, small };
+    const st = { t: 0, cam: 0, vx: 0, keyL: false, keyR: false, drag: null, steady: 0, film: 12, shots: [], started: false, paused: false, over: false, ended: false, endAt: 0, flash: 0, train: -999, nextTrain: 6, low: false, W, H, F, WW, small,
+      walkers: [{ x: 300, a: 130, b: 900, d: 1, L: { head: 'flatcap' }, k: 1 }, { x: 1500, a: 1000, b: 2300, d: -1, L: { head: 'hat', skirt: 1 }, k: 0.98, kid: { head: 'puffs', skirt: 1 } }, { x: 2200, a: 1850, b: 2440, d: 1, L: { head: 'bun', skirt: 1 }, k: 0.96 }] };
     box._photos = st;
     const camMax = WW - W;
     const TRAIN_LEN = 120 + 7 * 92 + 8;
     function world(g, ox, oy) {
       g.save(); g.translate(-st.cam + ox, oy);
       slice(g, back);
-      const t = st.t;
+      const t = st.t, tt = RM ? 0 : t, vis = (x, m) => x > st.cam - m && x < st.cam + W + m;
+      g.fillStyle = 'rgba(255,255,255,.8)'; CLOUDS.forEach(([cx, y, s, sp]) => { const x = (cx + tt * sp) % (WW + 240) - 120; if (!vis(x, 90)) return; g.beginPath(); g.ellipse(x, y, 46 * s, 9 * s, 0, 0, 7); g.ellipse(x - 18 * s, y - 7 * s, 22 * s, 10 * s, 0, 0, 7); g.ellipse(x + 16 * s, y - 9 * s, 26 * s, 12 * s, 0, 0, 7); g.fill(); });   // clouds drift
+      g.strokeStyle = INK; g.lineWidth = 1.8; g.lineCap = 'round'; for (let i = 0; i < 7; i++) { const x = (i * 467 + 90 + tt * (30 + i * 6)) % (WW + 120) - 60; if (!vis(x, 20)) continue; const y = 44 + (i * 37) % 62 + Math.sin(tt * 0.7 + i * 2) * 7, f = RM ? 3 : Math.sin(tt * (6 + i % 3) + i) * 5, w = 8 + (i % 3); g.beginPath(); g.moveTo(x - w, y - f); g.quadraticCurveTo(x - w / 2, y - f * 0.2 - 3, x, y); g.quadraticCurveTo(x + w / 2, y - f * 0.2 - 3, x + w, y - f); g.stroke(); }   // gulls over the Basin
       [[2740, 150, 1], [2060, 142, 0.7], [980, 140, 0.6]].forEach(([x, y, k], i) => { const bb = RM ? 0 : Math.sin(t * 0.8 + i) * 1.2; g.fillStyle = INK; g.beginPath(); g.moveTo(x - 40 * k, y + bb); g.lineTo(x + 46 * k, y + bb); g.lineTo(x + 36 * k, y + 10 * k + bb); g.lineTo(x - 34 * k, y + 10 * k + bb); g.fill(); g.fillRect(x - 6 * k, y - 16 * k + bb, 18 * k, 16 * k); g.fillRect(x + 4 * k, y - 26 * k + bb, 4 * k, 10 * k); });   // ships at anchor
       if (st.train > -900) {   // the train, on the line behind the houses
         const x = st.train, y = 150; g.fillStyle = '#26292B'; g.fillRect(x, y, 120, 26); g.fillRect(x + 6, y - 10, 50, 12); g.fillStyle = '#C9B37A'; g.fillRect(x + 4, y + 9, 112, 3);
@@ -8212,9 +8244,19 @@ function gPhotos(box, win) {
       slice(g, front);
       g.strokeStyle = '#5A4A3A'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(512, 200); g.quadraticCurveTo(560, 210, 608, 200); g.stroke();   // washing on the line, in the breeze
       [['#F2F2EE', 520], ['#7DA0C6', 540], ['#E2B0A0', 562], ['#F2F2EE', 584]].forEach(([col, x], i) => { const sw = RM ? 0 : Math.sin(t * 2.4 + i) * 3, top = 200 + 10 * (1 - Math.pow((x + 8 - 560) / 48, 2)); g.fillStyle = col; g.beginPath(); g.moveTo(x, top); g.lineTo(x + 16, top); g.lineTo(x + 16 + sw, top + 26); g.lineTo(x + sw, top + 26); g.fill(); });
-      fig(g, 818, G + 2, 0.95, { head: 'puffs', skirt: 1 });   // Bev, by the store
+      { const bx = [2012, 2056], top = G - HILL(2035) - 62, by = G - HILL(2035) + 2;   // children on the swings
+        g.strokeStyle = '#4A4038'; g.lineWidth = 3.4; g.lineCap = 'round'; g.beginPath(); g.moveTo(1984, by); g.lineTo(1994, top); g.lineTo(2076, top); g.lineTo(2086, by); g.moveTo(2004, by); g.lineTo(1994, top); g.moveTo(2066, by); g.lineTo(2076, top); g.stroke();
+        bx.forEach((px, i) => { const a = RM ? (i ? -0.25 : 0.3) : Math.sin(t * 2.3 + i * 1.9) * 0.55, sx = px + Math.sin(a) * 44, sy = top + Math.cos(a) * 44; g.strokeStyle = '#6E665C'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(px - 4, top); g.lineTo(sx - 4, sy); g.moveTo(px + 4, top); g.lineTo(sx + 4, sy); g.stroke();
+          g.save(); g.translate(sx, sy); g.rotate(-a * 0.8); g.strokeStyle = INK; g.fillStyle = INK; g.lineCap = 'round'; g.lineWidth = 6.5; g.beginPath(); g.moveTo(0, -1); g.lineTo(0.5, -13); g.stroke(); g.lineWidth = 3.6; g.beginPath(); g.moveTo(0, -1); g.lineTo(8, 0); g.lineTo(10 + a * 6, 8); g.stroke(); g.lineWidth = 2.8; g.beginPath(); g.moveTo(1, -11); g.lineTo(4, -6); g.stroke();
+          g.beginPath(); g.arc(1.5, -19.5, 4.6, 0, 7); g.fill(); if (i === 0) { g.beginPath(); g.arc(-3, -22.5, 3, 0, 7); g.arc(1, -24.5, 2.5, 0, 7); g.fill(); } g.restore(); }); }
+      { const ax = 1090, bx = 1204, gy = G + 3, u = RM ? 0.3 : (t * 0.62) % 2, f = u < 1 ? u : 2 - u, e = Math.sin(Math.PI * f);   // two children playing catch
+        fig(g, ax, gy, 0.7, { head: 'puffs', skirt: 1, arm: f < 0.25 ? 1 - f * 4 : 0.01 }); fig(g, bx, gy, 0.74, { flip: 1, arm: f > 0.75 ? (f - 0.75) * 4 : 0.01 });
+        const x = ax + 12 + (bx - ax - 24) * f, y = gy - 42 - e * 40; g.fillStyle = 'rgba(0,0,0,.14)'; g.beginPath(); g.ellipse(x, gy + 1, 3.6, 1.3, 0, 0, 7); g.fill(); g.fillStyle = '#F4F0E4'; g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.arc(x, y, 3.3, 0, 7); g.fill(); g.stroke(); }
+      [[1604, 0.96, { head: 'hat', skirt: 1 }], [1630, 1, { head: 'flatcap' }], [1662, 0.97, { head: 'bun', skirt: 1, flip: 1 }], [1680, 0.62, { head: 'puffs', skirt: 1, flip: 1 }], [1704, 1, { flip: 1, arm: RM ? 0.5 : 0.5 + Math.sin(t * 5) * 0.5 }]].forEach(([x, k, L]) => fig(g, x, G - HILL(x) + 2, k, L));   // neighbours talking by the church
+      fig(g, 800, G + 2, 0.95, { head: 'puffs', skirt: 1 });   // Bev, by the store
       fig(g, 2600, 242, 1, { head: 'flatcap', sit: 1 });   // Grandpa on his rock, with his fishing line
       g.strokeStyle = 'rgba(240,236,226,.9)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(2620, 225); g.quadraticCurveTo(2650, 222 + (RM ? 0 : Math.sin(t * 1.3) * 3), 2676, 306); g.stroke();
+      st.walkers.forEach((w) => { if (!vis(w.x, 40)) return; const ph = w.x / 6.5; fig(g, w.x, 279, w.k, Object.assign({ flip: w.d < 0, walk: RM ? undefined : ph }, w.L)); if (w.kid) fig(g, w.x + w.d * 15, 279, 0.6, Object.assign({ flip: w.d < 0, walk: RM ? undefined : ph * 1.5 }, w.kid)); });   // neighbours out walking
       g.restore();
     }
     const over = (bx, ox, oy) => {   // how much of a thing is inside the square, and is its middle inside it
@@ -8231,7 +8273,8 @@ function gPhotos(box, win) {
         if (ok) got.push(k);
       }
       if (st.train > -900) { const r = over([st.train - TRAIN_LEN + 120, 146, st.train + 120, 182], ox, oy); if (r.ix >= F * 0.55 && r.frac > 0) got.push('train'); }
-      const rank = (k) => (LIST.includes(k) ? 0 : 1);
+      if (st.walkers.some((w) => over([w.x - 14, 222, w.x + 14, 280], ox, oy).mid)) got.push('walk');
+      const ORDER = ['catch', 'swings', 'gather', 'walk', 'bev', 'lot', 'wash', 'car', 'ships', 'houses'], rank = (k) => (LIST.includes(k) ? -1 : ORDER.indexOf(k));
       return got.sort((a, b2) => rank(a) - rank(b2));
     }
     // ---------- taking a picture ----------
@@ -8269,6 +8312,7 @@ function gPhotos(box, win) {
       st.t += dt; st.flash = Math.max(0, st.flash - dt * 6); msgT = Math.max(0, msgT - dt);
       if (st.train > -900) { st.train += TRAIN_V * dt; if (st.train - TRAIN_LEN > WW + 40) { st.train = -999; st.nextTrain = st.t + TRAIN_GAP; } }
       else if (st.t >= st.nextTrain && !st.over) { st.train = -140; say('A train is coming along the line!'); sfx('horn'); }
+      if (!RM) st.walkers.forEach((w) => { w.x += w.d * 24 * dt; if (w.x > w.b) w.d = -1; else if (w.x < w.a) w.d = 1; });
       if (st.over) { if (st.t >= st.endAt && !st.ended) { st.ended = true; finish(); } return; }
       const want = st.drag ? 0 : ((st.keyR ? 1 : 0) - (st.keyL ? 1 : 0)) * 340;
       st.vx += (want - st.vx) * Math.min(1, dt * 10); if (Math.abs(st.vx) < 2 && !want) st.vx = 0;
@@ -9063,7 +9107,8 @@ const SRC_LIST = [
     ['Library and Archives Canada: Serving despite segregation', 'Records of the battalion, including service files.', 'https://thediscoverblog.com/2021/11/04/serving-despite-segregation-the-no-2-construction-battalion/'],
   ] },
   { g: '🏘️ Africville', items: [
-    ['Atlantic Baptist Heritage: Seaview United Baptist Church', 'What the church looked like: yellow with red trim, round-topped windows, and a steeple with a bell. Used for the photograph game.', 'https://atlanticbaptistheritage.omeka.net/items/show/374'],
+    ['Atlantic Baptist Heritage: Seaview United Baptist Church', 'What the church looked like: a steep roof, round-topped windows, and a tower with a bell. Used for the photograph game.', 'https://atlanticbaptistheritage.omeka.net/items/show/374'],
+    ['Nova Scotia Archives: Gone but Never Forgotten', 'Bob Brooks’ photographs of Africville in the 1960s: children at play, the church, a freight train, washing on the line. Used for the photograph game.', 'https://archives.novascotia.ca/africville/'],
     ['Lyn Museum: Kodak Brownie Hawkeye camera', 'A Brownie box camera of the 1950s, which took twelve square pictures on a roll of 620 film. Used for the photograph game.', 'https://www.lynmuseum.ca/2017/02/28/kodak-brownie-hawkeye-camera/'],
     ['Canadian Museum for Human Rights: The story of Africville', 'The community, the relocation, and the fight for justice.', 'https://humanrights.ca/story/the-story-of-africville'],
     ['The Canadian Encyclopedia: Africville', 'The history of Africville from the 1840s to today.', 'https://www.thecanadianencyclopedia.ca/en/article/africville'],
