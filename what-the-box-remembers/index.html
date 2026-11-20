@@ -1472,10 +1472,6 @@ const PACK_SETS = {
       ['🍲', 'The iron cooking pot', 2, 'Every meal was cooked in it.'], ['📜', 'Your certificate and the Company’s promise', 1, 'Proof of who you are and what you were promised.'], ['🪕', 'A fiddle', 2, 'Music came with the settlers.'], ['🧵', 'Needles, thread and cloth', 1, 'For mending and making clothes.'],
       ['🪑', 'The table Sam built', 4, 'Far too big for a crowded ship.'], ['🪓', 'An axe', 2, 'To clear land.'], ['🎁', 'A keepsake from Hannah', 1, 'Small, but very precious, from family who stayed behind.'], ['🪙', 'A few coins', 1, 'Money could buy food or help along the way.'], ['🌿', 'Dried herbs for medicine', 1, 'There were few doctors.'], ['🧥', 'Winter coats', 2, 'Halifax in January is freezing.']],
     real: ['The Sierra Leone Company paid for the voyage. About 1,196 African Nova Scotians sailed from Halifax on fifteen ships on January 15, 1792, through winter storms. They arrived in Sierra Leone in late February and March, and some did not survive the crossing.', 'The settlers had to rebuild everything in Freetown. Talk about it: what was the hardest thing to leave behind? Why?'] },
-  keepsake: { look: 'box', cap: 6, unit: 'Space in Grandpa’s box', intro: 'It is 1966. Your family is leaving Africville, and the city’s truck is coming in the morning. Grandpa’s old pine box only holds 6 spaces. What will you keep safe in it?',
-    items: [['📷', 'Family photographs', 1, 'Photographs are one of the most important records of Africville today.'], ['📓', 'Your notebook', 1, 'Your own record of what happened.'], ['📖', 'The family Bible, with everyone’s names written inside', 1, 'Many families wrote births, marriages and deaths in the family Bible.'], ['🎖️', 'Grandpa’s army papers and button', 1, 'Proof that he served.'],
-      ['🎵', 'The Seaview choir hymnbook', 1, 'The songs went with the people.'], ['🪨', 'A stone from the beach', 1, 'A piece of the place itself.'], ['🧶', 'Grandma’s quilt', 2, 'Made by hand, from old clothes.'], ['🪵', 'A piece of the old fence', 2, 'Too big, maybe, but it was part of home.'], ['🍽️', 'Grandma’s good dish', 1, 'Used for every Sunday dinner.'], ['📜', 'The deed and the tax receipts', 1, 'Proof that the land was yours, and that you paid taxes on it.']],
-    real: ['Africville families lost their homes, their church and the community where they gathered with family and friends. What many families kept were photographs, papers, Bibles, objects, and above all their memories and stories.', 'Those things became the heart of the Africville Museum, the Africville Genealogy Society and the yearly Africville Reunion. Talk about it: what would you choose to keep, and why?'] },
 };
 const GAME_TITLE = 'What the Box Remembers';
 const HERO_START = { sam: 'birchtown', isaac: 'halifax', ruth: 'africville' };
@@ -8057,6 +8053,335 @@ function gForestRun(box, win) {
   menu();
 }
 
+const PHOTO = {"intro": "August 1964. Your uncle has lent you his old Brownie camera. One roll of film holds twelve square pictures. Ruth wants the church, the store, the train and Grandpa on the rocks. Turn the camera with ◀ ▶, the arrow keys or by dragging. Stop and hold it steady, then press Space or tap to take the picture.", "winTitle": "📷 What really happened", "real": ["Africville families lost their homes, their church and the community where they gathered with family and friends. What many families kept were photographs, papers, Bibles, objects, and above all their memories and stories.", "Photographs are one of the most important records of Africville today. Together with residents’ memories, they help show what Africville really was: a community.", "Those things became the heart of the Africville Museum, the Africville Genealogy Society and the yearly Africville Reunion. Seaview church was destroyed in 1967. Today a copy of the church stands on the land again, and the Africville Museum is inside it.", "Talk about it: Ruth takes pictures “so somebody remembers.” What would you photograph in your own community, and why?"]};
+// ================= SO SOMEBODY REMEMBERS =================
+// Ruth in scene 511, August 1964: "Your uncle has an old Brownie camera. He shows you how to load the film and
+// hold it steady. You take pictures of everything: the church, the store, the train, Grandpa on the rocks."
+// Turn the camera along Africville, stop, hold it steady, and take the picture. The roll holds twelve square
+// pictures. At the end they come back in black and white. There is no way to lose: a shaky picture is still a
+// picture, just a blurry one, and the list only asks for one sharp picture of each thing.
+function gPhotos(box, win) {
+  const C = PHOTO;
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const mulb = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const INK = '#1B2529', FONT = 'system-ui, -apple-system, Segoe UI, sans-serif', HAND = 'Georgia, "Times New Roman", serif';
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+  const LIST = ['church', 'store', 'train', 'grandpa'];
+  const NAME = { church: 'the church', store: 'the store', train: 'the train', grandpa: 'Grandpa on the rocks', bev: 'Bev', lot: 'where the Johnsons’ house was', ships: 'ships in the Basin', houses: 'houses along the road' };
+  const cap1 = (t) => t[0].toUpperCase() + t.slice(1);
+  const sfx = (kind) => {
+    try {
+      if (typeof SND === 'undefined' || !SND.on) return; const a = SND._audio(); if (!a || !a.ctx || !a.master) return;
+      const t = a.ctx.currentTime, tone = (f0, f1, d, v, dl, type) => { const o = a.ctx.createOscillator(), g = a.ctx.createGain(); o.type = type || 'square'; o.frequency.setValueAtTime(f0, t + dl); o.frequency.exponentialRampToValueAtTime(f1, t + dl + d); g.gain.setValueAtTime(0.0001, t + dl); g.gain.exponentialRampToValueAtTime(v, t + dl + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + dl + d); o.connect(g); g.connect(a.master); o.start(t + dl); o.stop(t + dl + d + 0.02); };
+      if (kind === 'click') { tone(1100, 300, 0.03, 0.03, 0); tone(500, 200, 0.04, 0.022, 0.05); }
+      else if (kind === 'wind') { for (let k = 0; k < 5; k++) tone(300 + k * 15, 240, 0.025, 0.01, 0.16 + k * 0.07); }
+      else if (kind === 'horn') { tone(311, 300, 0.5, 0.012, 0, 'triangle'); tone(392, 380, 0.5, 0.01, 0, 'triangle'); }
+      else if (kind === 'done') [392, 523, 659].forEach((f, k) => tone(f, f, 0.25, 0.02, k * 0.14, 'sine'));
+    } catch (e) { /* sound is a nicety */ }
+  };
+  let stopRun = null;
+
+  function play() {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp() && typeof gtOver === 'function') { gtOver(box); return; }
+    const small = (box.clientWidth || 720) < 520, W = small ? 520 : 720, H = 340, WW = 3000;
+    const relaxed = !!RELAXED, STEADY = relaxed ? 0.35 : 0.7, TRAIN_GAP = relaxed ? 9 : 14, TRAIN_V = relaxed ? 130 : 175;
+    const F = small ? 200 : 214, FX = W / 2, FY = 176, X0 = FX - F / 2, Y0 = FY - F / 2;   // the square viewfinder
+    const cv = document.createElement('canvas'); cv.className = 'trailcv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`; cv.style.cursor = 'grab';
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'Africville in August 1964, seen through the square viewfinder of a box camera. Along the road are houses, the store, the church on the hill and Grandpa on the rocks by the water. Behind them are the railway and the Bedford Basin with ships at anchor.');
+    let dpr = Math.min(2, window.devicePixelRatio || 1); const PD = dpr;
+    cv.width = W * dpr; cv.height = H * dpr; const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const view = document.createElement('canvas'); view.width = W * dpr; view.height = H * dpr; const v = view.getContext('2d'); v.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const listEl = el('div', { class: 'row tight', style: 'flex-wrap:wrap;gap:.35rem .9rem;align-items:center' });
+    const live = el('p', { class: 'hint', 'aria-live': 'polite', text: '' });
+    const leftBtn = el('button', { class: 'gamebtn trail-jump', type: 'button', text: '◀', 'aria-label': 'Turn the camera left' });
+    const shotBtn = el('button', { class: 'gamebtn primary', type: 'button', text: '📷 Take the picture' });
+    const rightBtn = el('button', { class: 'gamebtn trail-jump', type: 'button', text: '▶', 'aria-label': 'Turn the camera right' });
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' });
+    const doneBtn = el('button', { class: 'gamebtn', type: 'button', text: '✔ I’m done' });
+    box.append(relaxedToggle(box, () => play()), el('p', { class: 'readable', text: C.intro }), el('div', { class: 'trailwrap' }, [cv]), el('div', { class: 'row tight' }, [leftBtn, shotBtn, rightBtn, pauseBtn, doneBtn]), listEl, live);
+
+    // ---------- what is where (world x; the road side of the houses is at y G) ----------
+    const G = 266, SH = 2490, HILL = (x) => { const d = (x - 1830) / 330; return Math.abs(d) < 1 ? 20 * (0.5 + 0.5 * Math.cos(d * Math.PI)) : 0; };
+    const HOUSES = [[220, 120, 96, '#C9B79A', '#7A3A2E'], [375, 104, 84, '#9FB3B8', '#4E4A46'], [940, 112, 92, '#D9C27E', '#6E3B2C'], [1090, 98, 80, '#B7A3B9', '#4E4A46'], [1240, 116, 98, '#C7D0C1', '#7A3A2E'], [2130, 108, 88, '#D4B3A0', '#5A4B44'], [2285, 120, 96, '#C9B79A', '#6E3B2C']];
+    const STORE = [630, 150, 104], CHURCH = [1735, 190], LOT = [1430, 150], GC = G - 20;
+    const SUBJ = {
+      church: [[CHURCH[0] - 8, 80, CHURCH[0] + CHURCH[1] + 8, GC]], store: [[STORE[0] - 6, G - STORE[2] - 34, STORE[0] + STORE[1] + 6, G]], grandpa: [[2560, 176, 2690, 288]],
+      bev: [[796, 188, 846, G + 4]], lot: [[1420, G - 46, 1590, G + 6]], ships: [[2022, 114, 2102, 158]], houses: [[220, 126, 479, G], [940, 128, 1356, G], [2130, 132, 2405, G]],
+    };
+    // ---------- the picture, drawn once in two layers: behind the train, and in front of it ----------
+    const mk = () => { const k = document.createElement('canvas'); k.width = Math.ceil(WW * PD); k.height = Math.ceil(H * PD); const g = k.getContext('2d'); g.setTransform(PD, 0, 0, PD, 0, 0); return [k, g]; };
+    const [back, b] = mk(), [front, p] = mk();
+    (function paint() {
+      const R = mulb(1964);
+      const sky = b.createLinearGradient(0, 0, 0, 130); sky.addColorStop(0, '#9FC6DA'); sky.addColorStop(1, '#E4EEE8'); b.fillStyle = sky; b.fillRect(0, 0, WW, 132);
+      b.fillStyle = 'rgba(255,255,255,.75)'; for (let k = 0; k < 10; k++) { const x = R() * WW, y = 16 + R() * 46, s = 0.7 + R() * 0.8; b.beginPath(); b.ellipse(x, y, 46 * s, 9 * s, 0, 0, 7); b.ellipse(x - 18 * s, y - 7 * s, 22 * s, 10 * s, 0, 0, 7); b.ellipse(x + 16 * s, y - 9 * s, 26 * s, 12 * s, 0, 0, 7); b.fill(); }
+      b.fillStyle = '#8FA6A0'; b.beginPath(); b.moveTo(0, 124); for (let x = 0; x <= WW; x += 40) b.lineTo(x, 116 - Math.sin(x / 260) * 8 - Math.sin(x / 97) * 3); b.lineTo(WW, 126); b.lineTo(0, 126); b.fill();   // the far shore of the Basin
+      const wat = b.createLinearGradient(0, 124, 0, 178); wat.addColorStop(0, '#5E8FA3'); wat.addColorStop(1, '#3E6E84'); b.fillStyle = wat; b.fillRect(0, 124, WW, 56);   // the Bedford Basin
+      b.strokeStyle = 'rgba(230,242,245,.5)'; b.lineWidth = 1.2; for (let k = 0; k < 80; k++) { const x = R() * WW, y = 130 + R() * 38; b.beginPath(); b.moveTo(x, y); b.lineTo(x + 10 + R() * 14, y); b.stroke(); }
+      b.fillStyle = '#8C8270'; b.fillRect(0, 168, WW, 20); b.fillStyle = '#6E6658'; for (let x = 0; x < WW; x += 9) b.fillRect(x, 176, 5, 6); b.fillStyle = '#3D3B38'; b.fillRect(0, 175, WW, 2); b.fillRect(0, 180, WW, 2);   // the railway
+      // in front: the ground, the hill the church stands on, and the road
+      const gr = p.createLinearGradient(0, 184, 0, H); gr.addColorStop(0, '#8DA45E'); gr.addColorStop(1, '#6E8A47'); p.fillStyle = gr;
+      p.beginPath(); p.moveTo(0, 186); for (let x = 0; x <= SH; x += 10) p.lineTo(x, 186 - HILL(x) * 0.6); p.quadraticCurveTo(SH + 60, 230, SH + 40, H); p.lineTo(0, H); p.fill();
+      p.fillStyle = '#97AE66'; p.beginPath(); for (let x = 1480; x <= 2180; x += 10) p.lineTo(x, G - HILL(x)); p.lineTo(2180, G + 4); p.lineTo(1480, G + 4); p.fill();
+      p.strokeStyle = 'rgba(60,80,30,.35)'; p.lineWidth = 1.5; p.beginPath(); for (let x = 1500; x <= 2160; x += 10) p.lineTo(x, G - HILL(x)); p.stroke();
+      p.fillStyle = '#B7A27C'; p.beginPath(); p.moveTo(0, 280); p.quadraticCurveTo(WW * 0.45, 268, SH - 20, 284); p.lineTo(SH - 30, 306); p.quadraticCurveTo(WW * 0.45, 294, 0, 308); p.fill();
+      p.strokeStyle = 'rgba(60,80,30,.5)'; p.lineWidth = 1.3; for (let k = 0; k < 300; k++) { const x = R() * (SH - 10), y = 192 + R() * (H - 196); if (y > 266 && y < 310) continue; p.beginPath(); p.moveTo(x, y); p.lineTo(x - 2, y - 5); p.moveTo(x, y); p.lineTo(x + 2, y - 4); p.stroke(); }
+      // the shore at the east end, with a cove of the Basin in front and Grandpa's rocks
+      p.fillStyle = '#4A7A8E'; p.beginPath(); p.moveTo(SH + 20, 188); p.lineTo(WW, 188); p.lineTo(WW, H); p.lineTo(SH + 36, H); p.quadraticCurveTo(SH + 64, 230, SH + 20, 188); p.fill();
+      p.strokeStyle = 'rgba(230,242,245,.45)'; p.lineWidth = 1.2; for (let k = 0; k < 30; k++) { const x = SH + 60 + R() * (WW - SH - 60), y = 196 + R() * 130; p.beginPath(); p.moveTo(x, y); p.lineTo(x + 10 + R() * 12, y); p.stroke(); }
+      for (let k = 0; k < 15; k++) { const x = SH + 30 + k * 16 + R() * 10, y = 196 + k * 7 + R() * 8, r = 14 + R() * 16; p.fillStyle = R() < 0.5 ? '#6B6E6C' : '#7B7D79'; p.beginPath(); p.ellipse(x, y, r, r * 0.6, 0, 0, 7); p.fill(); p.fillStyle = 'rgba(255,255,255,.18)'; p.beginPath(); p.ellipse(x - r * 0.25, y - r * 0.2, r * 0.45, r * 0.2, 0, 0, 7); p.fill(); }
+      [[2604, 262, 42], [2660, 290, 30], [2552, 296, 28]].forEach(([x, y, r]) => { p.fillStyle = '#707370'; p.beginPath(); p.ellipse(x, y, r, r * 0.55, 0, 0, 7); p.fill(); p.fillStyle = 'rgba(255,255,255,.16)'; p.beginPath(); p.ellipse(x - r * 0.3, y - r * 0.25, r * 0.5, r * 0.18, 0, 0, 7); p.fill(); p.fillStyle = '#4F5A2C'; for (let k = 0; k < 6; k++) { p.beginPath(); p.ellipse(x - r * 0.8 + k * r / 3.2 + R() * 4, y + r * (0.36 + R() * 0.12), 3 + R() * 3, 1.6 + R(), 0, 0, 7); p.fill(); } });
+      // wooden houses, painted, each with a door, windows and a chimney
+      const house = (x, w, h, wall, roof, base) => {
+        const B = base || G;
+        p.fillStyle = 'rgba(0,0,0,.15)'; p.fillRect(x + 6, B - 4, w, 8);
+        p.fillStyle = wall; p.fillRect(x, B - h, w, h); p.strokeStyle = 'rgba(0,0,0,.12)'; p.lineWidth = 1; for (let y = B - h + 6; y < B; y += 6) { p.beginPath(); p.moveTo(x, y); p.lineTo(x + w, y); p.stroke(); }
+        p.fillStyle = roof; p.beginPath(); p.moveTo(x - 8, B - h); p.lineTo(x + w / 2, B - h - w * 0.36); p.lineTo(x + w + 8, B - h); p.fill();
+        p.fillStyle = '#3A3330'; p.fillRect(x + w * 0.7, B - h - w * 0.3, 10, 26);
+        p.fillStyle = '#4A3A2E'; p.fillRect(x + w * 0.42, B - 40, 18, 40);
+        [[x + 12, B - h + 16], [x + w - 34, B - h + 16]].forEach(([wx, wy]) => { p.fillStyle = '#E6EEF0'; p.fillRect(wx, wy, 22, 22); p.strokeStyle = '#4A3A2E'; p.lineWidth = 2; p.strokeRect(wx, wy, 22, 22); p.beginPath(); p.moveTo(wx + 11, wy); p.lineTo(wx + 11, wy + 22); p.moveTo(wx, wy + 11); p.lineTo(wx + 22, wy + 11); p.stroke(); });
+        p.fillStyle = '#6E5A44'; p.fillRect(x + w * 0.42 - 6, B - 2, 30, 4);
+      };
+      HOUSES.forEach((h) => house(...h));
+      // the store: a wide front, a porch, and a sign board with no name on it
+      { const [x, w, h] = STORE; house(x, w, h, '#D6CDB8', '#5A3E30'); p.fillStyle = '#5A3E30'; p.fillRect(x - 6, G - h - 30, w + 12, 26); p.fillStyle = '#EFE6CF'; p.font = '700 15px ' + FONT; p.textAlign = 'center'; p.textBaseline = 'middle'; p.fillText('STORE', x + w / 2, G - h - 17); p.fillStyle = '#7E6650'; p.fillRect(x - 10, G - 46, w + 20, 6); p.fillRect(x - 6, G - 46, 4, 46); p.fillRect(x + w + 2, G - 46, 4, 46); }
+      // where the Johnsons' house used to be (scene 510): a pile of boards and the stones it stood on
+      { const [x, w] = LOT; p.fillStyle = '#9A8F7C'; for (let k = 0; k < 6; k++) p.fillRect(x + k * w / 6, G - 6, 14, 8); p.save(); p.translate(x + w / 2, G - 10); for (let k = 0; k < 9; k++) { p.save(); p.rotate((k - 4) * 0.16 + (R() - 0.5) * 0.2); p.fillStyle = k % 2 ? '#A88E6A' : '#8E7556'; p.fillRect(-w * 0.32, -k * 4, w * 0.64, 5); p.restore(); } p.restore(); }
+      // Seaview church on the hill: yellow walls with red trim, a steep roof, round-topped windows, a lower addition
+      // along the side with the main door, and the four-sided steeple with its bell on the end toward the water
+      { const [x, w] = CHURCH, bodyH = 92, add = 34, bw = w - 40, B = GC;
+        p.fillStyle = 'rgba(0,0,0,.15)'; p.fillRect(x + 8, B - 4, w, 8);
+        p.fillStyle = '#E8D9A0'; p.fillRect(x, B - bodyH, bw, bodyH);
+        p.fillStyle = '#9A3A30'; p.beginPath(); p.moveTo(x - 8, B - bodyH); p.lineTo(x + bw / 2, B - bodyH - 56); p.lineTo(x + bw + 8, B - bodyH); p.fill();
+        p.fillStyle = '#E2D296'; p.fillRect(x - 2, B - add - 6, bw + 4, add + 6); p.fillStyle = '#B5262E'; p.fillRect(x - 8, B - add - 12, bw + 16, 7);
+        p.fillStyle = '#4A3A2E'; p.fillRect(x + 72, B - add + 4, 26, add - 4); p.fillStyle = '#8E7556'; p.fillRect(x + 66, B - 4, 38, 4); p.fillRect(x + 62, B, 46, 4);   // wooden steps
+        const rw = (wx, wy) => { p.fillStyle = '#DDE6EA'; p.beginPath(); p.moveTo(wx, wy + 28); p.lineTo(wx, wy + 9); p.arc(wx + 9, wy + 9, 9, Math.PI, 0); p.lineTo(wx + 18, wy + 28); p.closePath(); p.fill(); p.strokeStyle = '#B5262E'; p.lineWidth = 2.4; p.stroke(); };
+        [x + 14, x + 58, x + 102].forEach((wx) => rw(wx, B - bodyH + 12));
+        p.strokeStyle = '#B5262E'; p.lineWidth = 3; p.strokeRect(x, B - bodyH, bw, bodyH - add - 12);
+        const tx = x + w - 52, tt = B - bodyH - 36;
+        p.fillStyle = '#E8D9A0'; p.fillRect(tx, tt, 44, B - tt); p.strokeStyle = '#B5262E'; p.lineWidth = 3; p.strokeRect(tx, tt, 44, B - tt);
+        p.fillStyle = '#9A3A30'; p.beginPath(); p.moveTo(tx - 6, tt); p.lineTo(tx + 22, tt - 34); p.lineTo(tx + 50, tt); p.fill();
+        p.fillStyle = '#3A3330'; p.fillRect(tx + 12, tt + 10, 20, 22); p.fillStyle = '#B08A3A'; p.beginPath(); p.arc(tx + 22, tt + 24, 7, Math.PI, 0); p.lineTo(tx + 29, tt + 28); p.lineTo(tx + 15, tt + 28); p.fill();
+        p.fillStyle = '#4A3A2E'; p.fillRect(tx + 12, B - 32, 20, 32); rw(tx + 13, B - bodyH + 12); }
+      p.strokeStyle = '#5A4A3A'; p.lineWidth = 3; p.beginPath(); p.moveTo(512, G); p.lineTo(512, 196); p.moveTo(608, G); p.lineTo(608, 196); p.stroke();   // a washing line's posts
+    })();
+    const slice = (g, src) => { const sx = clamp(st.cam - 40, 0, WW - (W + 80)); g.drawImage(src, sx * PD, 0, (W + 80) * PD, H * PD, sx, 0, W + 80, H); };
+    // ---------- people, drawn as ink figures like the story pictures ----------
+    function fig(g, x, y, k, L) {   // standing, facing right; or sitting, for Grandpa on his rock
+      g.save(); g.translate(x, y); g.scale(k, k); g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = INK; g.fillStyle = INK;
+      if (L.sit) {
+        g.lineWidth = 5.4; g.beginPath(); g.moveTo(0, -4); g.lineTo(14, -4); g.lineTo(17, 10); g.stroke(); g.lineWidth = 4.4; g.beginPath(); g.moveTo(17, 10); g.lineTo(22, 10); g.stroke();
+        g.lineWidth = 10.5; g.beginPath(); g.moveTo(0, -5); g.lineTo(3, -22); g.stroke(); g.lineWidth = 5; g.beginPath(); g.moveTo(3, -23); g.lineTo(4.5, -27); g.stroke();
+        g.lineWidth = 4.2; g.beginPath(); g.moveTo(3, -20); g.lineTo(11, -14); g.lineTo(19, -17); g.stroke();
+        var hx = 5.5, hy = -32;
+      } else {
+        g.lineWidth = 5.2; g.beginPath(); g.moveTo(0, -24); g.lineTo(-1.5, -12); g.lineTo(-2, 0); g.moveTo(0, -24); g.lineTo(2, -12); g.lineTo(3, 0); g.stroke();
+        g.lineWidth = 4.4; g.beginPath(); g.moveTo(-2, 0); g.lineTo(3.4, 0); g.moveTo(3, 0); g.lineTo(8.4, 0); g.stroke();
+        g.lineWidth = 10; g.beginPath(); g.moveTo(0, -25.5); g.lineTo(3, -42.5); g.stroke(); g.lineWidth = 5; g.beginPath(); g.moveTo(3.2, -43); g.lineTo(4.4, -47.5); g.stroke();
+        if (L.skirt) { g.beginPath(); g.moveTo(-5.6, -29); g.lineTo(6.2, -29); g.lineTo(11, -14.5); g.quadraticCurveTo(1, -11, -10, -13.5); g.closePath(); g.fill(); }
+        g.lineWidth = 4.2; g.beginPath(); g.moveTo(2.4, -41.5); g.lineTo(4, -32.5); g.lineTo(8.5, -26); g.stroke();
+        var hx = 5.2, hy = -52;
+      }
+      if (L.head === 'puffs') { g.beginPath(); g.arc(hx - 6.2, hy - 4.6, 4.1, 0, 7); g.fill(); g.beginPath(); g.arc(hx - 0.8, hy - 7.6, 3.3, 0, 7); g.fill(); }
+      g.beginPath(); g.arc(hx, hy, 6.4, 0, 7); g.fill();
+      g.beginPath(); g.moveTo(hx + 5.2, hy - 1.4); g.lineTo(hx + 8, hy + 1); g.lineTo(hx + 5, hy + 2.4); g.closePath(); g.fill();
+      if (L.head === 'flatcap') { g.beginPath(); g.ellipse(hx - 1.2, hy - 3.2, 8, 5.3, -0.12, Math.PI, 0); g.closePath(); g.fill(); g.lineWidth = 2.6; g.beginPath(); g.moveTo(hx + 3, hy - 3.6); g.lineTo(hx + 11.6, hy - 2.2); g.stroke(); }
+      g.restore();
+    }
+    // ---------- state ----------
+    const st = { t: 0, cam: 0, vx: 0, keyL: false, keyR: false, drag: null, steady: 0, film: 12, shots: [], started: false, paused: false, over: false, ended: false, endAt: 0, flash: 0, train: -999, nextTrain: 6, low: false, W, H, F, WW, small };
+    box._photos = st;
+    const camMax = WW - W;
+    const TRAIN_LEN = 120 + 7 * 92 + 8;
+    function world(g, ox, oy) {
+      g.save(); g.translate(-st.cam + ox, oy);
+      slice(g, back);
+      const t = st.t;
+      [[2740, 150, 1], [2060, 142, 0.7], [980, 140, 0.6]].forEach(([x, y, k], i) => { const bb = RM ? 0 : Math.sin(t * 0.8 + i) * 1.2; g.fillStyle = INK; g.beginPath(); g.moveTo(x - 40 * k, y + bb); g.lineTo(x + 46 * k, y + bb); g.lineTo(x + 36 * k, y + 10 * k + bb); g.lineTo(x - 34 * k, y + 10 * k + bb); g.fill(); g.fillRect(x - 6 * k, y - 16 * k + bb, 18 * k, 16 * k); g.fillRect(x + 4 * k, y - 26 * k + bb, 4 * k, 10 * k); });   // ships at anchor
+      if (st.train > -900) {   // the train, on the line behind the houses
+        const x = st.train, y = 150; g.fillStyle = '#26292B'; g.fillRect(x, y, 120, 26); g.fillRect(x + 6, y - 10, 50, 12); g.fillStyle = '#C9B37A'; g.fillRect(x + 4, y + 9, 112, 3);
+        g.fillStyle = '#E6EEF0'; g.fillRect(x + 14, y - 6, 12, 7); g.fillRect(x + 34, y - 6, 12, 7); g.fillStyle = '#F2E3A8'; g.beginPath(); g.arc(x + 117, y + 6, 3, 0, 7); g.fill();
+        for (let k = 0; k < 7; k++) { const cx = x - 8 - (k + 1) * 92; if (cx > st.cam + W + 60 || cx + 86 < st.cam - 60) continue; g.fillStyle = k % 2 ? '#5A3E30' : '#6E4B39'; g.fillRect(cx, y + 2, 86, 24); g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1; for (let q = 8; q < 86; q += 10) { g.beginPath(); g.moveTo(cx + q, y + 2); g.lineTo(cx + q, y + 26); g.stroke(); } g.fillStyle = INK; g.fillRect(cx + 86, y + 14, 6, 3); }
+        g.fillStyle = INK; for (let k = 0; k < 18; k++) { g.beginPath(); g.arc(x + 108 - k * 46, y + 27, 5, 0, 7); g.fill(); }
+      }
+      slice(g, front);
+      g.strokeStyle = '#5A4A3A'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(512, 200); g.quadraticCurveTo(560, 210, 608, 200); g.stroke();   // washing on the line, in the breeze
+      [['#F2F2EE', 520], ['#7DA0C6', 540], ['#E2B0A0', 562], ['#F2F2EE', 584]].forEach(([col, x], i) => { const sw = RM ? 0 : Math.sin(t * 2.4 + i) * 3, top = 200 + 10 * (1 - Math.pow((x + 8 - 560) / 48, 2)); g.fillStyle = col; g.beginPath(); g.moveTo(x, top); g.lineTo(x + 16, top); g.lineTo(x + 16 + sw, top + 26); g.lineTo(x + sw, top + 26); g.fill(); });
+      fig(g, 818, G + 2, 0.95, { head: 'puffs', skirt: 1 });   // Bev, by the store
+      fig(g, 2600, 242, 1, { head: 'flatcap', sit: 1 });   // Grandpa on his rock, with his fishing line
+      g.strokeStyle = 'rgba(240,236,226,.9)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(2620, 225); g.quadraticCurveTo(2650, 222 + (RM ? 0 : Math.sin(t * 1.3) * 3), 2676, 306); g.stroke();
+      g.restore();
+    }
+    const over = (bx, ox, oy) => {   // how much of a thing is inside the square, and is its middle inside it
+      const fx0 = st.cam + X0 - ox, fy0 = Y0 - oy, fx1 = fx0 + F, fy1 = fy0 + F;
+      const ix = Math.max(0, Math.min(bx[2], fx1) - Math.max(bx[0], fx0)), iy = Math.max(0, Math.min(bx[3], fy1) - Math.max(bx[1], fy0));
+      const area = (bx[2] - bx[0]) * (bx[3] - bx[1]), mx = (bx[0] + bx[2]) / 2, my = (bx[1] + bx[3]) / 2;
+      return { frac: area ? ix * iy / area : 0, mid: mx > fx0 && mx < fx1 && my > fy0 && my < fy1, cover: ix * iy / (F * F), ix };
+    };
+    const shake = () => { const a = (1 - st.steady) * (RM ? 2 : 5) + (st.steady >= 0.9 ? 0.4 : 0.8); return [Math.sin(st.t * 13.1) * a + Math.sin(st.t * 5.3) * a * 0.6, Math.cos(st.t * 11.7) * a * 0.8 + Math.sin(st.t * 4.1) * a * 0.5]; };
+    function whatsIn(ox, oy) {
+      const got = [];
+      for (const k of Object.keys(SUBJ)) {
+        const ok = SUBJ[k].some((bx) => { const r = over(bx, ox, oy); return k === 'houses' ? r.cover > 0.3 : r.mid && r.frac >= (k === 'church' ? 0.45 : 0.55); });
+        if (ok) got.push(k);
+      }
+      if (st.train > -900) { const r = over([st.train - TRAIN_LEN + 120, 146, st.train + 120, 182], ox, oy); if (r.ix >= F * 0.55 && r.frac > 0) got.push('train'); }
+      const rank = (k) => (LIST.includes(k) ? 0 : 1);
+      return got.sort((a, b2) => rank(a) - rank(b2));
+    }
+    // ---------- taking a picture ----------
+    function shoot() {
+      if (!st.started || st.paused || st.over || st.film <= 0) return;
+      draw();
+      const [ox, oy] = shake(), sharp = st.steady >= 0.9, blur = sharp ? 0 : 1.5 + (1 - st.steady) * 4;
+      const PS = 156, ph = document.createElement('canvas'); ph.width = PS; ph.height = PS; const g = ph.getContext('2d');
+      const q = Math.max(24, Math.round(PS / (1 + blur * 0.7))), tmp = document.createElement('canvas'); tmp.width = q; tmp.height = q;
+      tmp.getContext('2d').drawImage(view, X0 * dpr, Y0 * dpr, F * dpr, F * dpr, 0, 0, q, q);
+      g.imageSmoothingEnabled = true; g.drawImage(tmp, 0, 0, PS, PS);
+      if (blur) { g.globalAlpha = 0.45; g.drawImage(tmp, blur * 1.2, blur * 0.5, PS, PS); g.globalAlpha = 1; }
+      try {   // black and white, a little more contrast, and a little grain
+        const im = g.getImageData(0, 0, PS, PS), d = im.data, R = mulb(st.shots.length + 7);
+        for (let i = 0; i < d.length; i += 4) { let y = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]; y = clamp((y - 128) * 1.15 + 132 + (R() - 0.5) * 14, 0, 255); d[i] = d[i + 1] = d[i + 2] = y; }
+        g.putImageData(im, 0, 0);
+      } catch (e) { /* the picture stays in colour */ }
+      const got = whatsIn(ox, oy);
+      st.shots.push({ ph, got, sharp }); st.film--; st.flash = 1; sfx('click'); setTimeout(() => sfx('wind'), 160);
+      const main = got[0], need = main && LIST.includes(main) && !sharp;
+      say(main ? `${sharp ? 'Click!' : 'Click! A bit blurry.'} ${cap1(NAME[main])}.${need ? ' Take another one, steady.' : ''}` : (sharp ? 'Click!' : 'Click! A bit blurry. Hold it steady first.'));
+      updList();
+      if (st.film <= 0) { st.over = true; st.endAt = st.t + 1.1; say('That’s the whole roll.'); }
+      st.steady = 0;
+    }
+    let msgT = 0, msgText = '';
+    const say = (t) => { msgText = t; msgT = 2.2; live.textContent = t; };
+    function updList() {
+      listEl.innerHTML = '';
+      listEl.append(el('strong', { text: 'Ruth’s list:' }));
+      LIST.forEach((k) => { const any = st.shots.some((s) => s.got.includes(k)), ok = st.shots.some((s) => s.got.includes(k) && s.sharp); listEl.append(el('span', { text: `${ok ? '✅' : any ? '〰️' : '⬜'} ${NAME[k]}`, title: ok ? 'a sharp picture' : any ? 'blurry: take another' : 'not yet' })); });
+    }
+    // ---------- moving ----------
+    function step(dt) {
+      st.t += dt; st.flash = Math.max(0, st.flash - dt * 6); msgT = Math.max(0, msgT - dt);
+      if (st.train > -900) { st.train += TRAIN_V * dt; if (st.train - TRAIN_LEN > WW + 40) { st.train = -999; st.nextTrain = st.t + TRAIN_GAP; } }
+      else if (st.t >= st.nextTrain && !st.over) { st.train = -140; say('A train is coming along the line!'); sfx('horn'); }
+      if (st.over) { if (st.t >= st.endAt && !st.ended) { st.ended = true; finish(); } return; }
+      const want = st.drag ? 0 : ((st.keyR ? 1 : 0) - (st.keyL ? 1 : 0)) * 340;
+      st.vx += (want - st.vx) * Math.min(1, dt * 10); if (Math.abs(st.vx) < 2 && !want) st.vx = 0;
+      st.cam = clamp(st.cam + st.vx * dt, 0, camMax); if ((st.cam === 0 && st.vx < 0) || (st.cam === camMax && st.vx > 0)) st.vx = 0;
+      const moving = Math.abs(st.vx) > 8 || (st.drag && st.drag.moved && st.t - st.drag.at < 0.12);
+      st.steady = moving ? 0 : Math.min(1, st.steady + dt / STEADY);
+    }
+    // ---------- drawing ----------
+    const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
+    const pill = (t, y, dark) => { c.font = '700 14px ' + FONT; const w = Math.min(W - 16, c.measureText(t).width + 24); c.fillStyle = dark ? 'rgba(27,37,41,.86)' : 'rgba(255,253,248,.93)'; rr(FX - w / 2, y, w, 25, 12.5); c.fill(); c.fillStyle = dark ? '#FFFFFF' : '#22252B'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, FX, y + 13); };
+    function draw() {
+      const [ox, oy] = st.started && !st.paused ? shake() : [0, 0];
+      v.fillStyle = '#8DA45E'; v.fillRect(0, 0, W, H); world(v, ox, oy);
+      c.drawImage(view, 0, 0, W, H);
+      c.fillStyle = 'rgba(16,20,24,.58)'; c.fillRect(0, 0, W, Y0); c.fillRect(0, Y0 + F, W, H - Y0 - F); c.fillRect(0, Y0, X0, F); c.fillRect(X0 + F, Y0, W - X0 - F, F);   // the viewfinder
+      c.strokeStyle = 'rgba(255,255,255,.92)'; c.lineWidth = 3; const L = 22; [[X0, Y0, 1, 1], [X0 + F, Y0, -1, 1], [X0, Y0 + F, 1, -1], [X0 + F, Y0 + F, -1, -1]].forEach(([x, y, sx, sy]) => { c.beginPath(); c.moveTo(x, y + sy * L); c.lineTo(x, y); c.lineTo(x + sx * L, y); c.stroke(); });
+      if (st.started && !st.over) {
+        const ok = st.steady >= 0.9; c.fillStyle = ok ? '#1E5B54' : 'rgba(255,253,248,.92)'; rr(FX - 72, Y0 + F + 8, 144, 25, 12.5); c.fill();
+        c.fillStyle = ok ? '#FFFFFF' : '#22252B'; c.font = '700 13px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ok ? 'Steady ✓' : 'Hold it steady…', FX, Y0 + F + 21);
+        if (!ok) { c.fillStyle = '#1E5B54'; c.fillRect(FX - 60, Y0 + F + 29, 120 * st.steady, 3); }
+      }
+      if (msgT > 0) { c.globalAlpha = clamp(msgT * 1.5, 0, 1); pill(msgText, Y0 - 31, true); c.globalAlpha = 1; }
+      else if (st.started && !st.over) { const got = whatsIn(ox, oy); if (got.length) pill(cap1(NAME[got[0]]), Y0 - 31, false); }
+      const rw = small ? 166 : 214; c.fillStyle = 'rgba(255,253,248,.93)'; rr(8, 8, rw, 26, 13); c.fill(); c.fillStyle = '#22252B'; c.font = '700 12px ' + FONT; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(`📷 ${st.film} left`, 17, 21.5);
+      for (let k = 0; k < 12; k++) { const x = (small ? 78 : 92) + k * (small ? 7 : 9.5), on = k < st.film; c.strokeStyle = '#8A8F94'; c.lineWidth = 1; c.fillStyle = '#22252B'; if (on) c.fillRect(x, 16, small ? 5 : 7, 11); c.strokeRect(x, 16, small ? 5 : 7, 11); }
+      if (st.flash > 0) { c.fillStyle = `rgba(255,255,255,${st.flash * 0.8})`; c.fillRect(X0, Y0, F, F); }
+      if (!st.started || st.paused) {
+        c.fillStyle = 'rgba(20,28,34,.5)'; c.fillRect(0, 0, W, H);
+        const cw = Math.min(W - 24, 460); c.fillStyle = 'rgba(255,253,248,.97)'; rr(W / 2 - cw / 2, H / 2 - 54, cw, 108, 16); c.fill();
+        c.fillStyle = '#22252B'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `700 ${small ? 18 : 20}px ` + FONT; c.fillText(st.paused ? 'Paused' : 'Ready? Twelve pictures on the roll.', W / 2, H / 2 - 24);
+        c.font = '600 14px ' + FONT; c.fillText(st.paused ? 'Press Space or tap to carry on.' : 'Turn the camera, stop, and hold it steady.', W / 2, H / 2 + 4); c.fillText(st.paused ? '' : 'Press Space or tap to start.', W / 2, H / 2 + 28);
+      }
+    }
+    // ---------- loop and controls ----------
+    let raf = 0, last = 0, acc = 0, alive = true, fN = 0, fT = 0;
+    const syncGT = () => { box.dataset.idle = st.started && !st.paused && !st.ended ? '0' : '1'; box.dataset.busy = st.started && !st.ended ? '1' : '0'; };
+    const frame = (now) => {
+      if (!alive) return; if (!cv.isConnected) { stop(); return; }
+      const raw = last ? (now - last) / 1000 : 0, dt = Math.min(0.05, raw); last = now;
+      if (st.started && !st.paused && !st.hold) { acc += dt; while (acc >= 1 / 120) { step(1 / 120); acc -= 1 / 120; if (st.ended) return; } }
+      if (!st.low && raw > 0 && raw < 0.25 && fN < 90) { fN++; fT += raw; if (fN === 90 && fT / 90 > 0.024) { st.low = true; if (dpr > 1) { dpr = 1; cv.width = W; cv.height = H; c.setTransform(1, 0, 0, 1, 0, 0); view.width = W; view.height = H; v.setTransform(1, 0, 0, 1, 0, 0); } } }
+      draw(); raf = requestAnimationFrame(frame);
+    };
+    const begin = () => {
+      if (st.over || st.ended) return false;
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (e) { /* no sound */ }
+      if (st.paused) { st.paused = false; pauseBtn.textContent = '⏸ Pause'; syncGT(); return true; }
+      if (!st.started) { st.started = true; syncGT(); say('Find the church, the store, the train and Grandpa.'); return true; }
+      return false;
+    };
+    const pause = () => { if (!st.started || st.over) return; st.paused = !st.paused; st.keyL = st.keyR = false; st.drag = null; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; syncGT(); };
+    const LEFT = (e) => e.code === 'ArrowLeft' || e.code === 'KeyA', RIGHT = (e) => e.code === 'ArrowRight' || e.code === 'KeyD';
+    const kd = (e) => {
+      const tg = document.activeElement; if (tg && /INPUT|TEXTAREA|SELECT/.test(tg.tagName)) return;
+      if (!box.isConnected) return;
+      if (LEFT(e) || RIGHT(e)) { e.preventDefault(); if (!st.started || st.paused) begin(); if (LEFT(e)) st.keyL = true; else st.keyR = true; }
+      else if (e.code === 'Space' || e.code === 'Enter') { if (tg && tg.tagName === 'BUTTON') return; e.preventDefault(); if (!e.repeat && !begin()) shoot(); }
+      else if (e.code === 'KeyP') pause();
+    };
+    const ku = (e) => { if (LEFT(e)) st.keyL = false; else if (RIGHT(e)) st.keyR = false; };
+    const vis = () => { if (document.hidden && st.started && !st.over && !st.paused) pause(); };
+    cv.addEventListener('pointerdown', (e) => { e.preventDefault(); cv.focus({ preventScroll: true }); if (begin()) return; if (st.over) return; try { cv.setPointerCapture(e.pointerId); } catch (er) { /* old browsers */ } st.drag = { id: e.pointerId, x: e.clientX, x0: e.clientX, moved: false, at: st.t }; cv.style.cursor = 'grabbing'; });
+    cv.addEventListener('pointermove', (e) => { const d = st.drag; if (!d || d.id !== e.pointerId) return; const r = cv.getBoundingClientRect(), dx = (e.clientX - d.x) / (r.width || W) * W; if (Math.abs(e.clientX - d.x0) > 6) d.moved = true; if (d.moved) { st.cam = clamp(st.cam - dx, 0, camMax); d.at = st.t; st.steady = 0; } d.x = e.clientX; });
+    const up = (e) => { const d = st.drag; if (!d || d.id !== e.pointerId) return; st.drag = null; cv.style.cursor = 'grab'; if (!d.moved) shoot(); };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', () => { st.drag = null; cv.style.cursor = 'grab'; }); cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    const hold = (btn, key) => { const on = (e) => { e.preventDefault(); begin(); st[key] = true; }, off = () => { st[key] = false; }; btn.addEventListener('pointerdown', on); btn.addEventListener('pointerup', off); btn.addEventListener('pointerleave', off); btn.addEventListener('pointercancel', off); btn.addEventListener('contextmenu', (e) => e.preventDefault()); btn.addEventListener('keydown', (e) => { if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat) { e.preventDefault(); begin(); st[key] = true; } }); btn.addEventListener('keyup', (e) => { if (e.code === 'Enter' || e.code === 'Space') off(); }); btn.addEventListener('blur', off); };
+    hold(leftBtn, 'keyL'); hold(rightBtn, 'keyR');
+    shotBtn.onclick = () => { if (!begin()) shoot(); };
+    pauseBtn.onclick = () => { pause(); cv.focus({ preventScroll: true }); };
+    doneBtn.onclick = () => { if (!st.shots.length) { say('Take at least one picture first.'); if (!st.started) draw(); return; } if (!st.over) { st.over = true; st.endAt = st.t; if (!st.started || st.paused) { st.ended = true; finish(); } } };
+    document.addEventListener('keydown', kd); document.addEventListener('keyup', ku); document.addEventListener('visibilitychange', vis);
+    function stop() { alive = false; cancelAnimationFrame(raf); document.removeEventListener('keydown', kd); document.removeEventListener('keyup', ku); document.removeEventListener('visibilitychange', vis); if (stopRun === stop) stopRun = null; }
+    stopRun = stop;
+    st.api = { step, shoot, begin, pause, draw, whatsIn, SUBJ, over, camMax, LIST };   // for tests
+    updList(); cv.focus({ preventScroll: true }); raf = requestAnimationFrame(frame);
+
+    // ---------- the pictures come back ----------
+    function finish() {
+      stop(); sfx('done');
+      box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
+      const have = (k) => st.shots.some((s) => s.got.includes(k)), sharp = (k) => st.shots.some((s) => s.got.includes(k) && s.sharp);
+      const all = LIST.every(have), allSharp = LIST.every(sharp), n = 1 + (all ? 1 : 0) + (allSharp ? 1 : 0);
+      PROG.photos = Math.max(PROG.photos || 0, n); saveProg();
+      const cols = small ? 3 : 4, PS = small ? 140 : 150, pad = 16, capH = 30, rows = Math.ceil(12 / cols);
+      const sheet = document.createElement('canvas'), SW = cols * (PS + pad) + pad, SHH = rows * (PS + capH + pad) + pad - 6, sd = Math.min(2, window.devicePixelRatio || 1);
+      sheet.width = SW * sd; sheet.height = SHH * sd; sheet.className = 'trailcv'; sheet.style.aspectRatio = `${SW} / ${SHH}`; sheet.style.cursor = 'default'; sheet.setAttribute('role', 'img');
+      sheet.setAttribute('aria-label', `Your ${st.shots.length} picture${st.shots.length === 1 ? '' : 's'}, in black and white: ${st.shots.map((s) => (s.got[0] ? NAME[s.got[0]] : 'Africville') + (s.sharp ? '' : ' (blurry)')).join(', ')}.`);
+      const g = sheet.getContext('2d'); g.setTransform(sd, 0, 0, sd, 0, 0); g.fillStyle = '#F6F3EC'; g.fillRect(0, 0, SW, SHH);
+      for (let k = 0; k < 12; k++) {
+        const x = pad + (k % cols) * (PS + pad), y = pad + Math.floor(k / cols) * (PS + capH + pad), s = st.shots[k];
+        g.fillStyle = s ? '#FFFFFF' : '#E7E2D6'; g.fillRect(x - 5, y - 5, PS + 10, PS + 10); g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1; g.strokeRect(x - 5, y - 5, PS + 10, PS + 10);   // a white border, like a print
+        if (s) {
+          g.drawImage(s.ph, x, y, PS, PS);
+          const cap = (s.got[0] ? cap1(NAME[s.got[0]]) : 'Africville'); g.fillStyle = '#3B3A36'; g.font = `italic ${small ? 12 : 13}px ` + HAND; g.textAlign = 'center'; g.textBaseline = 'middle';
+          let t = cap; while (g.measureText(t).width > PS + 8 && t.length > 6) t = t.slice(0, -2) + '…'; g.fillText(t, x + PS / 2, y + PS + 17);
+        } else { g.fillStyle = '#9A9486'; g.font = '600 12px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('not taken', x + PS / 2, y + PS / 2); }
+      }
+      const sharpN = st.shots.filter((s) => s.sharp).length, still = LIST.filter((k) => !sharp(k)).map((k) => NAME[k]);
+      box.innerHTML = '';
+      box.append(
+        el('h2', { class: 'trail-title readable', text: '📷 “So somebody remembers.”' }),
+        el('p', { class: 'trail-stars', text: stars(n), role: 'img', 'aria-label': `${n} out of 3 stars` }),
+        el('p', { class: 'readable', text: `You took ${st.shots.length} picture${st.shots.length === 1 ? '' : 's'}, and ${sharpN} came out sharp. ${allSharp ? 'Everything on Ruth’s list is there, sharp and clear.' : `For ${n === 2 ? 'three' : 'more'} stars, get a sharp picture of ${still.join(', ').replace(/, ([^,]*)$/, ' and $1')}.`}` }),
+        el('div', { class: 'trailwrap', style: 'background:#F6F3EC' }, [sheet]),
+        winBox(C.winTitle, C.real),
+        timeUp() ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' }) : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '▶ A new roll of film', onclick: () => play() })]),
+      );
+      win();
+      try { const y = box.getBoundingClientRect().top + window.scrollY - 110; if (window.scrollY > y) window.scrollTo(0, Math.max(0, y)); } catch (e) { /* old browsers */ }
+    }
+  }
+  play();
+}
 const GAMES = {
   aboiteau: { icon: '🔥', name: 'Keep the pit house warm', blurb: 'Open and close the smoke hole with the wind to keep the fire going.', where: 'Sam’s first winter at Birchtown', run: gAboiteau },
   wages: { icon: '⚖️', name: 'Spend your wages', blurb: 'Choose what your family needs for winter, and learn why fair pay mattered.', where: 'Sam in Shelburne, 1783', run: gTruck },
@@ -8065,14 +8390,14 @@ const GAMES = {
   who: { icon: '📜', name: 'Who wrote this?', blurb: 'Match real words from 1752 to 2022 to the people who wrote them.', where: 'After the real documents', run: gWho },
   eel: { icon: '🎣', name: 'Fishing the Basin', blurb: 'Catch mackerel for supper with Grandpa from the Africville shore.', where: 'Ruth on the Bedford Basin', run: gEel },
   decode: { icon: '🔐', name: 'Ruth’s secret note', blurb: 'Crack a coded note from Ruth’s cousin.', where: 'Before the meeting at Seaview', run: gDecode },
-  keepsake: { icon: '🪵', name: 'What goes in the box?', blurb: 'Your family is leaving Africville. What will you keep safe?', where: 'Ruth in 1966', run: (b, w) => gCoffre(b, w, 'keepsake') },
+  photos: { icon: '📷', name: 'So somebody remembers', blurb: 'Take pictures of Africville with your uncle’s old Brownie camera.', where: 'Ruth in 1964', run: gPhotos },
   timeline: { icon: '🗓️', name: 'Put it in order', blurb: 'Put real events from this history in the right order.', where: 'At the endings', run: gTimeline },
   map: { icon: '🗺️', name: 'Where did they settle?', blurb: 'Find eight places from African Nova Scotian history on the map.', where: 'The journeys map', run: gMap },
   memory: { icon: '🧠', name: 'Word memory', blurb: 'Match Mi’kmaw words and history words with their meanings.', where: 'Anytime', run: gMemory },
   kitchen: { icon: '👩‍🍳', name: 'Kitchen mix-up', blurb: 'Put a recipe’s steps back in order.', where: 'The Kitchen', run: gKitchen },
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
-const GAME_AT = { 6: ['aboiteau'], 7: ['wages'], 38: ['coffre'], 34: ['coffre'], 218: ['route'], 221: ['who'], 507: ['who'], 501: ['eel'], 519: ['eel'], 509: ['decode'], 520: ['keepsake'], 522: ['keepsake'] };
+const GAME_AT = { 6: ['aboiteau'], 7: ['wages'], 38: ['coffre'], 34: ['coffre'], 218: ['route'], 221: ['who'], 507: ['who'], 501: ['eel'], 519: ['eel'], 509: ['decode'], 511: ['photos'], 605: ['photos'] };
 // ================= GAME TIME =================
 // Each student gets 10 minutes of mini-games a day, so that games do not take over the class.
 // The count is kept in this browser and is shared by all four story games on this site, so switching
@@ -8738,6 +9063,8 @@ const SRC_LIST = [
     ['Library and Archives Canada: Serving despite segregation', 'Records of the battalion, including service files.', 'https://thediscoverblog.com/2021/11/04/serving-despite-segregation-the-no-2-construction-battalion/'],
   ] },
   { g: '🏘️ Africville', items: [
+    ['Atlantic Baptist Heritage: Seaview United Baptist Church', 'What the church looked like: yellow with red trim, round-topped windows, and a steeple with a bell. Used for the photograph game.', 'https://atlanticbaptistheritage.omeka.net/items/show/374'],
+    ['Lyn Museum: Kodak Brownie Hawkeye camera', 'A Brownie box camera of the 1950s, which took twelve square pictures on a roll of 620 film. Used for the photograph game.', 'https://www.lynmuseum.ca/2017/02/28/kodak-brownie-hawkeye-camera/'],
     ['Canadian Museum for Human Rights: The story of Africville', 'The community, the relocation, and the fight for justice.', 'https://humanrights.ca/story/the-story-of-africville'],
     ['The Canadian Encyclopedia: Africville', 'The history of Africville from the 1840s to today.', 'https://www.thecanadianencyclopedia.ca/en/article/africville'],
     ['Halifax: Africville', 'The city’s page on Africville, the apology and Walking Africville, an audio tour narrated by former residents.', 'https://www.halifax.ca/about-halifax/diversity-inclusion/african-nova-scotian-affairs/africville'],
