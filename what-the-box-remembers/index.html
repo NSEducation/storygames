@@ -8195,36 +8195,91 @@ function gPhotos(box, win) {
     })();
     const slice = (g, src) => { const sx = clamp(st.cam - 40, 0, WW - (W + 80)); g.drawImage(src, sx * PD, 0, (W + 80) * PD, H * PD, sx, 0, W + 80, H); };
     // ---------- people, drawn as ink figures like the story pictures ----------
-    function fig(g, x, y, k, L) {   // standing or walking; or sitting, for Grandpa on his rock
-      g.save(); g.translate(x, y); g.scale(L.flip ? -k : k, k); g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = INK; g.fillStyle = INK;
-      let hx, hy;
-      if (L.sit) {
-        g.lineWidth = 5.4; g.beginPath(); g.moveTo(0, -4); g.lineTo(14, -4); g.lineTo(17, 10); g.stroke(); g.lineWidth = 4.4; g.beginPath(); g.moveTo(17, 10); g.lineTo(22, 10); g.stroke();
-        g.lineWidth = 10.5; g.beginPath(); g.moveTo(0, -5); g.lineTo(3, -22); g.stroke(); g.lineWidth = 5; g.beginPath(); g.moveTo(3, -23); g.lineTo(4.5, -27); g.stroke();
-        g.lineWidth = 4.2; g.beginPath(); g.moveTo(3, -20); g.lineTo(11, -14); g.lineTo(19, -17); g.stroke();
-        hx = 5.5; hy = -32;
-      } else {
-        const sw = L.walk === undefined ? 0 : Math.sin(L.walk) * 6.5, a = -2 - sw, c2 = 3 + sw;
-        g.lineWidth = 5.2; g.beginPath(); g.moveTo(0, -24); g.lineTo((a - 1) / 2, -12); g.lineTo(a, 0); g.moveTo(0, -24); g.lineTo((c2 + 1) / 2, -12); g.lineTo(c2, 0); g.stroke();
-        g.lineWidth = 4.4; g.beginPath(); g.moveTo(a, 0); g.lineTo(a + 5.4, 0); g.moveTo(c2, 0); g.lineTo(c2 + 5.4, 0); g.stroke();
-        g.lineWidth = 10; g.beginPath(); g.moveTo(0, -25.5); g.lineTo(3, -42.5); g.stroke(); g.lineWidth = 5; g.beginPath(); g.moveTo(3.2, -43); g.lineTo(4.4, -47.5); g.stroke();
-        if (L.skirt) { g.beginPath(); g.moveTo(-5.6, -29); g.lineTo(6.2, -29); g.lineTo(11, -13); g.quadraticCurveTo(1, -9.5, -10, -12); g.closePath(); g.fill(); }
-        g.lineWidth = 4.2; g.beginPath(); g.moveTo(2.4, -41.5);
-        if (L.arm) { g.lineTo(9, -46); g.lineTo(13, -55 - L.arm * 3); } else { g.lineTo(4 + sw * 0.5, -32.5); g.lineTo(8.5 + sw * 0.8, -26); }
-        g.stroke();
-        hx = 5.2; hy = -52;
-      }
-      if (L.head === 'puffs') { g.beginPath(); g.arc(hx - 6.2, hy - 4.6, 4.1, 0, 7); g.fill(); g.beginPath(); g.arc(hx - 0.8, hy - 7.6, 3.3, 0, 7); g.fill(); }
-      g.beginPath(); g.arc(hx, hy, 6.4, 0, 7); g.fill();
-      g.beginPath(); g.moveTo(hx + 5.2, hy - 1.4); g.lineTo(hx + 8, hy + 1); g.lineTo(hx + 5, hy + 2.4); g.closePath(); g.fill();
-      if (L.head === 'flatcap') { g.beginPath(); g.ellipse(hx - 1.2, hy - 3.2, 8, 5.3, -0.12, Math.PI, 0); g.closePath(); g.fill(); g.lineWidth = 2.6; g.beginPath(); g.moveTo(hx + 3, hy - 3.6); g.lineTo(hx + 11.6, hy - 2.2); g.stroke(); }
-      if (L.head === 'hat') { g.beginPath(); g.ellipse(hx - 0.5, hy - 4.2, 10, 2.4, -0.08, 0, 7); g.fill(); g.beginPath(); g.ellipse(hx - 1, hy - 6, 6, 4.4, 0, Math.PI, 0); g.closePath(); g.fill(); }
-      if (L.head === 'bun') { g.beginPath(); g.arc(hx - 6.4, hy - 1.5, 3.6, 0, 7); g.fill(); }
+    // ---------- people, in colour: skin tones from deep brown to light brown, everyday clothes, jointed arms and legs ----------
+    const lerp = (a, b2, q) => a + (b2 - a) * q, sm = (q) => { q = clamp(q, 0, 1); return q * q * (3 - 2 * q); };
+    const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); return `rgb(${Math.round((n >> 16) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`; };
+    const PPL = {
+      bev: { kid: 1, skin: '#7A4E32', top: '#4FA3E0', dress: 1, belt: '#FFFFFF', style: 'puffs', ribbon: '#F2C230', socks: 1 },
+      grandpa: { skin: '#5C3A26', hair: '#A7A7A2', hat: 'flatcap', hatCol: '#5E6B78', top: '#C4472E', sleeves: 'long', pants: '#4A5A6E', shoes: '#3A2A1E' },
+      catchA: { kid: 1, skin: '#8D5B3A', top: '#E4572E', dress: 1, belt: '#FFFFFF', style: 'braids', ribbon: '#FFFFFF', socks: 1 },
+      catchB: { kid: 1, skin: '#D2A679', hair: '#3A2A1E', top: '#3FA35B', stripe: '#FFFFFF', pants: '#3D5A80', hat: 'ballcap', hatCol: '#C8372D', shoes: '#F4F1E8' },
+      swingA: { kid: 1, skin: '#5C3A26', top: '#F2C230', skirt: '#7B4FB0', style: 'puffs', ribbon: '#E4572E', socks: 1 },
+      swingB: { kid: 1, skin: '#B07A52', top: '#E4572E', stripe: '#FFE9B0', shorts: '#2E5E8C', shoes: '#3A2A1E' },
+      g1: { skin: '#3B2417', top: '#7B4FB0', dress: 1, belt: '#F4F1E8', hat: 'church', hatCol: '#F4F1E8', ribbon: '#7B4FB0', bag: '#2A211C' },
+      g2: { skin: '#8D5B3A', top: '#F4F1E8', sleeves: 'long', pants: '#3A3F4B', hat: 'fedora', hatCol: '#6E6A62' },
+      g3: { skin: '#C08A5E', hair: '#2A1C14', top: '#F29E4C', dress: 1, belt: '#8A4B1E', style: 'bun' },
+      g4: { kid: 1, skin: '#6B4226', top: '#F27BA5', dress: 1, style: 'puffs', ribbon: '#FFFFFF', socks: 1 },
+      g5: { skin: '#4A2E1F', hair: '#8E8E8A', top: '#5BA4E6', pants: '#B9A16B', shoes: '#3A2A1E' },
+      w1: { skin: '#6B4226', top: '#2F7FBF', pants: '#5A4636', hat: 'flatcap', hatCol: '#8A7A5E' },
+      w2: { skin: '#A9714B', top: '#D8456B', dress: 1, belt: '#FFFFFF', hat: 'church', hatCol: '#F2E6C8', ribbon: '#D8456B' },
+      w2k: { kid: 1, skin: '#C89468', hair: '#3A2A1E', top: '#F2C230', dress: 1, style: 'braids', ribbon: '#C8372D', socks: 1 },
+      w3: { skin: '#4A2E1F', top: '#2E9C8F', dress: 1, belt: '#F4F1E8', style: 'bun', bag: '#C9A45C' },
+    };
+    const ik = (sx, sy, tx, ty, l1, l2, bend) => { const dx = tx - sx, dy = ty - sy, d = Math.hypot(dx, dy) || 0.001, dd = clamp(d, Math.abs(l1 - l2) + 0.01, l1 + l2 - 0.01), base = Math.atan2(dy, dx), A = Math.acos(clamp((l1 * l1 + dd * dd - l2 * l2) / (2 * l1 * dd), -1, 1)), ea = base + bend * A; return [sx + Math.cos(ea) * l1, sy + Math.sin(ea) * l1, sx + dx / d * dd, sy + dy / d * dd]; };
+    // A person facing right (o.flip turns them round), feet at (x, y); for o.sit, (x, y) is the seat.
+    // Angles are from straight down, forward positive. An arm can be given as angles { a, b } or a point to reach { to }.
+    // Called with g = null it only measures, and returns where the hands are.
+    function person(g, x, y, k, P, o) {
+      o = o || {};
+      const kid = !!P.kid, TH = kid ? 10 : 13, SHN = kid ? 10 : 13, TOR = kid ? 13 : 17, UA = kid ? 7 : 9.5, FA = kid ? 6.5 : 8.5, HR = kid ? 5.7 : 6.1, LEGW = kid ? 4.2 : 5.2, BODYW = kid ? 8.4 : (P.dress ? 9.6 : 10.4), f = o.flip ? -1 : 1, lean = o.lean || 0;
+      let legs;
+      if (o.sit) legs = o.sit;
+      else if (o.walk !== undefined) legs = [0, Math.PI].map((d) => { const q = o.walk + d; return [0.46 * Math.sin(q), 0.1 + 0.8 * Math.pow(Math.max(0, Math.cos(q)), 1.4)]; });
+      else legs = o.legs || [[0.09, 0.03], [-0.07, 0.03]];
+      const pts = legs.map(([a, b2]) => { const kx = Math.sin(a) * TH, ky = Math.cos(a) * TH, s = a - b2; return [kx, ky, kx + Math.sin(s) * SHN, ky + Math.cos(s) * SHN, s]; });
+      const Hx = 0, Hy = o.sit ? 0 : -Math.max(pts[0][3], pts[1][3]) - (o.hop || 0);
+      const Sx = Hx + Math.sin(lean) * TOR, Sy = Hy - Math.cos(lean) * TOR, hx = Sx + 1 + lean * 3, hy = Sy - HR - 2.4 + (o.nod || 0);
+      const arm = (spec, d) => {
+        const sx = Sx + 0.6, sy = Sy + 2.2;
+        if (spec && spec.to) { const r = ik(sx, sy, (spec.to[0] - x) / k * f, (spec.to[1] - y) / k, UA, FA, spec.bend || 1); return [sx, sy, r[0], r[1], r[2], r[3]]; }
+        let a, b2;
+        if (spec) { a = spec.a; b2 = spec.b; }
+        else if (o.walk !== undefined && !o.sit) { const s = Math.sin(o.walk + d + Math.PI); a = 0.5 * s; b2 = a + 0.4 + 0.15 * s; }
+        else { a = 0.06 + d * 0.02; b2 = 0.32; }
+        const ex = sx + Math.sin(a) * UA, ey = sy + Math.cos(a) * UA; return [sx, sy, ex, ey, ex + Math.sin(b2) * FA, ey + Math.cos(b2) * FA];
+      };
+      const aN = arm(o.armN, 0), aF = arm(o.armF, Math.PI), wpt = (lx, ly) => [x + lx * k * f, y + ly * k];
+      const out = { handN: wpt(aN[4], aN[5]), handF: wpt(aF[4], aF[5]), head: wpt(hx, hy) };
+      if (!g) return out;
+      const skin = P.skin, top = P.top, hair = P.hair || '#1E1612', rb = P.ribbon, low = P.pants || P.shorts, skirt = P.skirt || (P.dress ? top : null);
+      g.save(); g.translate(x, y); g.scale(k * f, k); g.lineCap = 'round'; g.lineJoin = 'round';
+      if (!o.sit) { g.fillStyle = 'rgba(0,0,0,.17)'; g.beginPath(); g.ellipse(1.5, 0.8, 9.5, 2.3, 0, 0, 7); g.fill(); }
+      const line = (col, w, x1, y1, x2, y2) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); };
+      const drawArm = (A, far) => { const sh = far ? 0.78 : 0.92, long = P.sleeves === 'long'; line(shade(top, sh), kid ? 3.5 : 4.2, A[0], A[1], A[2], A[3]); line(shade(long ? top : skin, long ? sh : (far ? 0.86 : 1)), kid ? 2.9 : 3.4, A[2], A[3], A[4], A[5]); g.fillStyle = shade(skin, far ? 0.86 : 1); g.beginPath(); g.arc(A[4], A[5], kid ? 1.9 : 2.2, 0, 7); g.fill(); };
+      const drawLeg = (q, far) => { const [kx, ky, fx, fy, s] = q, sh = far ? 0.8 : 1, c1 = o.sit && skirt ? skirt : (low || skin), c2 = P.pants || skin, w1 = o.sit && skirt ? LEGW + 1.6 : (low ? LEGW : LEGW - 1.3), w2 = P.pants ? LEGW - 0.5 : LEGW - 1.5;
+        line(shade(c2, sh), w2, Hx + kx, Hy + ky, Hx + fx, Hy + fy - 1.2);
+        if (P.socks && !P.pants) line(shade('#F4F1E8', sh), w2 + 0.5, Hx + fx - Math.sin(s) * 3.4, Hy + fy - Math.cos(s) * 3.4 - 1.2, Hx + fx, Hy + fy - 1.2);
+        line(shade(c1, sh), w1, Hx, Hy, Hx + kx, Hy + ky);
+        g.save(); g.translate(Hx + fx, Hy + fy); g.rotate(clamp(-s * 0.6, -0.5, 0.6)); g.fillStyle = shade(P.shoes || '#2A211C', sh); g.beginPath(); g.ellipse(1.9, -1.4, 4, 2, 0, 0, 7); g.fill(); g.restore(); };
+      drawArm(aF, true); drawLeg(pts[1], true); drawLeg(pts[0], false);
+      line(top, BODYW, Hx, Hy - 5.5, Sx, Sy + 2.6);   // the body
+      if (P.stripe) { g.lineCap = 'butt'; [0.3, 0.62].forEach((q) => { const cx = lerp(Hx, Sx, q), cy = lerp(Hy - 5.5, Sy + 2.6, q); line(P.stripe, 1.1, cx - BODYW / 2 + 0.3, cy, cx + BODYW / 2 - 0.3, cy); }); g.lineCap = 'round'; }
+      if (low || (o.sit && skirt)) { const w = BODYW / 2 - 0.2; g.fillStyle = o.sit && skirt ? skirt : low; g.beginPath(); g.moveTo(Hx - w, Hy - 3.4); g.lineTo(Hx + w, Hy - 3.4); g.lineTo(Hx + w - 0.4, Hy + 1); g.quadraticCurveTo(Hx, Hy + 3.2, Hx - w + 0.4, Hy + 1); g.closePath(); g.fill(); }
+      else if (skirt) { const hem = kid ? 8.5 : 11.5, WAIST = kid ? 4.4 : 6.5, sw = o.walk !== undefined ? Math.sin(o.walk) * 1.7 : (o.sway || 0); g.fillStyle = skirt; g.beginPath(); g.moveTo(Hx - BODYW / 2 + 0.3, Hy - WAIST); g.lineTo(Hx + BODYW / 2 - 0.2, Hy - WAIST); g.lineTo(Hx + BODYW / 2 + 3.4 + sw, Hy + hem); g.quadraticCurveTo(Hx + sw * 0.5, Hy + hem + 2.2, Hx - BODYW / 2 - 3.6 + sw, Hy + hem - 0.6); g.closePath(); g.fill(); }
+      if (P.belt && !o.sit) { g.lineCap = 'butt'; line(P.belt, 1.4, Hx - BODYW / 2 + 0.4, Hy - (kid ? 4.5 : 6.6), Hx + BODYW / 2 - 0.3, Hy - (kid ? 4.5 : 6.6)); g.lineCap = 'round'; }
+      drawArm(aN, false);
+      if (P.bag) { g.strokeStyle = P.bag; g.lineWidth = 1; g.beginPath(); g.moveTo(aN[4] - 2.2, aN[5] + 3.6); g.lineTo(aN[4], aN[5] + 0.6); g.lineTo(aN[4] + 2.2, aN[5] + 3.6); g.stroke(); g.fillStyle = P.bag; g.fillRect(aN[4] - 3.8, aN[5] + 3.4, 7.6, 6.2); }
+      line(skin, kid ? 3.2 : 3.8, Sx + 0.6, Sy + 1, hx - 0.4, hy + HR - 1.5);   // the neck, then the hair behind the head
+      g.fillStyle = hair;
+      if (P.style === 'bun') { g.beginPath(); g.arc(hx - HR - 0.5, hy - 1.6, 3, 0, 7); g.fill(); }
+      if (P.style === 'puffs') { g.beginPath(); g.arc(hx - HR + 0.3, hy - 3.4, 3.6, 0, 7); g.fill(); g.beginPath(); g.arc(hx - 0.9, hy - HR - 1.1, 3.1, 0, 7); g.fill(); }
+      if (P.style === 'braids') { const bw = o.walk !== undefined ? Math.sin(o.walk * 2) * 0.8 : (o.hop || 0) * 0.4; g.strokeStyle = hair; g.lineWidth = 2.4; g.beginPath(); g.moveTo(hx - HR + 1.2, hy + 0.5); g.quadraticCurveTo(hx - HR - 1.8, hy + 4.5, hx - HR - 0.8 - bw, hy + 9.5); g.stroke(); if (rb) { g.fillStyle = rb; g.beginPath(); g.arc(hx - HR - 0.8 - bw, hy + 9.5, 1.7, 0, 7); g.fill(); } }
+      g.fillStyle = skin; g.beginPath(); g.arc(hx, hy, HR, 0, 7); g.fill(); g.beginPath(); g.arc(hx + HR - 0.2, hy + 0.9, 1.1, 0, 7); g.fill();   // the head and face
+      g.fillStyle = hair; g.beginPath(); g.arc(hx, hy, HR + 0.45, P.style ? 2.85 : 3.15, P.style ? 5.5 : 5.42); g.closePath(); g.fill();
+      if (P.style === 'puffs' && rb) { g.fillStyle = rb; g.beginPath(); g.arc(hx - HR + 1.9, hy - 2.2, 1.2, 0, 7); g.fill(); g.beginPath(); g.arc(hx - 0.4, hy - HR + 0.6, 1.1, 0, 7); g.fill(); }
+      g.fillStyle = '#17100C'; g.beginPath(); g.arc(hx + 2.9, hy - 0.3, 0.8, 0, 7); g.fill();
+      g.strokeStyle = shade(skin, 0.5); g.lineWidth = 0.75; g.beginPath(); g.moveTo(hx + HR - 1.1, hy + 2.5); g.quadraticCurveTo(hx + 3.5, hy + 4.1, hx + 2.3, hy + 2.8); g.stroke();   // a small smile
+      const hc = P.hatCol;
+      if (P.hat === 'flatcap') { g.fillStyle = hc; g.beginPath(); g.ellipse(hx - 0.8, hy - HR + 2.4, HR + 1.2, 4.3, -0.12, Math.PI, 0); g.closePath(); g.fill(); line(shade(hc, 0.8), 2.2, hx + 3, hy - HR + 2, hx + HR + 3.6, hy - HR + 3.2); }
+      if (P.hat === 'ballcap') { g.fillStyle = hc; g.beginPath(); g.arc(hx - 0.3, hy - 1.7, HR + 0.5, Math.PI * 1.02, Math.PI * 1.98); g.closePath(); g.fill(); line(hc, 2, hx + HR - 1, hy - 2.2, hx + HR + 4.4, hy - 1.3); }
+      if (P.hat === 'fedora') { g.fillStyle = hc; g.beginPath(); g.ellipse(hx - 0.2, hy - HR + 2.6, HR + 3.6, 1.5, -0.06, 0, 7); g.fill(); g.beginPath(); g.moveTo(hx - 5.2, hy - HR + 2.4); g.lineTo(hx - 4.4, hy - HR - 3.4); g.quadraticCurveTo(hx, hy - HR - 4.8, hx + 4.2, hy - HR - 3.2); g.lineTo(hx + 4.8, hy - HR + 2.4); g.closePath(); g.fill(); g.lineCap = 'butt'; line(shade(hc, 0.55), 1.6, hx - 5, hy - HR + 0.9, hx + 4.7, hy - HR + 0.9); g.lineCap = 'round'; }
+      if (P.hat === 'church') { g.fillStyle = hc; g.beginPath(); g.ellipse(hx + 0.4, hy - HR + 2.8, HR + 4.2, 1.8, -0.1, 0, 7); g.fill(); g.beginPath(); g.ellipse(hx - 0.4, hy - HR + 2.4, 5.2, 4.6, 0, Math.PI, 0); g.closePath(); g.fill(); g.lineCap = 'butt'; line(rb || '#8A8A8A', 1.5, hx - 5.5, hy - HR + 1.5, hx + 4.7, hy - HR + 1.3); g.lineCap = 'round'; }
       g.restore();
+      return out;
     }
     // ---------- state ----------
     const st = { t: 0, cam: 0, vx: 0, keyL: false, keyR: false, drag: null, steady: 0, film: 12, shots: [], started: false, paused: false, over: false, ended: false, endAt: 0, flash: 0, train: -999, nextTrain: 6, low: false, W, H, F, WW, small,
-      walkers: [{ x: 300, a: 130, b: 900, d: 1, L: { head: 'flatcap' }, k: 1 }, { x: 1500, a: 1000, b: 2300, d: -1, L: { head: 'hat', skirt: 1 }, k: 0.98, kid: { head: 'puffs', skirt: 1 } }, { x: 2200, a: 1850, b: 2440, d: 1, L: { head: 'bun', skirt: 1 }, k: 0.96 }] };
+      walkers: [{ x: 300, a: 130, b: 900, d: 1, P: 'w1', k: 1 }, { x: 1500, a: 1000, b: 2300, d: -1, P: 'w2', k: 0.98, kid: 'w2k' }, { x: 2200, a: 1850, b: 2440, d: 1, P: 'w3', k: 0.97 }] };
     box._photos = st;
     const camMax = WW - W;
     const TRAIN_LEN = 120 + 7 * 92 + 8;
@@ -8244,19 +8299,40 @@ function gPhotos(box, win) {
       slice(g, front);
       g.strokeStyle = '#5A4A3A'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(512, 200); g.quadraticCurveTo(560, 210, 608, 200); g.stroke();   // washing on the line, in the breeze
       [['#F2F2EE', 520], ['#7DA0C6', 540], ['#E2B0A0', 562], ['#F2F2EE', 584]].forEach(([col, x], i) => { const sw = RM ? 0 : Math.sin(t * 2.4 + i) * 3, top = 200 + 10 * (1 - Math.pow((x + 8 - 560) / 48, 2)); g.fillStyle = col; g.beginPath(); g.moveTo(x, top); g.lineTo(x + 16, top); g.lineTo(x + 16 + sw, top + 26); g.lineTo(x + sw, top + 26); g.fill(); });
-      { const bx = [2012, 2056], top = G - HILL(2035) - 62, by = G - HILL(2035) + 2;   // children on the swings
+      const gyAt = (x) => G - HILL(x) + 2, wave = (off, every) => { const q = (tt + off) % every; return q < 2.4 ? Math.sqrt(Math.sin(Math.PI * q / 2.4)) : 0; }, waveArm = (e) => (e > 0.01 ? { a: lerp(0.06, 2.55, e) + e * 0.3 * Math.sin(tt * 9), b: lerp(0.32, 3.0, e) + e * 0.5 * Math.sin(tt * 9 + 0.5) } : undefined);
+      if (vis(2035, 110)) { const top = gyAt(2035) - 64, by = gyAt(2035);   // children on the swings: they lean back and kick out going forward, and tuck their legs coming back
         g.strokeStyle = '#4A4038'; g.lineWidth = 3.4; g.lineCap = 'round'; g.beginPath(); g.moveTo(1984, by); g.lineTo(1994, top); g.lineTo(2076, top); g.lineTo(2086, by); g.moveTo(2004, by); g.lineTo(1994, top); g.moveTo(2066, by); g.lineTo(2076, top); g.stroke();
-        bx.forEach((px, i) => { const a = RM ? (i ? -0.25 : 0.3) : Math.sin(t * 2.3 + i * 1.9) * 0.55, sx = px + Math.sin(a) * 44, sy = top + Math.cos(a) * 44; g.strokeStyle = '#6E665C'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(px - 4, top); g.lineTo(sx - 4, sy); g.moveTo(px + 4, top); g.lineTo(sx + 4, sy); g.stroke();
-          g.save(); g.translate(sx, sy); g.rotate(-a * 0.8); g.strokeStyle = INK; g.fillStyle = INK; g.lineCap = 'round'; g.lineWidth = 6.5; g.beginPath(); g.moveTo(0, -1); g.lineTo(0.5, -13); g.stroke(); g.lineWidth = 3.6; g.beginPath(); g.moveTo(0, -1); g.lineTo(8, 0); g.lineTo(10 + a * 6, 8); g.stroke(); g.lineWidth = 2.8; g.beginPath(); g.moveTo(1, -11); g.lineTo(4, -6); g.stroke();
-          g.beginPath(); g.arc(1.5, -19.5, 4.6, 0, 7); g.fill(); if (i === 0) { g.beginPath(); g.arc(-3, -22.5, 3, 0, 7); g.arc(1, -24.5, 2.5, 0, 7); g.fill(); } g.restore(); }); }
-      { const ax = 1090, bx = 1204, gy = G + 3, u = RM ? 0.3 : (t * 0.62) % 2, f = u < 1 ? u : 2 - u, e = Math.sin(Math.PI * f);   // two children playing catch
-        fig(g, ax, gy, 0.7, { head: 'puffs', skirt: 1, arm: f < 0.25 ? 1 - f * 4 : 0.01 }); fig(g, bx, gy, 0.74, { flip: 1, arm: f > 0.75 ? (f - 0.75) * 4 : 0.01 });
-        const x = ax + 12 + (bx - ax - 24) * f, y = gy - 42 - e * 40; g.fillStyle = 'rgba(0,0,0,.14)'; g.beginPath(); g.ellipse(x, gy + 1, 3.6, 1.3, 0, 0, 7); g.fill(); g.fillStyle = '#F4F0E4'; g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.arc(x, y, 3.3, 0, 7); g.fill(); g.stroke(); }
-      [[1604, 0.96, { head: 'hat', skirt: 1 }], [1630, 1, { head: 'flatcap' }], [1662, 0.97, { head: 'bun', skirt: 1, flip: 1 }], [1680, 0.62, { head: 'puffs', skirt: 1, flip: 1 }], [1704, 1, { flip: 1, arm: RM ? 0.5 : 0.5 + Math.sin(t * 5) * 0.5 }]].forEach(([x, k, L]) => fig(g, x, G - HILL(x) + 2, k, L));   // neighbours talking by the church
-      fig(g, 800, G + 2, 0.95, { head: 'puffs', skirt: 1 });   // Bev, by the store
-      fig(g, 2600, 242, 1, { head: 'flatcap', sit: 1 });   // Grandpa on his rock, with his fishing line
-      g.strokeStyle = 'rgba(240,236,226,.9)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(2620, 225); g.quadraticCurveTo(2650, 222 + (RM ? 0 : Math.sin(t * 1.3) * 3), 2676, 306); g.stroke();
-      st.walkers.forEach((w) => { if (!vis(w.x, 40)) return; const ph = w.x / 6.5; fig(g, w.x, 279, w.k, Object.assign({ flip: w.d < 0, walk: RM ? undefined : ph }, w.L)); if (w.kid) fig(g, w.x + w.d * 15, 279, 0.6, Object.assign({ flip: w.d < 0, walk: RM ? undefined : ph * 1.5 }, w.kid)); });   // neighbours out walking
+        [[2012, PPL.swingA, 0], [2056, PPL.swingB, 1.9]].forEach(([px, P, off], i) => { const a = RM ? (i ? -0.25 : 0.3) : Math.sin(tt * 2.3 + off) * 0.55, R2 = 42, sx = px + Math.sin(a) * R2, sy = top + Math.cos(a) * R2, rp = [lerp(sx, px, 0.27) + 3.4, lerp(sy, top, 0.27)];
+          g.strokeStyle = '#6E665C'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(px - 3, top); g.lineTo(sx - 3, sy); g.moveTo(px + 3, top); g.lineTo(sx + 3, sy); g.stroke(); g.strokeStyle = '#5A4636'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(sx - 6, sy); g.lineTo(sx + 6, sy); g.stroke();
+          person(g, sx, sy - 1.5, 0.85, P, { sit: [[1.42 - a * 0.3, 1.1 - 1.4 * a], [1.32 - a * 0.3, 1.2 - 1.4 * a]], lean: -a * 0.55, armN: { to: rp }, armF: { to: [rp[0] - 1, rp[1] + 1.5] } }); }); }
+      if (vis(1147, 120)) { const ax = 1092, bx = 1202, gy = G + 3, ka = 0.92, kb = 0.96, u = RM ? 0.45 : (tt * 0.6) % 2.8, READY = { a: 0.55, b: 1.5 };   // two children playing catch: wind up, throw, reach, catch
+        const spotA = [ax + 10.5 * ka, gy - 26 * ka], spotB = [bx - 10.5 * kb, gy - 26 * kb];
+        const throwArm = (h) => { const a = h < 0.6 ? 2.2 + 1.5 * sm(h / 0.6) : 3.7 - 1.3 * sm((h - 0.6) / 0.4); return { a, b: a + 0.7 * (h < 0.6 ? sm(h / 0.6) : 1 - sm((h - 0.6) / 0.4)) }; };
+        const follow = (e) => { const a = 2.4 - 1.9 * sm(e / 0.3); return { a, b: a + 0.35 }; };
+        const fly = (e, from, to) => [lerp(from[0], to[0], e), lerp(from[1], to[1], e) - Math.sin(Math.PI * e) * 34];
+        const relA = person(null, ax, gy, ka, PPL.catchA, { armN: throwArm(1) }).handN, relB = person(null, bx, gy, kb, PPL.catchB, { flip: 1, armN: throwArm(1) }).handN;
+        const pA = { armN: READY, armF: READY }, pB = { flip: 1, armN: READY, armF: READY }; let ball;
+        const reach = (p, e) => { if (e > 0.4) { p.armN = { to: ball }; p.armF = { to: [ball[0], ball[1] + 2] }; } if (e > 0.84) p.hop = Math.sin((e - 0.84) / 0.16 * Math.PI) * 2.6; p.lean = -0.06 * sm(e); };
+        const hold = (p, x, k2, P, h, spot) => { p.armN = throwArm(h); p.armF = { a: 0.4, b: 1.2 }; p.lean = h < 0.6 ? -0.1 * sm(h / 0.6) : -0.1 + 0.22 * sm((h - 0.6) / 0.4); const hd = person(null, x, gy, k2, P, p).handN; ball = h < 0.25 ? [lerp(spot[0], hd[0], h / 0.25), lerp(spot[1], hd[1], h / 0.25)] : hd; };
+        if (u < 1) { ball = fly(u, relA, spotB); pA.armN = follow(u); pA.lean = 0.12 * (1 - sm(u / 0.4)); reach(pB, u); }
+        else if (u < 1.4) hold(pB, bx, kb, PPL.catchB, (u - 1) / 0.4, spotB);
+        else if (u < 2.4) { const e = u - 1.4; ball = fly(e, relB, spotA); pB.armN = follow(e); pB.lean = 0.12 * (1 - sm(e / 0.4)); reach(pA, e); }
+        else hold(pA, ax, ka, PPL.catchA, (u - 2.4) / 0.4, spotA);
+        person(g, ax, gy, ka, PPL.catchA, pA); person(g, bx, gy, kb, PPL.catchB, pB);
+        g.fillStyle = 'rgba(0,0,0,.14)'; g.beginPath(); g.ellipse(ball[0], gy + 1, 3.6, 1.3, 0, 0, 7); g.fill(); g.fillStyle = '#F7F3E6'; g.strokeStyle = '#8A2E26'; g.lineWidth = 0.9; g.beginPath(); g.arc(ball[0], ball[1], 3, 0, 7); g.fill(); g.stroke(); }
+      // neighbours talking by the church: they nod, one tells a story with her hands, the little one bounces, one waves to Ruth
+      if (vis(1655, 120)) {
+      person(g, 1602, gyAt(1602), 1, PPL.g1, { armF: { a: 0.7 + 0.25 * Math.sin(tt * 2.3), b: 1.9 + 0.4 * Math.sin(tt * 3.1) }, nod: 0.5 * Math.sin(tt * 2.1), sway: Math.sin(tt * 1.1) * 0.8 });
+      person(g, 1630, gyAt(1630), 1.02, PPL.g2, { nod: 0.6 * Math.sin(tt * 1.7 + 1), lean: -0.03 + 0.03 * Math.sin(tt * 1.7 + 1), armN: { a: 0.25, b: 1.1 } });
+      person(g, 1666, gyAt(1666), 0.98, PPL.g3, { flip: 1, nod: 0.5 * Math.sin(tt * 2.4 + 2), armN: { a: 0.6 + 0.3 * Math.sin(tt * 2.9 + 1), b: 1.7 + 0.5 * Math.sin(tt * 3.7 + 1) }, sway: Math.sin(tt * 1.3 + 1) * 0.8 });
+      person(g, 1686, gyAt(1686), 0.8, PPL.g4, { flip: 1, hop: Math.max(0, Math.sin(tt * 5)) * 1.8, armN: { a: 0.5 * Math.sin(tt * 5), b: 0.5 + 0.5 * Math.sin(tt * 5) }, armF: { a: -0.5 * Math.sin(tt * 5), b: 0.3 - 0.5 * Math.sin(tt * 5) } });
+      person(g, 1710, gyAt(1710), 1, PPL.g5, { flip: 1, armN: waveArm(wave(1, 7)), nod: 0.4 * Math.sin(tt * 1.9 + 3) }); }
+      if (vis(800, 60)) person(g, 800, G + 2, 1.08, PPL.bev, { armN: waveArm(wave(4.5, 9)), sway: Math.sin(tt * 1.6) * 1, nod: 0.3 * Math.sin(tt * 1.6) });   // Bev, by the store
+      if (vis(2630, 120)) { const tug = RM ? 0 : Math.pow(Math.max(0, Math.sin(tt * 0.8)), 10), hd = person(g, 2600, 240, 1, PPL.grandpa, { sit: [[1.38, 1.3], [1.28, 1.2]], lean: 0.1 - tug * 0.08, armN: { a: 0.8 + tug * 0.4, b: 1.75 + tug * 0.7 }, armF: { a: 0.5, b: 1.5 } }).handN;   // Grandpa on his rock, with his hand line
+        g.strokeStyle = 'rgba(240,236,226,.92)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(hd[0], hd[1]); g.quadraticCurveTo(hd[0] + 26, hd[1] - 2 + (RM ? 0 : Math.sin(t * 1.3) * 3), 2676, 306); g.stroke(); }
+      st.walkers.forEach((w) => { if (!vis(w.x, 50)) return; const fl = w.d < 0, dir = fl ? -1 : 1, o = { flip: fl, walk: RM ? undefined : w.x * dir / (7.3 * w.k) };   // neighbours out walking
+        if (w.kid) { const kx = w.x + dir * 13, M = [w.x + dir * 7, 279 - 26 * w.k]; o.armN = { to: M }; person(g, kx, 279, 0.74, PPL[w.kid], { flip: fl, walk: RM ? undefined : kx * dir / (5.65 * 0.74), armN: { to: M, bend: -1 } }); }
+        person(g, w.x, 279, w.k, PPL[w.P], o); });
       g.restore();
     }
     const over = (bx, ox, oy) => {   // how much of a thing is inside the square, and is its middle inside it
