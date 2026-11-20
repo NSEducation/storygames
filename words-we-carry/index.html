@@ -6645,76 +6645,303 @@ function gCoffre(box, win, set = 'freetown') {
   draw();
 }
 // ---------- 3. Fishing the Basin ----------
+const EEL = { theme: 'weir', aria: 'The river at the stone weir. You move a circle that shows where your spear will strike, while eels swim through.', stat: 'Eels speared', miss: 'Missed. Move so an eel is inside the circle, then strike.', intro: 'Spear 6 eels at the weir. Move with your mouse, trackpad or finger (or the arrow keys). When an eel is inside the circle, click, tap or press Space to strike.', btn: '🎯 Strike! (Space)', winTitle: '🐟 Enough for everyone!', winParas: ['In early fall, eels swim down the rivers toward the sea, and Mi’kmaw families have met them at stone weirs for thousands of years. Eels were eaten fresh, and dried and smoked for winter.', 'Eels are still important to Mi’kmaw families. In 1999, a case about catching and selling eels led the Supreme Court of Canada to uphold the Mi’kmaw treaty right to fish.'] };
+// ================= SPEAR OR CATCH (redrawn) =================
+// The rule is the old one: move a circle over the water, and strike when a fish is inside it. Six
+// are enough. There is no way to lose. What is new is the picture, seen through your own eyes
+// looking down at the water (so no person is drawn), a Ready card, pause, stars, and quiet sounds.
+// Three scenes: 'torch' (night river, a birchbark torch and a three-pronged eel spear),
+// 'weir' (a stone weir shaped like a V pointing downstream), 'basin' (a hand line from the shore).
 function gEel(box, win) {
-  box.innerHTML = '';
-  const W = 600, H = 240, GOAL = 6;
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'gsvg eelwater'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'The river at the stone weir. You move a circle that shows where your spear will strike, while eels swim through.');
-  const R = () => (RELAXED ? 60 : 44);
-  svg.innerHTML = `<defs><radialGradient id="eel-glow"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.35"/><stop offset="0.7" stop-color="#E8F3F7" stop-opacity="0.18"/><stop offset="1" stop-color="#E8F3F7" stop-opacity="0"/></radialGradient></defs>
-    <rect width="${W}" height="${H}" fill="#3E6E86"/>${Array.from({ length: 12 }, (_, i) => `<path d="M${(i * 77) % 600},${20 + (i * 53) % 200} q12,-4 24,0" stroke="#7FA9BC" fill="none"/>`).join('')}
-    <g id="eel-fish"></g>
-    <g id="eel-torch"><circle r="${R() * 1.35}" fill="url(#eel-glow)"/><circle r="${R()}" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.8"/><circle r="3" fill="#E04A3A"/></g>
-    <g id="eel-fx"></g>`;
-  const fishG = svg.querySelector('#eel-fish'), fx = svg.querySelector('#eel-fx'), torchG = svg.querySelector('#eel-torch');
-  const torch = { x: 300, y: 125 }, aim = { x: 300, y: 125 }, keys = {};
-  let caught = 0, eels = [], over = false, last = performance.now(), spawn = 0;
-  const stat = el('p', { class: 'readable gstat', text: `Eels speared: 0 of ${GOAL}` }); const msg = gmsg();
-  const spear = () => {
-    if (over) return;
-    const hit = eels.find((e) => Math.hypot(e.x - torch.x, e.y - torch.y) < R() - 4);
-    const ty = hit ? hit.y : torch.y, tx = hit ? hit.x : torch.x;
-    fx.innerHTML = `<path d="M${torch.x.toFixed(0)},0 L${tx.toFixed(0)},${ty.toFixed(0)}" stroke="#F4F0E6" stroke-width="1.5" fill="none"/><circle cx="${tx}" cy="${ty}" r="5" fill="none" stroke="#F4F0E6" stroke-width="2"/>`;
-    setTimeout(() => { fx.innerHTML = ''; }, 260);
-    if (hit) { eels = eels.filter((e) => e !== hit); caught++; stat.textContent = `Eels speared: ${caught} of ${GOAL}`; msg.textContent = '🐟 Got one!'; if (caught >= GOAL) finish(); }
-    else msg.textContent = 'Missed. Move so an eel is inside the circle, then strike.';
-  };
-  const finish = () => {
-    over = true;
-    box.append(winBox('🐟 Enough for everyone!', ['In early fall, eels swim down the rivers toward the sea, and Mi’kmaw families have met them at stone weirs for thousands of years. Eels were eaten fresh, and dried and smoked for winter.', 'Eels are still important to Mi’kmaw families. In 1999, a case about catching and selling eels led the Supreme Court of Canada to uphold the Mi’kmaw treaty right to fish.']));
-    win();
-  };
-  const toSvg = (ev) => { const r = svg.getBoundingClientRect(); return { x: Math.max(0, Math.min(W, (ev.clientX - r.left) / r.width * W)), y: Math.max(0, Math.min(H, (ev.clientY - r.top) / r.height * H)) }; };
-  svg.addEventListener('pointermove', (ev) => { const p = toSvg(ev); aim.x = p.x; aim.y = p.y; });
-  svg.addEventListener('pointerdown', (ev) => { const p = toSvg(ev); aim.x = p.x; aim.y = p.y; if (ev.pointerType !== 'mouse') { torch.x = p.x; torch.y = p.y; } });
-  svg.addEventListener('click', spear);
-  const MOVE = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], KeyA: [-1, 0], KeyD: [1, 0], KeyW: [0, -1], KeyS: [0, 1] };
-  const kd = (e) => { if (!box.isConnected) return cleanup(); if (e.target.closest && e.target.closest('input,textarea')) return; if (MOVE[e.code]) { keys[e.code] = true; e.preventDefault(); } else if (e.code === 'Space') { e.preventDefault(); spear(); } };
-  const ku = (e) => { if (MOVE[e.code]) keys[e.code] = false; };
-  const cleanup = () => { document.removeEventListener('keydown', kd); document.removeEventListener('keyup', ku); };
-  document.addEventListener('keydown', kd); document.addEventListener('keyup', ku);
-  const BASE = () => (RELAXED ? 85 : 140);
-  const newEel = () => {
-    const left = Math.random() < 0.5, y = 40 + Math.random() * (H - 80);
-    return { x: left ? -50 : W + 50, y, a: (left ? 0 : Math.PI) + (Math.random() - 0.5) * 0.9, turn: (Math.random() - 0.5) * 2, v: BASE() * (0.85 + Math.random() * 0.4), ph: Math.random() * 6, t: 0 };
-  };
-  const frame = (now) => {
-    if (!box.isConnected) return cleanup();
-    if (over) return;
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    let kx = 0, ky = 0; Object.entries(MOVE).forEach(([k, [dx, dy]]) => { if (keys[k]) { kx += dx; ky += dy; } });
-    if (kx || ky) { aim.x = Math.max(0, Math.min(W, aim.x + kx * 260 * dt)); aim.y = Math.max(0, Math.min(H, aim.y + ky * 260 * dt)); }
-    const f = 1 - Math.pow(0.0005, dt); torch.x += (aim.x - torch.x) * f; torch.y += (aim.y - torch.y) * f;
-    torchG.setAttribute('transform', `translate(${torch.x.toFixed(1)} ${torch.y.toFixed(1)})`);
-    spawn -= dt;
-    if (spawn <= 0 && eels.length < (RELAXED ? 4 : 5)) { eels.push(newEel()); spawn = RELAXED ? 1.3 : 0.8; }
-    eels.forEach((e) => {
-      e.t += dt; e.ph += dt * 9;
-      e.turn += (Math.random() - 0.5) * dt * 6; e.turn = Math.max(-1.8, Math.min(1.8, e.turn));
-      if (e.y < 34) e.turn += dt * 6 * (Math.cos(e.a) > 0 ? 1 : -1);
-      if (e.y > H - 34) e.turn -= dt * 6 * (Math.cos(e.a) > 0 ? 1 : -1);
-      e.a += e.turn * dt + Math.sin(e.t * 2.3 + e.ph) * dt * 0.8;
-      const speed = e.v * (0.75 + 0.45 * Math.max(0, Math.sin(e.t * 1.7 + e.ph)));
-      e.x += Math.cos(e.a) * speed * dt; e.y += Math.sin(e.a) * speed * dt;
-      if ((e.y < 18 && Math.sin(e.a) < 0) || (e.y > H - 18 && Math.sin(e.a) > 0)) { e.a = -e.a; e.turn = -e.turn; }
-      e.y = Math.max(14, Math.min(H - 14, e.y));
-    });
-    eels = eels.filter((e) => e.x > -90 && e.x < W + 90 && e.t < 20);
-    fishG.innerHTML = eels.map((e) => { const w = Math.sin(e.ph) * 3; return `<path transform="translate(${e.x.toFixed(1)} ${e.y.toFixed(1)}) rotate(${(e.a * 180 / Math.PI).toFixed(1)})" d="M-22,${-6 + w} L-14,0 L-22,${6 + w} Z M-16,0 Q-4,-9 12,-3 Q18,0 12,3 Q-4,9 -16,0 Z" fill="#1E3A48" opacity="0.8"/>`; }).join('');
-    requestAnimationFrame(frame);
-  };
-  box.append(relaxedToggle(box, () => { cleanup(); gEel(box, win); }), el('p', { class: 'readable', text: `Spear ${GOAL} eels at the weir. Move with your mouse, trackpad or finger (or the arrow keys). When an eel is inside the circle, click, tap or press Space to strike.` }), svg, stat, el('div', { class: 'row tight' }, [gbtn('🎯 Strike! (Space)', spear)]), msg);
-  requestAnimationFrame((n) => { last = n; requestAnimationFrame(frame); });
+  const G = EEL, GOAL = 6;
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const mulb = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const FONT = 'system-ui, -apple-system, Segoe UI, sans-serif';
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+  let stopRun = null;
+  const sfx = (() => {
+    const A = () => { try { if (typeof SND === 'undefined' || !SND.on) return null; const a = SND._audio(); return a && a.ctx && a.master ? a : null; } catch (e) { return null; } };
+    const tone = (a, type, f0, f1, dur, vol, delay) => {
+      const t = a.ctx.currentTime + (delay || 0), o = a.ctx.createOscillator(), g = a.ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.03);
+    };
+    return (kind) => {
+      const a = A(); if (!a) return;
+      try {
+        if (kind === 'miss') tone(a, 'sine', 420, 160, 0.16, 0.04);
+        else if (kind === 'hit') { tone(a, 'sine', 300, 140, 0.1, 0.05); tone(a, 'triangle', 520, 780, 0.12, 0.045, 0.09); }
+        else if (kind === 'done') [392, 523, 659].forEach((f, i) => tone(a, 'triangle', f, f, 0.28, 0.05, i * 0.14));
+      } catch (e) { /* sound is a nicety; never let it stop the game */ }
+    };
+  })();
+
+  function play() {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp() && typeof gtOver === 'function') { gtOver(box); return; }
+    const small = (box.clientWidth || 720) < 520, W = small ? 520 : 720, H = small ? 300 : 340, S = W / 600, T = G.theme;
+    const relaxed = !!RELAXED, RAD = (relaxed ? 60 : 44) * S, BASE = (relaxed ? 85 : 140) * S, MAXN = relaxed ? 4 : 5, GAP = relaxed ? 1.3 : 0.8;
+    const cv = document.createElement('canvas'); cv.className = 'trailcv eelcv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`; cv.style.cursor = 'crosshair';
+    cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', G.aria);
+    let dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const stat = el('p', { class: 'readable gstat', text: `${G.stat}: 0 of ${GOAL}` }), msg = gmsg();
+    const strikeBtn = el('button', { class: 'gamebtn trail-jump', type: 'button', text: G.btn });
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' });
+    const row = el('div', { class: 'row tight' }, [strikeBtn, pauseBtn]);
+    box.append(relaxedToggle(box, () => play()), el('p', { class: 'readable', text: G.intro }), el('div', { class: 'trailwrap' }, [cv]), stat, row, msg);
+
+    const st = { clock: 0, x: W / 2, y: H * 0.52, ax: W / 2, ay: H * 0.52, keys: {}, fish: [], got: [], rings: [], caught: 0, misses: 0, spawn: 0, cool: 0, strike: null, started: false, paused: false, over: false, low: false, W, H, RAD, theme: T };
+    box._eel = st;
+
+    // ---------- the weir: two walls of stones that narrow downstream (to the right) ----------
+    const WX0 = W * 0.1, WX1 = W * 0.8, GAPH = 38 * S;
+    const wallTop = (x) => (x <= WX0 || x >= WX1 ? 18 : lerp(18, H / 2 - GAPH, (x - WX0) / (WX1 - WX0)));
+    const top = (x) => (T === 'weir' && x > WX0 && x < WX1 ? wallTop(x) + 8 * S : 18), bot = (x) => H - top(x);
+
+    const newFish = () => {
+      const left = T === 'weir' ? true : Math.random() < 0.5, y = 40 + Math.random() * (H - 80);
+      return { x: left ? -50 : W + 50, y, a: (left ? 0 : Math.PI) + (Math.random() - 0.5) * 0.9, turn: (Math.random() - 0.5) * 2, v: BASE * (0.85 + Math.random() * 0.4), ph: Math.random() * 6, t: 0, tr: [], size: 0.9 + Math.random() * 0.25 };
+    };
+    const mid = (e) => (T !== 'basin' && e.tr.length > 3 ? e.tr[3] : e);   // the middle of an eel's body; a mackerel's own centre
+
+    function strike() {
+      if (!st.started || st.paused || st.over || st.cool > 0) return;
+      st.cool = 0.26;
+      const hit = st.fish.find((e) => { const m = mid(e); return Math.hypot(m.x - st.x, m.y - st.y) < RAD - 4; });
+      const m = hit ? mid(hit) : null, tx = hit ? m.x : st.x, ty = hit ? m.y : st.y;
+      st.strike = { x: tx, y: ty, t: 0, hit: !!hit };
+      st.rings.push({ x: tx, y: ty, t: 0 });
+      if (hit) {
+        st.fish = st.fish.filter((e) => e !== hit); st.got.push({ e: hit, x: tx, y: ty, t: 0 }); st.caught++;
+        stat.textContent = `${G.stat}: ${st.caught} of ${GOAL}`; msg.textContent = '🐟 Got one!'; sfx('hit');
+        if (st.caught >= GOAL) { st.over = true; st.endAt = st.clock + 0.7; }
+      } else { st.misses++; msg.textContent = G.miss; sfx('miss'); }
+    }
+
+    function step(dt) {
+      st.clock += dt; st.cool = Math.max(0, st.cool - dt);
+      if (st.strike) { st.strike.t += dt; if (st.strike.t > 0.3) st.strike = null; }
+      st.rings.forEach((r) => { r.t += dt; }); st.rings = st.rings.filter((r) => r.t < 0.7);
+      st.got.forEach((g) => { g.t += dt; }); st.got = st.got.filter((g) => g.t < 0.7);
+      if (st.over) { if (st.clock >= st.endAt) finish(); return; }
+      let kx = 0, ky = 0; Object.entries(MOVE).forEach(([k, [dx, dy]]) => { if (st.keys[k]) { kx += dx; ky += dy; } });
+      if (kx || ky) { st.ax = clamp(st.ax + kx * 260 * S * dt, 0, W); st.ay = clamp(st.ay + ky * 260 * S * dt, 0, H); }
+      const f = 1 - Math.pow(0.0005, dt); st.x += (st.ax - st.x) * f; st.y += (st.ay - st.y) * f;
+      st.spawn -= dt;
+      if (st.spawn <= 0 && st.fish.length < MAXN) { st.fish.push(newFish()); st.spawn = GAP; }
+      st.fish.forEach((e) => {
+        e.t += dt; e.ph += dt * 9;
+        const yt = top(e.x), yb = bot(e.x);
+        e.turn += (Math.random() - 0.5) * dt * 6; e.turn = clamp(e.turn, -1.8, 1.8);
+        if (e.y < yt + 16) e.turn += dt * 6 * (Math.cos(e.a) > 0 ? 1 : -1);
+        if (e.y > yb - 16) e.turn -= dt * 6 * (Math.cos(e.a) > 0 ? 1 : -1);
+        e.a += e.turn * dt + Math.sin(e.t * 2.3 + e.ph) * dt * 0.8;
+        if (T === 'weir') e.a -= Math.sin(e.a) * dt * 1.6;   // the current carries them downstream
+        const quick = T === 'weir' && e.x > WX1 - 70 * S ? 1.45 : 1;   // the water runs faster through the narrow end
+        const speed = e.v * quick * (0.75 + 0.45 * Math.max(0, Math.sin(e.t * 1.7 + e.ph)));
+        e.x += Math.cos(e.a) * speed * dt; e.y += Math.sin(e.a) * speed * dt;
+        if ((e.y < yt && Math.sin(e.a) < 0) || (e.y > yb && Math.sin(e.a) > 0)) { e.a = -e.a; e.turn = -e.turn; }
+        e.y = clamp(e.y, yt - 4, yb + 4);
+        // the body follows where the head has been
+        const h = e.tr[0]; if (!h || Math.hypot(h.x - e.x, h.y - e.y) > 6.5 * S * e.size) { e.tr.unshift({ x: e.x, y: e.y }); if (e.tr.length > 9) e.tr.pop(); }
+      });
+      st.fish = st.fish.filter((e) => e.x > -90 && e.x < W + 90 && e.t < 20);
+    }
+
+    // ---------- pictures drawn once ----------
+    const sprite = (fn) => { const s = document.createElement('canvas'); s.width = W * 2; s.height = H * 2; const g = s.getContext('2d'); g.scale(2, 2); fn(g); return s; };
+    const pebbles = (g, Q, n, cols, a, z = 1) => { for (let i = 0; i < n; i++) { const x = Q() * W, y = Q() * H, rx = (4 + Q() * 9) * z, ry = rx * (0.55 + Q() * 0.3); g.globalAlpha = a * (0.5 + Q() * 0.5); g.fillStyle = cols[(Q() * cols.length) | 0]; g.beginPath(); g.ellipse(x, y, rx, ry, Q() * 3, 0, 7); g.fill(); g.globalAlpha = a * 0.35; g.fillStyle = '#FFFFFF'; g.beginPath(); g.ellipse(x - rx * 0.25, y - ry * 0.3, rx * 0.4, ry * 0.3, 0, 0, 7); g.fill(); } g.globalAlpha = 1; };
+    const stone = (g, x, y, r, Q) => {
+      g.fillStyle = 'rgba(15,35,45,.35)'; g.beginPath(); g.ellipse(x + 2, y + 3, r * 1.08, r * 0.82, 0, 0, 7); g.fill();
+      const k = Q(); g.fillStyle = k < 0.33 ? '#8C8F8A' : k < 0.66 ? '#7A7F7C' : '#9A968B'; g.beginPath(); g.ellipse(x, y, r, r * (0.72 + Q() * 0.14), Q() * 1.2 - 0.6, 0, 7); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.28)'; g.beginPath(); g.ellipse(x - r * 0.25, y - r * 0.25, r * 0.5, r * 0.3, -0.4, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(235,245,248,.55)'; g.lineWidth = 1.2; g.beginPath(); g.arc(x + r * 0.2, y, r * 1.25, -0.9, 0.9); g.stroke();   // the current parting round the stone
+    };
+    let bg = null, lit = null;
+    if (T === 'torch') {
+      bg = sprite((g) => {
+        const Q = mulb(41), gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#131D26'); gr.addColorStop(1, '#1E2C38'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+        g.strokeStyle = '#33495B'; g.lineWidth = 1.2; g.lineCap = 'round'; for (let i = 0; i < 26; i++) { const x = Q() * W, y = 30 + Q() * (H - 40); g.globalAlpha = 0.3 + Q() * 0.5; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 12, y - 4, x + 24, y); g.stroke(); } g.globalAlpha = 1;
+        // the far bank: a dark line of grass and reeds
+        g.fillStyle = '#0A1014'; g.beginPath(); g.moveTo(0, 0); g.lineTo(W, 0); g.lineTo(W, 12); for (let x = W; x >= 0; x -= 18) g.lineTo(x, 9 + Math.sin(x / 37) * 3); g.closePath(); g.fill();
+        g.strokeStyle = '#0A1014'; g.lineWidth = 1.6; for (let i = 0; i < 90; i++) { const x = Q() * W, hh = 6 + Q() * 14; g.beginPath(); g.moveTo(x, 10); g.quadraticCurveTo(x + (Q() - 0.5) * 6, 10 + hh * 0.5, x + (Q() - 0.5) * 9, 10 + hh); g.stroke(); }
+      });
+      lit = sprite((g) => {   // what the torch shows: the stony bed of the river
+        const Q = mulb(77); g.fillStyle = '#6E6248'; g.fillRect(0, 0, W, H);
+        pebbles(g, Q, small ? 240 : 380, ['#8A7B5E', '#5E5442', '#9C9278', '#4A4336', '#77705F'], 0.95);
+        g.fillStyle = 'rgba(30,70,80,.32)'; g.fillRect(0, 0, W, H);
+      });
+    } else if (T === 'weir') {
+      bg = sprite((g) => {
+        const Q = mulb(23), gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#4F8C9C'); gr.addColorStop(0.5, '#3F7A8E'); gr.addColorStop(1, '#4F8C9C'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+        pebbles(g, Q, small ? 200 : 320, ['#6F8A86', '#5A7C80', '#86A09A', '#4B6E76'], 0.3, 0.6);
+        // the banks
+        [[0, 1], [H, -1]].forEach(([y0, d]) => { g.fillStyle = '#6E7B45'; g.beginPath(); g.moveTo(0, y0); for (let x = 0; x <= W; x += 20) g.lineTo(x, y0 + d * (9 + Math.sin(x / 45 + y0) * 3)); g.lineTo(W, y0); g.closePath(); g.fill(); g.strokeStyle = '#4E5C30'; g.lineWidth = 1.5; for (let i = 0; i < 70; i++) { const x = Q() * W; g.beginPath(); g.moveTo(x, y0 + d * 4); g.lineTo(x + (Q() - 0.5) * 5, y0 + d * (12 + Q() * 6)); g.stroke(); } });
+        // the two walls of the weir
+        for (const side of [1, -1]) for (let x = WX0; x <= WX1; x += 15 * S) { const y = side > 0 ? wallTop(x) : H - wallTop(x); stone(g, x + (Q() - 0.5) * 4, y - side * 9 + (Q() - 0.5) * 4, (9 + Q() * 4) * S, Q); if (Q() < 0.45) stone(g, x + 7, y - side * 22 + (Q() - 0.5) * 5, (6 + Q() * 3) * S, Q); }
+      });
+    } else {
+      bg = sprite((g) => {
+        const Q = mulb(59), gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#2B5F7C'); gr.addColorStop(0.75, '#3E7C92'); gr.addColorStop(1, '#5C97A0'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+        // the rocks you stand on, with rockweed, along the near edge
+        for (let i = 0; i < 16; i++) { const x = (i / 15) * W + (Q() - 0.5) * 30, r = 22 + Q() * 22; g.fillStyle = Q() < 0.5 ? '#4A4F50' : '#5A5E5C'; g.beginPath(); g.ellipse(x, H + 6, r, r * 0.62, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.14)'; g.beginPath(); g.ellipse(x - r * 0.2, H - r * 0.28, r * 0.45, r * 0.16, -0.2, 0, 7); g.fill(); }
+        g.lineCap = 'round'; for (let i = 0; i < 46; i++) { const x = Q() * W, y = H - 6 - Q() * 20, l = 10 + Q() * 16; g.strokeStyle = Q() < 0.5 ? '#6B6A2E' : '#7F7A35'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (Q() - 0.5) * 12, y - l * 0.6, x + (Q() - 0.5) * 16, y - l); g.stroke(); }
+      });
+    }
+
+    // ---------- drawing ----------
+    const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
+    // an eel, from above: a long body that tapers to the tail, following the path of its head
+    const eel = (g, e, body, sheen, ox, oy, k) => {
+      const pts = [{ x: e.x, y: e.y }].concat(e.tr), n = pts.length; if (n < 2) return;
+      const wag = (i) => Math.sin(e.ph - i * 0.9) * (0.6 + i * 0.5) * S;
+      const P2 = pts.map((p, i) => { const q = pts[Math.min(n - 1, i + 1)], r = pts[Math.max(0, i - 1)], dx = r.x - q.x, dy = r.y - q.y, d = Math.hypot(dx, dy) || 1; return { x: (p.x + (-dy / d) * wag(i) - ox) * k, y: (p.y + (dx / d) * wag(i) - oy) * k }; });
+      g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = body;
+      for (let i = 0; i < n - 1; i++) { g.lineWidth = Math.max(1.6, (8.5 - i * 0.78) * S * e.size) * k; g.beginPath(); g.moveTo(P2[i].x, P2[i].y); g.lineTo(P2[i + 1].x, P2[i + 1].y); g.stroke(); }
+      if (sheen) { g.strokeStyle = sheen; g.lineWidth = 1.4 * k; g.beginPath(); g.moveTo(P2[0].x, P2[0].y); for (let i = 1; i < Math.min(n, 7); i++) g.lineTo(P2[i].x, P2[i].y); g.stroke(); }
+    };
+    // a mackerel, from above: a slim body, a forked tail, dark wavy bars across the back
+    const mackerel = (g, e, alpha) => {
+      const w = Math.sin(e.ph) * 0.28, L = 25 * S * e.size;
+      g.save(); g.translate(e.x, e.y); g.rotate(e.a); g.globalAlpha = alpha;
+      g.fillStyle = '#17323F'; g.beginPath(); g.moveTo(L, 0); g.quadraticCurveTo(L * 0.4, -L * 0.3, -L * 0.55, -L * 0.08); g.lineTo(-L * 0.55, L * 0.08); g.quadraticCurveTo(L * 0.4, L * 0.3, L, 0); g.fill();
+      g.save(); g.translate(-L * 0.55, 0); g.rotate(w); g.beginPath(); g.moveTo(2, 0); g.lineTo(-L * 0.42, -L * 0.3); g.lineTo(-L * 0.26, 0); g.lineTo(-L * 0.42, L * 0.3); g.closePath(); g.fill(); g.restore();
+      g.strokeStyle = 'rgba(150,200,205,.5)'; g.lineWidth = 1.3 * S; g.lineCap = 'round'; g.beginPath(); for (let i = 0; i < 6; i++) { const x = L * 0.55 - i * L * 0.19; g.moveTo(x, -L * 0.13); g.quadraticCurveTo(x - L * 0.07, 0, x, L * 0.13); } g.stroke();
+      if (!RM && Math.sin(e.t * 3.1 + e.ph * 0.2) > 0.93) { g.strokeStyle = 'rgba(240,250,250,.75)'; g.lineWidth = 2; g.beginPath(); g.moveTo(L * 0.6, -L * 0.12); g.lineTo(-L * 0.3, -L * 0.1); g.stroke(); }   // a flash of its silver side
+      g.restore(); g.globalAlpha = 1;
+    };
+    // the three-pronged spear, held out over the water from the near edge
+    const spear = (tipx, tipy, down) => {
+      const bx = W * 0.62 + (tipx - W / 2) * 0.35, by = H + 40, dx = tipx - bx, dy = tipy - by, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d, px = -uy, py = ux;
+      const ex = tipx - ux * (down ? 0 : 46 * S), ey = tipy - uy * (down ? 0 : 46 * S);
+      c.lineCap = 'round'; c.strokeStyle = 'rgba(0,0,0,.28)'; c.lineWidth = 6 * S; c.beginPath(); c.moveTo(bx + 5, by); c.lineTo(ex + 5 - ux * 16 * S, ey + 7 - uy * 16 * S); c.stroke();
+      c.strokeStyle = T === 'torch' ? '#B9A27C' : '#9A7B52'; c.lineWidth = 5 * S; c.beginPath(); c.moveTo(bx, by); c.lineTo(ex - ux * 16 * S, ey - uy * 16 * S); c.stroke();
+      c.strokeStyle = T === 'torch' ? '#E2D2B0' : '#D9CBB0'; c.lineWidth = 2.6 * S;
+      c.beginPath(); c.moveTo(ex - ux * 20 * S, ey - uy * 20 * S); c.lineTo(ex, ey);
+      for (const s of [1, -1]) { c.moveTo(ex - ux * 18 * S, ey - uy * 18 * S); c.quadraticCurveTo(ex - ux * 12 * S + px * s * 11 * S, ey - uy * 12 * S + py * s * 11 * S, ex - ux * 1 * S + px * s * 7 * S, ey - uy * 1 * S + py * s * 7 * S); }
+      c.stroke();
+      c.strokeStyle = '#5A4636'; c.lineWidth = 3.4 * S; c.beginPath(); c.moveTo(ex - ux * 22 * S, ey - uy * 22 * S); c.lineTo(ex - ux * 16 * S, ey - uy * 16 * S); c.stroke();   // the lashing
+    };
+    function draw() {
+      const t = st.clock, sk = st.strike, down = sk && sk.t < 0.2;
+      c.drawImage(bg, 0, 0, W, H);
+      if (T === 'torch') {
+        st.fish.forEach((e) => eel(c, e, 'rgba(8,13,18,.7)', null, 0, 0, 1));
+        if (!st.low) {   // inside the light you can see the river bed, and the eels as they are
+          const D = Math.ceil(RAD * 3), tmp = draw.tmp || (draw.tmp = document.createElement('canvas')); if (tmp.width !== D) { tmp.width = D; tmp.height = D; }
+          const g = tmp.getContext('2d'), ox = st.x - D / 2, oy = st.y - D / 2, fl = RM ? 1 : 1 + Math.sin(t * 13) * 0.02 + Math.sin(t * 7.3) * 0.02;
+          g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, D, D); g.drawImage(lit, ox * 2, oy * 2, D * 2, D * 2, 0, 0, D, D);
+          st.fish.forEach((e) => eel(g, e, '#2B2518', 'rgba(215,220,210,.55)', ox, oy, 1));
+          const m = g.createRadialGradient(D / 2, D / 2, 0, D / 2, D / 2, RAD * 1.4 * fl); m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(0.62, 'rgba(0,0,0,.92)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+          g.globalCompositeOperation = 'destination-in'; g.fillStyle = m; g.fillRect(0, 0, D, D);
+          c.drawImage(tmp, ox, oy);
+        }
+        const gl = c.createRadialGradient(st.x, st.y, 0, st.x, st.y, RAD * 1.45); gl.addColorStop(0, `rgba(242,203,122,${st.low ? 0.5 : 0.3})`); gl.addColorStop(0.7, 'rgba(233,184,102,.16)'); gl.addColorStop(1, 'rgba(233,184,102,0)'); c.fillStyle = gl; c.beginPath(); c.arc(st.x, st.y, RAD * 1.45, 0, 7); c.fill();
+        c.strokeStyle = 'rgba(242,203,122,.75)'; c.lineWidth = 2; c.beginPath(); c.arc(st.x, st.y, RAD, 0, 7); c.stroke();
+      } else if (T === 'weir') {
+        // the current, and a few fallen leaves riding it
+        c.strokeStyle = 'rgba(225,240,244,.35)'; c.lineWidth = 1.3; c.lineCap = 'round'; c.beginPath(); for (let i = 0; i < 14; i++) { const x = ((i * 97 + t * (RM ? 0 : 60)) % (W + 60)) - 30, y = 24 + ((i * 53) % (H - 48)); if (y > top(x) + 6 && y < bot(x) - 6) { c.moveTo(x, y); c.quadraticCurveTo(x + 12, y - 3, x + 24, y); } } c.stroke();
+        st.fish.forEach((e) => { eel(c, e, 'rgba(15,40,50,.3)', null, -3, -5, 1); eel(c, e, '#2C3A2A', 'rgba(170,185,150,.5)', 0, 0, 1); });
+        if (!st.low) for (let i = 0; i < 6; i++) { const x = ((i * 173 + t * (RM ? 0 : 34 + i * 3)) % (W + 40)) - 20, y = 40 + ((i * 89) % (H - 80)) + Math.sin(t * 0.8 + i) * 6; if (y < top(x) + 8 || y > bot(x) - 8) continue; c.save(); c.translate(x, y); c.rotate(t * 0.5 + i); c.fillStyle = ['#C8612A', '#DDA032', '#A8432F'][i % 3]; c.beginPath(); c.ellipse(0, 0, 6 * S, 3.2 * S, 0, 0, 7); c.fill(); c.strokeStyle = 'rgba(60,30,10,.6)'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(-6 * S, 0); c.lineTo(7 * S, 0); c.stroke(); c.restore(); }
+      } else {
+        c.strokeStyle = 'rgba(200,232,238,.3)'; c.lineWidth = 1.4; c.lineCap = 'round'; c.beginPath(); for (let i = 0; i < 16; i++) { const x = (i * 83 + Math.sin(t * 0.6 + i) * (RM ? 0 : 14)) % W, y = 14 + ((i * 47) % (H - 60)) + Math.sin(t * 0.9 + i * 2) * (RM ? 0 : 4); c.moveTo(x, y); c.quadraticCurveTo(x + 14, y - 5, x + 28, y); } c.stroke();
+        st.fish.forEach((e) => mackerel(c, e, 0.82));
+      }
+      // the splash where the spear or the jig went in
+      st.rings.forEach((r) => { const k = r.t / 0.7; c.strokeStyle = `rgba(240,246,246,${0.8 * (1 - k)})`; c.lineWidth = 2; c.beginPath(); c.ellipse(r.x, r.y, 6 + k * 30 * S, 4 + k * 20 * S, 0, 0, 7); c.stroke(); });
+      // the one just caught comes up out of the water
+      st.got.forEach((g) => { const k = clamp(g.t / 0.7, 0, 1), bx = W * 0.5, by = H + 30, x = lerp(g.x, bx, k * k), y = lerp(g.y, by, k * k); if (T === 'basin') { mackerel(c, { x, y, a: -Math.PI / 2 + Math.sin(g.t * 30) * 0.4, ph: g.t * 40, t: 0, size: g.e.size * (1 + k * 0.5) }, 1); c.strokeStyle = 'rgba(245,250,250,.8)'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 9 * S, 0.5 + g.t * 20, 2 + g.t * 20); c.stroke(); } else { c.strokeStyle = T === 'torch' ? '#3A3222' : '#2C3A2A'; c.lineWidth = 7 * S; c.lineCap = 'round'; c.beginPath(); for (let i = 0; i <= 8; i++) { const a = i / 8 * Math.PI * 2.2 + g.t * 26, r = (9 - i * 0.5) * S * (1 + k); const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r * 0.7; if (i) c.lineTo(px, py); else c.moveTo(px, py); } c.stroke(); } });
+      if (T !== 'torch') {   // where you will strike, as before: a white ring with a red point
+        const gl = c.createRadialGradient(st.x, st.y, 0, st.x, st.y, RAD * 1.35); gl.addColorStop(0, 'rgba(255,255,255,.3)'); gl.addColorStop(0.7, 'rgba(232,243,247,.16)'); gl.addColorStop(1, 'rgba(232,243,247,0)'); c.fillStyle = gl; c.beginPath(); c.arc(st.x, st.y, RAD * 1.35, 0, 7); c.fill();
+        c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 2; c.beginPath(); c.arc(st.x, st.y, RAD, 0, 7); c.stroke();
+      }
+      if (T === 'basin') {
+        // the hand line from the rocks, and the jig on its end
+        const jx = down ? sk.x : st.x, jy = (down ? sk.y : st.y) + (down ? -6 * Math.sin(sk.t * 30) : Math.sin(t * 3) * 1.5);
+        c.strokeStyle = 'rgba(244,240,230,.9)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(W / 2, H + 4); c.quadraticCurveTo(lerp(W / 2, jx, 0.5) + (down ? 0 : 10), lerp(H, jy, 0.5) + (down ? 0 : 14), jx, jy); c.stroke();
+        c.fillStyle = '#DDE3E4'; c.beginPath(); c.ellipse(jx, jy, 2.6 * S, 6 * S, 0, 0, 7); c.fill(); c.fillStyle = '#E04A3A'; c.beginPath(); c.arc(jx, jy - 5 * S, 2.6 * S, 0, 7); c.fill();
+      } else {
+        if (T === 'torch') {   // the birchbark torch in your other hand
+          const hx = st.x - RAD * 0.95, hy = st.y + RAD * 0.75, bx = W * 0.3 + (st.x - W / 2) * 0.4, by = H + 40;
+          c.lineCap = 'round'; c.strokeStyle = '#3A2E22'; c.lineWidth = 6 * S; c.beginPath(); c.moveTo(bx, by); c.lineTo(hx, hy); c.stroke();
+          c.strokeStyle = '#E9E2D0'; c.lineWidth = 9 * S; c.beginPath(); c.moveTo(lerp(bx, hx, 0.86), lerp(by, hy, 0.86)); c.lineTo(hx, hy); c.stroke();
+          c.strokeStyle = 'rgba(60,45,30,.7)'; c.lineWidth = 1; for (let i = 0; i < 3; i++) { const k = 0.89 + i * 0.04, x = lerp(bx, hx, k), y = lerp(by, hy, k); c.beginPath(); c.moveTo(x - 4, y - 2); c.lineTo(x + 4, y + 2); c.stroke(); }
+          for (let i = 0; i < 3; i++) { const fl = RM ? 0 : Math.sin(t * (11 + i * 4) + i * 2), r = (11 - i * 3) * S; c.fillStyle = ['rgba(226,120,40,.9)', 'rgba(244,180,70,.95)', 'rgba(255,238,170,.95)'][i]; c.beginPath(); c.moveTo(hx - r * 0.7, hy); c.quadraticCurveTo(hx - r * 0.9 + fl * 2, hy - r * 1.3, hx + fl * 3, hy - r * 2.3 - fl * 2); c.quadraticCurveTo(hx + r * 0.9 + fl * 2, hy - r * 1.1, hx + r * 0.7, hy); c.closePath(); c.fill(); }
+        }
+        spear(down ? sk.x : st.x, down ? sk.y : st.y, down);
+      }
+      // what you have so far
+      const pw = (small ? 20 : 22) * GOAL + 22; c.fillStyle = 'rgba(255,253,248,.92)'; rr(10, 10, pw, 28, 14); c.fill();
+      for (let i = 0; i < GOAL; i++) { const x = 26 + i * (small ? 20 : 22), y = 24, on = i < st.caught; c.strokeStyle = on ? '#1F3A48' : '#C9C2B4'; c.fillStyle = on ? '#1F3A48' : 'transparent'; c.lineWidth = on ? 3.4 : 2; c.lineCap = 'round'; c.beginPath(); if (T === 'basin') { c.ellipse(x, y, 6, 3.2, 0, 0, 7); c.moveTo(x - 6, y); c.lineTo(x - 10, y - 3.5); c.moveTo(x - 6, y); c.lineTo(x - 10, y + 3.5); if (on) c.fill(); } else { c.moveTo(x - 7, y + 2); c.quadraticCurveTo(x - 3, y - 5, x, y); c.quadraticCurveTo(x + 3, y + 5, x + 7, y - 2); } c.stroke(); }
+      if (!st.started || st.paused) {
+        c.fillStyle = 'rgba(20,28,34,.5)'; c.fillRect(0, 0, W, H);
+        const cw = Math.min(W - 24, 420); c.fillStyle = 'rgba(255,253,248,.96)'; rr(W / 2 - cw / 2, H / 2 - 44, cw, 88, 16); c.fill();
+        c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#22252B'; c.font = '700 20px ' + FONT; c.fillText(st.paused ? 'Paused' : 'Ready?', W / 2, H / 2 - 14);
+        c.font = '600 14px ' + FONT; c.fillText(st.paused ? 'Press Space or tap to carry on' : 'Press Space or tap to start', W / 2, H / 2 + 16);
+      }
+    }
+
+    // ---------- loop and controls ----------
+    let raf = 0, last = 0, acc = 0, alive = true, fN = 0, fT = 0;
+    const syncGT = () => { box.dataset.idle = st.started && !st.paused && !st.over ? '0' : '1'; box.dataset.busy = st.started && !st.ended ? '1' : '0'; };
+    const frame = (now) => {
+      if (!alive) return; if (!cv.isConnected) { stop(); return; }
+      const raw = (now - last) / 1000 || 0, dt = Math.min(0.05, raw); last = now;
+      if (st.started && !st.paused && !st.hold) {
+        acc += dt; while (acc >= 1 / 120) { step(1 / 120); acc -= 1 / 120; if (st.ended) return; }
+        if (!st.low && raw < 0.25 && fN < 90) { fN++; fT += raw; if (fN === 90 && fT / 90 > 0.024) { st.low = true; if (dpr > 1) { dpr = 1; cv.width = W; cv.height = H; c.setTransform(1, 0, 0, 1, 0, 0); } } }
+      }
+      draw(); raf = requestAnimationFrame(frame);
+    };
+    const begin = () => {
+      if (st.over) return false;
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (e) { /* no sound */ }
+      if (st.paused) { st.paused = false; pauseBtn.textContent = '⏸ Pause'; syncGT(); return true; }
+      if (!st.started) { st.started = true; syncGT(); return true; }
+      return false;
+    };
+    const pause = () => { if (!st.started || st.over) return; st.paused = !st.paused; st.keys = {}; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; syncGT(); };
+    const MOVE = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], KeyA: [-1, 0], KeyD: [1, 0], KeyW: [0, -1], KeyS: [0, 1] };
+    const kd = (e) => {
+      if (e.target.closest && e.target.closest('input,textarea,select')) return;
+      if (MOVE[e.code]) { e.preventDefault(); if (!st.started || st.paused) begin(); st.keys[e.code] = true; }
+      else if (e.code === 'Space' || e.key === ' ') { if (e.target.tagName === 'BUTTON') return; e.preventDefault(); if (!e.repeat && !begin()) strike(); }
+      else if (e.code === 'KeyP') pause();
+    };
+    const ku = (e) => { if (MOVE[e.code]) st.keys[e.code] = false; };
+    const vis = () => { if (document.hidden && st.started && !st.over && !st.paused) pause(); };
+    const toXY = (ev) => { const r = cv.getBoundingClientRect(); return { x: clamp((ev.clientX - r.left) / r.width * W, 0, W), y: clamp((ev.clientY - r.top) / r.height * H, 0, H) }; };
+    // move: mouse or trackpad (hover), finger (the circle jumps to the touch), or arrow keys / WASD
+    cv.addEventListener('pointermove', (ev) => { const p = toXY(ev); st.ax = p.x; st.ay = p.y; });
+    cv.addEventListener('pointerdown', (ev) => { ev.preventDefault(); const p = toXY(ev); st.ax = p.x; st.ay = p.y; if (ev.pointerType !== 'mouse') { st.x = p.x; st.y = p.y; } cv.focus({ preventScroll: true }); if (!begin()) strike(); });
+    cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('keydown', kd); document.addEventListener('keyup', ku); document.addEventListener('visibilitychange', vis);
+    strikeBtn.onclick = () => { if (!begin()) strike(); };
+    pauseBtn.onclick = () => { pause(); cv.focus({ preventScroll: true }); };
+    function stop() { alive = false; cancelAnimationFrame(raf); document.removeEventListener('keydown', kd); document.removeEventListener('keyup', ku); document.removeEventListener('visibilitychange', vis); if (stopRun === stop) stopRun = null; }
+    stopRun = stop;
+    st.api = { step, strike, begin, pause, mid, draw };   // for tests
+    cv.focus({ preventScroll: true }); raf = requestAnimationFrame(frame);
+
+    function finish() {
+      st.ended = true; draw(); stop();
+      box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
+      const n = st.misses <= 2 ? 3 : st.misses <= 6 ? 2 : 1;
+      PROG.eel = Math.max(PROG.eel || 0, n); saveProg(); sfx('done');
+      row.replaceWith(el('p', { class: 'trail-stars', text: stars(n), role: 'img', 'aria-label': `${n} out of 3 stars` }));
+      msg.textContent = st.misses === 0 ? 'Six strikes, six caught.' : `Six caught, with ${st.misses} miss${st.misses === 1 ? '' : 'es'}.${n < 3 ? ' For three stars, wait until one is well inside the circle.' : ''}`;
+      box.append(winBox(G.winTitle, G.winParas),
+        timeUp() ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' }) : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '▶ Play again', onclick: () => play() })]));
+      win();
+    }
+  }
+  play();
 }
 // ---------- 4. The little railway ----------
 function gRoute(box, win) {
