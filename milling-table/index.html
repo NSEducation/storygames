@@ -821,6 +821,60 @@
   .quizbox .quizsaid { border-left: 4px solid currentColor; padding-left: 0.7rem; margin: 0.2rem 0 0.6rem; }
   @media print { .quizbox { display: none !important; } }
 </style>
+<style id="patientscss">
+  .pa-frame { position: relative; max-width: max(300px, min(100vh, calc((100vh - 290px) * 1.8))); margin: 0 auto .3rem; }   /* on a short, wide screen the picture leaves room for the clock above it and the buttons below it */
+  .pa-pic svg.pa-svg { display: block; width: 100%; height: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  .pa-shade { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(14, 18, 26, .55); color: #fff; font-weight: 700; font-size: 1.4rem; }
+  .pa-shade[hidden] { display: none; }
+  .pa-pat, .pa-car { cursor: pointer; outline: none; }
+  .pa-pat:focus-visible > rect:first-child, .pa-car:focus-visible > rect:first-child { stroke: #E0A526; stroke-width: 3; stroke-dasharray: 6 4; }
+  .pa-ring { animation: paPulse 1.4s ease-in-out infinite; }
+  @keyframes paPulse { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
+  .pa-mary { transition: transform .55s ease-in-out; }
+  .pa-cap { fill: #F4F1EA; font: 700 11px system-ui, sans-serif; }
+  .pa-saytext { fill: #1E2430; font: 12px system-ui, sans-serif; }
+  .pa-cloud { animation: paDrift 40s linear infinite alternate; }
+  @keyframes paDrift { from { transform: translateX(-20px); } to { transform: translateX(40px); } }
+  .pa-steam circle { transform-box: fill-box; transform-origin: center; animation: paSteam 3.6s linear infinite; opacity: 0; }
+  @keyframes paSteam { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 15% { opacity: .85; } 100% { transform: translate(-70px, -90px) scale(2.2); opacity: 0; } }
+  /* above the picture, like a station board: the clock, the count, and Start or Pause */
+  .pa-bar { display: flex; flex-wrap: wrap; gap: .3rem 1rem; align-items: center; margin: .6rem 0 .4rem; }
+  .pa-bar .gstat { margin: 0; }
+  .pa-bar .row { margin: 0 0 0 auto; }
+  .pa-clock { font-weight: 700; }
+  .pa-clock.warn { color: #9C2F2A; }
+  .pa-short { display: none; }
+  .pa-msg { margin: .1rem 0 .35rem; min-height: 2.7em; line-height: 1.35; }   /* room for two lines, so the buttons below do not jump */
+  /* the buttons: looking after him (four), and onto the train (two), in one row */
+  .pa-tray { display: flex; gap: .6rem; }
+  .pa-group { display: grid; gap: .4rem; min-width: 0; }
+  .pa-group.pa-care { flex: 4 1 0; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .pa-group.pa-board { flex: 2 1 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pa-act { min-height: 48px; padding: .35rem .25rem; border: 2px solid rgba(27, 37, 41, .35); border-radius: 10px; background: #FBF8F0; color: #1B2529; font: inherit; font-size: .85rem; line-height: 1.15; cursor: pointer; text-align: center; overflow-wrap: anywhere; }
+  .pa-ic { display: block; font-size: 1.25rem; line-height: 1.25; }
+  .pa-board .pa-act { border-color: rgba(46, 74, 120, .6); background: #EFF3F8; }
+  .pa-act:hover:not(:disabled), .pa-act:focus-visible { border-color: #1B2529; outline: 3px solid #E0A526; outline-offset: 1px; }
+  .pa-act:disabled { opacity: .5; cursor: default; }
+  .pa-act.ready:not(:disabled) { border-color: #3F6B46; box-shadow: 0 0 0 3px rgba(63, 107, 70, .35); }
+  @media (max-width: 520px) {
+    /* a phone: the clock and Pause on one line, the count under them; the buttons in two rows */
+    .pa-bar { gap: .15rem .6rem; font-size: .85rem; margin: .25rem 0 .25rem; }
+    .pa-bar .gstat { order: 3; flex-basis: 100%; }
+    .pa-bar .gamebtn { min-height: 34px; padding: .1rem .7rem; }
+    .pa-long { display: none; }
+    .pa-short { display: inline; }
+    .pa-msg { font-size: .85rem; min-height: 4em; }   /* room for three lines */
+    .pa-tray { flex-direction: column; gap: .3rem; }
+    .pa-group, .pa-group.pa-care, .pa-group.pa-board { flex: none; gap: .3rem; }
+    .pa-act { min-height: 44px; padding: .2rem .15rem; font-size: .72rem; }
+    .pa-ic { font-size: 1rem; line-height: 1.2; }
+    .pa-board .pa-ic { display: inline; margin-right: .3rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pa-ring, .pa-cloud, .pa-steam circle { animation: none !important; }
+    .pa-mary { transition: none; }
+  }
+</style>
 </head>
 <body>
 <header class="bar">
@@ -1633,10 +1687,6 @@ const PACK_SETS = {
     items: [['🥣', 'Oatmeal and oatcakes for the voyage', 2, 'The ship is meant to feed you, but Father says to bring your own as well.'], ['🧶', 'Seanmhair’s spindle and some wool', 1, 'Small and light. You can spin anywhere.'], ['🧣', 'Blankets and winter clothes', 2, 'Everyone says the winters over there are colder.'], ['🪓', 'Father’s axe and spade', 2, 'There will be trees to cut and ground to dig.'],
       ['🌾', 'A bag of seed', 1, 'For the first planting.'], ['📖', 'The family Bible', 1, 'The names and birthdays of the family are written inside the cover.'], ['🪑', 'The good chair', 3, 'Far too big.'], ['🍲', 'The iron pot', 2, 'Heavy, but you will have to cook.'], ['🪨', 'Donald’s stone', 1, 'Donald says it is coming. Donald is six.']],
     real: ['Nobody wrote down what each Hector family packed. We do know that the food for the voyage ran low, and that the last oatcakes went mouldy. One man, Hugh McLeod, saved the crumbs other people threw away, and on the last days everyone was glad of them.', 'When the families reached Piktuk, the food they had been promised for the first winter did not come. What got them through was hard work, help from the Mi’kmaq, and each other.'] },
-  ward: { look: 'train', cap: 8, unit: 'Space on the train', intro: 'It is April 1918, and the hospital is moving to Étaples. The patients go first. After them, the train has room for 8 loads. Matron says: take what we cannot get again quickly.',
-    items: [['🩺', 'Surgical instruments', 1, 'Small, precious and hard to replace.'], ['🩹', 'Dressings and bandages', 2, 'You use hundreds every day.'], ['💊', 'Medicines', 1, 'There are never enough.'], ['📋', 'The patients’ records', 1, 'Each man’s notes must go with him.'],
-      ['🧥', 'Blankets', 2, 'The tents are cold at night, even in May.'], ['🛏️', 'The iron bed frames', 4, 'Too heavy. The army can send more.'], ['🎹', 'The piano from the recreation hut', 3, 'Somebody will be very sad about this.'], ['🫖', 'The ward teapot', 1, 'Matron says it is not needed. Then she packs it herself.'], ['🎵', 'John’s Gaelic songbook', 1, 'He left it with you. It weighs almost nothing.']],
-    real: ['In April 1918, No. 9 Stationary Hospital, the hospital unit from St. Francis Xavier University, moved from St-Omer to Étaples, near the coast of France. It worked there until the autumn.', 'Moving a hospital meant moving patients, tents, beds and supplies, often in a hurry. The nursing sisters travelled with the patients and kept caring for them on the way.'] },
 };
 const GAME_TITLE = 'The Milling Table';
 const HERO_START = { kirsty: 'lochbroom', angus: 'rum', mary: 'porthood' };
@@ -6964,13 +7014,476 @@ function gForestRun(box, win) {
   menu();
 }
 
+// ================= PATIENTS FIRST (the hospital train) =================
+// Near St-Omer, April 1918 (story scene 520: "Every patient has to be moved onto trains, quickly and carefully").
+// Mary helps get the hospital's patients onto an ambulance train before it leaves: each man's label goes with him,
+// lying cases go into the cots of the ward car and men who can sit up go to the sitting car; a blanket, a hot drink
+// and a quiet word (scene 521: talking to patients "in a quiet, ordinary voice ... helps them") make the journey easier.
+// It replaces the packing game "Move the hospital" (PACK_SETS.ward) and carries its history, corrected from sources.
+// Sources, opened 20 Nov 2026: E. M. McCarthy, Matron-in-Chief, "Report on the work of the C.A.M.C. Nursing Service
+// with the B.E.F. in France" (scarletfinders: No. 9 Canadian Stationary Hospital at St. Omer from December 1917, Matron
+// McIsaac; after the March 1918 retreat it closed, its nursing staff went to Nos. 1 and 7 Canadian General Hospitals,
+// and the unit went to Etaples; a C.A.M.C. staff took over No. 15 Ambulance Train on 30 April 1918, Nursing Sister K.
+// Shaw in charge); E. M. McCarthy, "The work of the nursing services with British ambulance trains and station units in
+// France, in 1914" (sisters for the "lying cases" and the "sitting cases"; two on duty all night; station sisters took
+// round hot drinks and light food); Canadian Great War Project, "CAMC overseas hospitals" (No. 9 at St. Omer 12 Dec 1917
+// to 19 Apr 1918, then Etaples); Bruce MacDonald, Guysborough Great War Veterans (on 12 April 1918 No. 9 was ordered to
+// begin evacuating its patients; its nursing sisters were sent to nearby hospitals; within a week its people went to
+// Etaples); The Railway Magazine, 1915, "The story of ambulance trains" (ward cars with cots in three tiers, cars for
+// sitting-up cases, kitchens, a pharmacy, doctors, nurses and orderlies; double doors for stretchers; a patient could be
+// put in a cot without taking him off his stretcher); Science Museum Group, "Wound tags" (tied to a soldier, with his
+// name, regiment and wound, the tag travelled with him); The British Journal of Nursing, 27 April 1918, "Patients first".
+function gPatients(box, win) {
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const P = (n) => (+n).toFixed(1);
+  let stopRun = null;
+
+  // quiet sound effects: only when the Sound button at the top is on
+  const sfx = (() => {
+    let nb = null; const lastAt = {};
+    const A = () => { try { if (typeof SND === 'undefined' || !SND.on) return null; const a = SND._audio(); return a && a.ctx && a.master ? a : null; } catch (e) { return null; } };
+    const tone = (a, type, f0, f1, dur, vol, delay) => { const t = a.ctx.currentTime + (delay || 0), o = a.ctx.createOscillator(), g = a.ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.03); };
+    const hiss = (a, freq, dur, vol, delay) => { if (!nb) { nb = a.ctx.createBuffer(1, Math.floor(a.ctx.sampleRate * 0.8), a.ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } const t = a.ctx.currentTime + (delay || 0), s = a.ctx.createBufferSource(), f = a.ctx.createBiquadFilter(), g = a.ctx.createGain(); s.buffer = nb; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.connect(f); f.connect(g); g.connect(a.master); s.start(t); s.stop(t + dur + 0.03); };
+    return (kind) => {
+      const a = A(); if (!a) return;
+      const now = a.ctx.currentTime; if (lastAt[kind] && now - lastAt[kind] < 0.08) return; lastAt[kind] = now;
+      try {
+        if (kind === 'pick') tone(a, 'triangle', 520, 620, 0.08, 0.035);
+        else if (kind === 'tie') { tone(a, 'triangle', 900, 900, 0.04, 0.03); tone(a, 'triangle', 760, 760, 0.05, 0.03, 0.07); }
+        else if (kind === 'cloth') hiss(a, 700, 0.35, 0.035);
+        else if (kind === 'cup') { tone(a, 'sine', 1320, 1320, 0.12, 0.03); tone(a, 'sine', 1760, 1760, 0.1, 0.02, 0.05); }
+        else if (kind === 'word') { tone(a, 'sine', 392, 392, 0.14, 0.025); tone(a, 'sine', 440, 440, 0.16, 0.025, 0.13); }
+        else if (kind === 'lift') tone(a, 'triangle', 220, 260, 0.14, 0.04);
+        else if (kind === 'slip') tone(a, 'sine', 300, 250, 0.2, 0.04);
+        else if (kind === 'step') { tone(a, 'triangle', 659, 659, 0.1, 0.04); tone(a, 'triangle', 784, 784, 0.16, 0.04, 0.09); }
+        else if (kind === 'whistle') { tone(a, 'sine', 880, 880, 0.5, 0.035); tone(a, 'sine', 1046, 1046, 0.45, 0.025, 0.02); }
+        else if (kind === 'steam') hiss(a, 500, 0.8, 0.045);
+        else if (kind === 'win') [523, 659, 784].forEach((f, i) => tone(a, 'triangle', f, f, 0.26, 0.05, i * 0.13));
+      } catch (e) { /* sound is a nicety; never let it stop the game */ }
+    };
+  })();
+
+  // the story pictures' own ink figures (Mary's story): a nursing sister, a soldier, a man sitting, a man lying down
+  const INKC = '#1E2430', NSBLUE = '#2E4A78';
+  const FIGS = {
+    NS: '<path d="M-9,-92 Q0,-101 9,-92 L13,-62 L-13,-62 Z" fill="#F4F1EA"/><circle cx="0" cy="-87" r="7"/><path d="M-11,-79 L11,-79 L18,0 L-18,0 Z"/><path d="M-7,-72 L7,-72 L10,-10 L-10,-10 Z" fill="#F4F1EA"/>',
+    SOLDIER: '<circle cx="0" cy="-90" r="8"/><path d="M-11,-96 L11,-96 L9,-92 L-9,-92 Z"/><path d="M-12,-81 L12,-81 L15,-38 L-15,-38 Z"/><rect x="-8" y="-40" width="6" height="40"/><rect x="2" y="-40" width="6" height="40"/>',
+    SIT: '<circle cx="-2" cy="-58" r="8"/><path d="M-10,-50 L8,-50 L12,-20 L-12,-16 Z"/><path d="M-12,-18 L4,-34 L22,-30 L24,0 L14,0 L14,-20 L0,-10 L-14,0 L-18,0 Z"/>',
+    LIE: '<circle cx="-42" cy="-12" r="9"/><path d="M-34,-18 Q0,-28 44,-14 L46,0 L-36,0 Z"/>',
+  };
+  const fg = (k, x, y, h, o = {}) => `<g transform="translate(${P(x)} ${P(y)}) scale(${o.flip ? -h / 100 : h / 100} ${h / 100})" fill="${o.c || INKC}">${FIGS[k]}</g>`;
+
+  // ---------- the picture (720 x 400) ----------
+  const TY = 276, PY = 350;                                    // the rails, the patients on the platform
+  const WARD = { x0: 104, x1: 372, cut: [144, 344], door: [348, 368] };
+  const SITC = { x0: 386, x1: 600, cut: [416, 560], door: [390, 410] };
+  const COTS = []; [197, 293].forEach((cx) => [196, 222, 248].forEach((cy) => COTS.push({ x: cx, y: cy })));   // 2 columns, 3 tiers
+  const SEATS = [430, 456, 482, 508, 534, 556].map((x) => ({ x, y: 250 }));
+  const LYX = [58, 140, 222, 304], SITX = [452, 508, 564, 620];
+  const IDLE = 380;                                              // where the stretcher-bearers wait, by the ward car's door
+  const CARE = ['label', 'blanket', 'tea', 'word'];
+  const NAME = { label: 'his label', blanket: 'a blanket', tea: 'a hot drink', word: 'a quiet word' };
+  const SAYS = [   // Mary's quiet, ordinary words (scene 521), about anything at all; family details only as the story gives them (501, 511, 516)
+    'Rain again. Just like Cape Breton.',
+    'My mother reads my letters out loud to the cows.',
+    'There will be tea on the train.',
+    'Where is home? Mine is Port Hood, by the sea.',
+    'The sisters on the train will look after you.',
+    'You will be in a proper bed tonight.',
+    'My brother John is a soldier too.',
+    'Nearly there. Breathe slowly.',
+  ];
+  const ICON = {
+    label: (x, y) => `<g transform="translate(${P(x)} ${P(y)})"><path d="M-6,-4 L4,-4 L8,0 L4,4 L-6,4 Z" fill="#E8D9A8" stroke="${INKC}" stroke-width="1"/><circle cx="3.6" cy="0" r="1.3" fill="${INKC}"/><path d="M-4,-1.5 h5 M-4,1.5 h4" stroke="#8A7A50" stroke-width="0.9"/></g>`,
+    blanket: (x, y) => `<g transform="translate(${P(x)} ${P(y)})"><rect x="-7" y="-5" width="14" height="10" rx="2" fill="#6E7A84" stroke="${INKC}" stroke-width="1"/><path d="M-6,-1.5 h12 M-6,1.5 h12" stroke="#B9C2C8" stroke-width="0.9"/></g>`,
+    tea: (x, y) => `<g transform="translate(${P(x)} ${P(y)})"><path d="M-5,-2 L5,-2 L4,5 L-4,5 Z" fill="#F4F1EA" stroke="${INKC}" stroke-width="1"/><path d="M5,0 q3,1 0,3" stroke="${INKC}" stroke-width="1" fill="none"/><path d="M-2,-4 q-1.5,-2 0,-4 M1.5,-4 q-1.5,-2 0,-4" stroke="#8A9096" stroke-width="0.9" fill="none"/></g>`,
+    word: (x, y) => `<g transform="translate(${P(x)} ${P(y)})"><path d="M-7,-5 h14 v8 h-8 l-3,3 v-3 h-3 Z" fill="#FFFFFF" stroke="${INKC}" stroke-width="1"/><circle cx="-3" cy="-1" r="1" fill="${INKC}"/><circle cx="0" cy="-1" r="1" fill="${INKC}"/><circle cx="3" cy="-1" r="1" fill="${INKC}"/></g>`,
+  };
+
+  function play() {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const relaxed = !!RELAXED;
+    const TOTAL = relaxed ? 260 : 165;              // seconds until the train leaves
+    const SPEED = relaxed ? 230 : 170;              // how fast the stretcher-bearers walk
+    // eight patients: four lying cases on stretchers, four men who can sit up; each needs his label, and one or two
+    // of a blanket, a hot drink and a quiet word
+    const comfort = shuffle([['blanket'], ['tea'], ['word'], ['blanket', 'tea'], ['tea', 'word'], ['blanket', 'word'], ['blanket'], ['word', 'tea']]);
+    const looks = shuffle(['head', 'arm', '', 'head', 'leg', '', 'arm', 'head']);
+    const pats = [...LYX.map((x, i) => ({ id: 'L' + (i + 1), kind: 'lie', x })), ...SITX.map((x, i) => ({ id: 'S' + (i + 1), kind: 'sit', x }))]
+      .map((p, i) => ({ ...p, needs: new Set(['label', ...comfort[i]]), had: new Set(), look: looks[i], where: 'wait', spot: -1, missed: 0 }));
+    const st = {
+      started: false, paused: false, over: false, leaving: false, sel: null, slips: 0, left: TOTAL, warned: false,
+      carry: null, walk: null, cotsUsed: 0, seatsUsed: 0, trainX: 0, say: '', sayUntil: 0, sayI: Math.floor(Math.random() * SAYS.length),
+      lastKey: false, met: 0, needTotal: pats.reduce((n, p) => n + p.needs.size, 0),
+    };
+    box._pt = st; st.pats = pats;   // for the tests
+    let alive = true, raf = 0, lastT = 0;
+    const timers = [];
+    const later = (fn, ms) => { const t = setTimeout(() => { if (alive) fn(); }, ms); timers.push(t); };
+
+    // ---------- the page ----------
+    const pic = el('div', { class: 'pa-pic' });
+    const shade = el('div', { class: 'pa-shade', text: '⏸ Paused' });
+    const msg = el('p', { class: 'gmsg readable pa-msg', role: 'status' });
+    const stat = el('p', { class: 'readable gstat' });
+    const clock = el('span', { class: 'pa-clock' });
+    const startBtn = el('button', { class: 'primary', type: 'button', text: '▶ Start' });
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' });
+    const row = el('div', { class: 'row tight' }, [startBtn]);
+    const B = {};
+    // each button shows an icon and a short name; its spoken name (and its tooltip) says it in full
+    const mk = (k, ic, name, short, full) => { const b = el('button', { class: 'pa-act', type: 'button', 'data-act': k, 'aria-label': full, title: full }); b.innerHTML = `<span class="pa-ic" aria-hidden="true">${ic}</span>` + (short === name ? name : `<span class="pa-long">${name}</span><span class="pa-short">${short}</span>`); b.addEventListener('click', (e) => act(k, e.detail === 0)); B[k] = b; return b; };
+    const tray = el('div', { class: 'pa-tray' }, [
+      el('div', { class: 'pa-group pa-care', role: 'group', 'aria-label': 'Look after him' }, [mk('label', '🏷️', 'Label', 'Label', 'Tie on his label'), mk('blanket', '🧥', 'Blanket', 'Blanket', 'A blanket'), mk('tea', '☕', 'Hot drink', 'Drink', 'A hot drink'), mk('word', '💬', 'Quiet word', 'Talk', 'A quiet word (talk to him)')]),
+      el('div', { class: 'pa-group pa-board', role: 'group', 'aria-label': 'Onto the train' }, [mk('cot', '🛏️', 'Into a cot', 'Into a cot', 'Into a cot in the ward car'), mk('seat', '🪑', 'Sitting car', 'Sitting car', 'To the sitting car')]),
+    ]);
+    const frameEl = el('div', { class: 'trailwrap pa-frame' }, [pic, shade]);
+    const bar = el('div', { class: 'pa-bar' }, [clock, stat, row]);
+    box.append(
+      relaxedToggle(box, () => play()),
+      el('p', { class: 'readable', text: 'Near St-Omer, April 1918. The hospital is moving, and the patients go first. An ambulance train is waiting. Help every man aboard before it leaves: tie on his label, so that his notes go with him; men who must lie down go into the cots of the ward car, and men who can sit up go to the sitting car. A blanket, a hot drink or a quiet word helps too.' }),
+      bar, frameEl, msg, tray,
+    );
+    // on Start, bring the clock and the picture up under the story's bar at the top, so the picture and the buttons are all in view
+    const fitView = () => { try { const hb = document.querySelector('header.bar'), top0 = hb ? Math.max(0, hb.getBoundingClientRect().bottom) : 0, f = bar.getBoundingClientRect(), t = tray.getBoundingClientRect(); if (f.top < top0 || t.bottom > window.innerHeight) window.scrollBy({ top: f.top - top0 - 4, behavior: RM ? 'auto' : 'smooth' }); } catch (e) { /* old browsers */ } };
+    pic.innerHTML = `<svg viewBox="0 0 720 400" class="pa-svg" role="group" aria-label="The platform beside the ambulance train, with patients waiting">` +
+      '<g id="paBack"></g><g id="paTrain"></g><g id="paPlat"></g><g id="paWalk"></g><g id="paCarry"></g><g id="paPats"></g>' +
+      `<g id="paMary" class="pa-mary" style="transform:translate(${IDLE + 44}px,396px)">${fg('NS', 0, 0, 74, { c: NSBLUE })}</g><g id="paSay"></g><g id="paHit"></g></svg>`;
+    const svg = pic.querySelector('svg'), $ = (id) => svg.querySelector('#' + id);
+
+    // ---------- drawing ----------
+    function backSVG() {
+      let s = `<defs><linearGradient id="paSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B4BBBB"/><stop offset=".6" stop-color="#CDD1CC"/><stop offset="1" stop-color="#E1E2DC"/></linearGradient></defs>`;
+      s += `<rect width="720" height="${TY + 4}" fill="url(#paSky)"/>`;
+      s += `<g class="${RM ? '' : 'pa-cloud'}" fill="#EDEEEA" opacity=".8"><ellipse cx="160" cy="54" rx="70" ry="14"/><ellipse cx="200" cy="46" rx="44" ry="12"/><ellipse cx="520" cy="38" rx="80" ry="13"/></g>`;
+      // poplars along the fields, and the hospital's tents and flag beyond the train
+      s += `<rect y="196" width="720" height="${TY - 192}" fill="#7E806A"/>`;
+      [[20, 150], [44, 140], [470, 146], [496, 136], [522, 150], [650, 144], [676, 136]].forEach(([x, top]) => { s += `<path d="M${x},196 Q${x - 9},${top + 30} ${x},${top} Q${x + 9},${top + 30} ${x},196 Z" fill="#5E6450"/>`; });
+      s += `<path d="M6,200 L18,170 L74,170 L86,200 Z" fill="#C9C2AE"/><path d="M18,170 L30,200 M74,170 L62,200" stroke="#9A9078" stroke-width="1.4"/><path d="M40,200 L46,186 L52,200 Z" fill="#3A3A34"/>`;
+      s += `<path d="M94,196 L94,138" stroke="${INKC}" stroke-width="2.4"/><rect x="94" y="138" width="26" height="17" fill="#F4F1EA"/><path d="M104,141 h6 v4 h4 v5 h-4 v4 h-6 v-4 h-4 v-5 h4 Z" fill="#B23A2E"/>`;
+      return s;
+    }
+    const redCross = (x, y) => `<circle cx="${x}" cy="${y}" r="13" fill="#F4F1EA"/><path d="M${x - 3},${y - 9} h6 v6 h6 v6 h-6 v6 h-6 v-6 h-6 v-6 h6 Z" fill="#B23A2E"/>`;
+    function carBody(c) {
+      // a coach on the ambulance train; the near side is cut away so you can see in
+      const [a, b] = c.cut, [d0, d1] = c.door;
+      let s = `<rect x="${c.x0}" y="156" width="${c.x1 - c.x0}" height="106" rx="5" fill="#4A3F35"/><path d="M${c.x0 - 2},158 Q${(c.x0 + c.x1) / 2},140 ${c.x1 + 2},158 Z" fill="#3A322C"/>`;
+      s += `<rect x="${c.x0}" y="258" width="${c.x1 - c.x0}" height="8" fill="#2A2420"/>` + [c.x0 + 30, c.x0 + 58, c.x1 - 58, c.x1 - 30].map((x) => `<circle cx="${x}" cy="270" r="8" fill="${INKC}"/><circle cx="${x}" cy="270" r="2.4" fill="#6E6A62"/>`).join('');
+      // inside: the far wall with its windows and electric lamps
+      s += `<rect x="${a}" y="166" width="${b - a}" height="88" fill="#E6DCC6"/><rect x="${a}" y="166" width="${b - a}" height="6" fill="#CFC4AC"/>`;
+      for (let x = a + 14; x < b - 20; x += 46) s += `<rect x="${x}" y="176" width="26" height="14" rx="2" fill="#B9C6CC" stroke="#8A7E68" stroke-width="1.2"/>`;
+      for (let x = a + 30; x < b - 10; x += 60) s += `<circle cx="${x}" cy="171" r="2.2" fill="#F6E7A8"/>`;
+      s += `<rect x="${a - 2}" y="164" width="${b - a + 4}" height="92" fill="none" stroke="#2A2420" stroke-width="3"/>`;
+      // the double door, open, and its step
+      s += `<rect x="${d0}" y="170" width="${d1 - d0}" height="88" fill="#2E2822"/><rect x="${d0 - 2}" y="258" width="${d1 - d0 + 4}" height="5" fill="#6E6A62"/><rect x="${d0 + 2}" y="263" width="${d1 - d0 - 4}" height="4" fill="#5A564C"/>`;
+      return s;
+    }
+    function trainSVG() {
+      let s = carBody(WARD) + carBody(SITC);
+      s += redCross(122, 208) + redCross(582, 208);
+      const plate = (cx, w, t) => `<rect x="${cx - w / 2}" y="141" width="${w}" height="16" rx="4" fill="#2A2420" opacity=".9"/><text x="${cx}" y="153" text-anchor="middle" class="pa-cap">${t}</text>`;
+      s += plate((WARD.cut[0] + WARD.cut[1]) / 2, 196, 'Ward car: cots for lying cases') + plate((SITC.cut[0] + SITC.cut[1]) / 2 + 10, 84, 'Sitting car');
+      // the ward car's cots, in three tiers; a man goes in on his stretcher
+      [WARD.cut[0] + 2, WARD.cut[0] + 100, WARD.cut[0] + 194].forEach((x) => { s += `<rect x="${x}" y="182" width="4" height="72" fill="#5A4636"/>`; });
+      COTS.forEach((c, i) => {
+        s += `<rect x="${c.x - 45}" y="${c.y - 3}" width="90" height="4" fill="#5A4636"/><rect x="${c.x - 42}" y="${c.y - 6}" width="84" height="4" fill="#D8D2BE"/>`;
+        const p = pats.find((q) => q.where === 'cot' && q.spot === i);
+        if (p) s += fg('LIE', c.x + 2, c.y - 6, 50) + (p.had.has('blanket') ? `<path d="M${c.x - 10},${c.y - 6} Q${c.x + 4},${c.y - 15} ${c.x + 24},${c.y - 10} L${c.x + 25},${c.y - 6} Z" fill="#6E7A84"/>` : '');
+      });
+      // the sitting car's seats
+      s += `<rect x="${SITC.cut[0] + 6}" y="${SEATS[0].y - 18}" width="${SITC.cut[1] - SITC.cut[0] - 12}" height="16" fill="#8A6A4A"/><rect x="${SITC.cut[0] + 6}" y="${SEATS[0].y - 4}" width="${SITC.cut[1] - SITC.cut[0] - 12}" height="5" fill="#6E5034"/>`;
+      SEATS.forEach((c, i) => {
+        const p = pats.find((q) => q.where === 'seat' && q.spot === i);
+        if (p) s += fg('SIT', c.x, c.y, 44) + (p.had.has('blanket') ? `<path d="M${c.x - 7},${c.y - 32} Q${c.x},${c.y - 36} ${c.x + 6},${c.y - 31} L${c.x + 7},${c.y - 20} L${c.x - 7},${c.y - 19} Z" fill="#6E7A84"/>` : '');
+      });
+      // the train's own nursing sister, at the ward car's door
+      s += fg('NS', (WARD.door[0] + WARD.door[1]) / 2, 258, 60, { c: NSBLUE });
+      // the engine, facing the way the train will go (to the right): its cab next to the coaches, its chimney at the front
+      s += `<g transform="translate(612 0)"><rect x="36" y="208" width="78" height="44" rx="6" fill="#2E2A26"/><rect x="0" y="182" width="44" height="72" fill="#2E2A26"/><rect x="24" y="190" width="14" height="14" fill="#9AA6AA"/><rect x="88" y="186" width="12" height="24" fill="#2E2A26"/><rect x="-4" y="252" width="122" height="7" fill="#1A1814"/>` +
+        [10, 34, 68, 98].map((x) => `<circle cx="${x}" cy="${x > 60 ? 266 : 270}" r="${x > 60 ? 12 : 8}" fill="${INKC}"/><circle cx="${x}" cy="${x > 60 ? 266 : 270}" r="3" fill="#6E6A62"/>`).join('') + `<rect x="-6" y="256" width="10" height="6" fill="#1A1814"/></g>`;
+      s += RM ? `<g fill="#D6D8D4" opacity=".7"><circle cx="700" cy="170" r="10"/><circle cx="680" cy="150" r="14"/></g>` : `<g class="pa-steam" fill="#D6D8D4">${[0, 1, 2, 3].map((i) => `<circle cx="706" cy="180" r="${8 + i * 2}" style="animation-delay:-${i * 0.9}s"/>`).join('')}</g>`;
+      // the rails
+      s += `<rect x="0" y="${TY}" width="720" height="5" fill="#5A564C"/>`;
+      return s;
+    }
+    function platSVG() {
+      let s = `<rect y="${TY + 4}" width="720" height="${400 - TY - 4}" fill="#8A8070"/><rect y="${TY + 4}" width="720" height="7" fill="#A39C8C"/>`;
+      for (let i = 0; i < 70; i++) { const x = (i * 97) % 720, y = TY + 16 + ((i * 53) % 110); s += `<circle cx="${x}" cy="${y}" r="1.4" fill="#76705F"/>`; }
+      // the bench where the men who can sit up are waiting
+      s += `<rect x="424" y="333" width="226" height="7" rx="2" fill="#6E5034"/><rect x="432" y="340" width="5" height="12" fill="#5A4636"/><rect x="637" y="340" width="5" height="12" fill="#5A4636"/>`;
+      return s;
+    }
+    const lookSVG = (p, x, y, sitting) => {
+      // a white bandage on the head, a sling or a dressing on the leg (never blood)
+      if (p.look === 'head') return sitting ? `<path d="M${x - 9},${y - 39} q7,-5 13,0" stroke="#F4F1EA" stroke-width="3" fill="none"/>` : `<path d="M${x - 34},${y - 15} q2,-8 9,-6" stroke="#F4F1EA" stroke-width="3" fill="none"/>`;
+      if (p.look === 'arm') return sitting ? `<path d="M${x - 5},${y - 30} L${x + 7},${y - 22} L${x - 4},${y - 18} Z" fill="#F4F1EA"/>` : `<path d="M${x - 2},${y - 13} h10" stroke="#F4F1EA" stroke-width="3"/>`;
+      if (p.look === 'leg') return sitting ? `<path d="M${x + 6},${y - 12} h6" stroke="#F4F1EA" stroke-width="4"/>` : `<path d="M${x + 18},${y - 7} h9" stroke="#F4F1EA" stroke-width="4"/>`;
+      return '';
+    };
+    function patSVG(p) {
+      const x = p.x, sel = st.sel === p.id;
+      let s = '';
+      if (p.kind === 'lie') {
+        // on a stretcher on the platform
+        s += `<rect x="${x - 54}" y="${PY - 4}" width="108" height="3" fill="#5A4636"/><rect x="${x - 46}" y="${PY - 7}" width="92" height="6" fill="#C9C2AE"/><rect x="${x - 42}" y="${PY - 1}" width="3" height="6" fill="#5A4636"/><rect x="${x + 39}" y="${PY - 1}" width="3" height="6" fill="#5A4636"/>`;
+        s += fg('LIE', x + 3, PY - 7, 72) + lookSVG(p, x + 3, PY - 7, false);
+        if (p.had.has('blanket')) s += `<path d="M${x - 18},${PY - 7} Q${x + 2},${PY - 22} ${x + 34},${PY - 15} L${x + 36},${PY - 7} Z" fill="#6E7A84"/>`;
+        if (p.had.has('label')) s += `<path d="M${x - 10},${PY - 16} l-6,8" stroke="${INKC}" stroke-width=".8"/>` + `<rect x="${x - 21}" y="${PY - 9}" width="9" height="6" fill="#E8D9A8" stroke="${INKC}" stroke-width=".7"/>`;
+        if (p.had.has('tea')) s += `<path d="M${x - 46},${PY - 10} L${x - 40},${PY - 10} L${x - 41},${PY - 4} L${x - 45},${PY - 4} Z" fill="#F4F1EA" stroke="${INKC}" stroke-width=".7"/>`;
+      } else {
+        s += fg('SIT', x, PY - 9, 62) + lookSVG(p, x, PY - 9, true);
+        if (p.had.has('blanket')) s += `<path d="M${x - 9},${PY - 48} Q${x - 1},${PY - 54} ${x + 8},${PY - 47} L${x + 10},${PY - 30} L${x - 10},${PY - 29} Z" fill="#6E7A84"/>`;
+        if (p.had.has('label')) s += `<rect x="${x - 4}" y="${PY - 40}" width="8" height="6" fill="#E8D9A8" stroke="${INKC}" stroke-width=".7"/>`;
+        if (p.had.has('tea')) s += `<path d="M${x + 9},${PY - 33} L${x + 15},${PY - 33} L${x + 14},${PY - 27} L${x + 10},${PY - 27} Z" fill="#F4F1EA" stroke="${INKC}" stroke-width=".7"/>`;
+      }
+      // what he still needs, in a bubble above him
+      const need = CARE.filter((k) => p.needs.has(k) && !p.had.has(k));
+      const up = p.kind === 'lie', k = st.big && sel ? 1.5 : 1, by = up ? PY - 46 - (k - 1) * 14 : PY + 24 + (k - 1) * 4;   // on a phone, the chosen man's bubble is drawn bigger
+      const bub = need.length ? (() => { const w = 8 + need.length * 18; return `<path d="${up ? `M${-w / 2},-11 h${w} v20 h-${w / 2 - 4} l-4,5 l-4,-5 h-${w / 2 - 4} Z` : `M${-w / 2},-9 h${w / 2 - 4} l4,-5 l4,5 h${w / 2 - 4} v20 h-${w} Z`}" fill="#FFFFFF" stroke="${INKC}" stroke-width="1.2"/>` + need.map((c, i) => ICON[c](-w / 2 + 13 + i * 18, up ? -1 : 1)).join(''); })()
+        : `<circle cx="0" cy="0" r="9" fill="#E6F1E2" stroke="#3F6B46" stroke-width="1.4"/><path d="M-4,0 l3,3 l5,-6" stroke="#3F6B46" stroke-width="2" fill="none"/>`;
+      s += `<g class="pa-bub" transform="translate(${x} ${by}) scale(${k})">${bub}</g>`;
+      if (sel) s = (p.kind === 'lie' ? `<ellipse cx="${x}" cy="${PY - 6}" rx="62" ry="22" fill="rgba(255,236,150,.25)" stroke="#E0A526" stroke-width="2.5" stroke-dasharray="6 4" class="pa-ring"/>` : `<ellipse cx="${x}" cy="${PY - 26}" rx="30" ry="38" fill="rgba(255,236,150,.25)" stroke="#E0A526" stroke-width="2.5" stroke-dasharray="6 4" class="pa-ring"/>`) + s;
+      const hit = p.kind === 'lie' ? `<rect x="${x - 41}" y="${PY - 60}" width="82" height="70" fill="transparent"/>` : `<rect x="${x - 28}" y="${PY - 96}" width="56" height="134" fill="transparent"/>`;
+      const lab = `${p.kind === 'lie' ? 'A man lying on a stretcher' : 'A man sitting on the bench'}${need.length ? ', needs ' + andList(need.map((k) => NAME[k])) : ', ready to go aboard'}`;
+      return `<g class="pa-pat" data-pat="${p.id}" role="button" tabindex="0" aria-label="${lab}" aria-pressed="${sel}">${hit}${s}</g>`;
+    }
+    const carrySVG = (p) => `${fg('SOLDIER', -40, 0, 70)}${fg('SOLDIER', 40, 0, 70, { flip: true })}<rect x="-54" y="-32" width="108" height="3" fill="#5A4636"/><rect x="-46" y="-35" width="92" height="6" fill="#C9C2AE"/>${fg('LIE', 3, -35, 72)}${p.had.has('blanket') ? '<path d="M-18,-35 Q2,-50 34,-43 L36,-35 Z" fill="#6E7A84"/>' : ''}`;
+    const bearersSVG = () => `${fg('SOLDIER', -14, 0, 70)}${fg('SOLDIER', 14, 0, 70, { flip: true })}<rect x="-30" y="-58" width="4" height="56" fill="#5A4636" transform="rotate(8 -28 -30)"/>`;
+    function drawTrain() { $('paTrain').innerHTML = trainSVG(); $('paTrain').setAttribute('transform', `translate(${P(st.trainX)} 0)`); }
+    function drawPats() {
+      $('paPats').innerHTML = pats.filter((p) => p.where === 'wait' && (!st.carry || st.carry.pid !== p.id) && (!st.walk || st.walk.pid !== p.id)).sort((a, b) => (a.id === st.sel) - (b.id === st.sel)).map(patSVG).join('');
+      if (!st.carry) $('paCarry').innerHTML = `<g transform="translate(${IDLE} 332)">${bearersSVG()}</g>`;
+    }
+    function drawHits() {
+      // the two coaches can be tapped too, once a man is chosen
+      const on = st.sel && st.started && !st.over && !st.paused;
+      $('paHit').innerHTML = on ? `<g class="pa-car" data-car="cot" role="button" tabindex="0" aria-label="The ward car: cots for lying cases"><rect x="${WARD.cut[0]}" y="160" width="${WARD.door[1] - WARD.cut[0]}" height="100" fill="transparent"/></g>` +
+        `<g class="pa-car" data-car="seat" role="button" tabindex="0" aria-label="The sitting car"><rect x="${SITC.door[0]}" y="160" width="${SITC.cut[1] - SITC.door[0]}" height="100" fill="transparent"/></g>` : '';
+    }
+    function moveMary(p) {
+      const g = $('paMary'); if (!g) return;
+      const x = !p ? IDLE + 44 : p.kind === 'lie' ? p.x + 40 : p.x + 30;
+      g.style.transform = `translate(${x}px,396px)`;
+    }
+    function showSay(text) {
+      const p = pats.find((q) => q.id === st.sel); if (!p) return;
+      const mx = p.kind === 'lie' ? p.x + 40 : p.x + 30, w = Math.min(330, 16 + text.length * 6.1), x = Math.max(8, Math.min(712 - w, mx - w / 2)), y = 286;
+      $('paSay').innerHTML = `<g class="pa-say"><rect x="${P(x)}" y="${y - 18}" width="${P(w)}" height="24" rx="8" fill="#FFFDF4" stroke="${NSBLUE}" stroke-width="1.5"/><text x="${P(x + w / 2)}" y="${y - 1}" text-anchor="middle" class="pa-saytext">${text}</text></g>`;
+      st.sayUntil = performance.now() + 2600;
+    }
+    const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+    const andList = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
+    const aboard = () => pats.filter((p) => p.where === 'cot' || p.where === 'seat').length;
+    function syncUI() {
+      const p = pats.find((q) => q.id === st.sel);
+      const busy = !st.started || st.paused || st.over || st.leaving;
+      Object.entries(B).forEach(([k, b]) => {
+        b.disabled = busy || !p;
+        const need = p && ((CARE.includes(k) && p.needs.has(k) && !p.had.has(k)) || (k === 'cot' && p.kind === 'lie' && p.had.has('label')) || (k === 'seat' && p.kind === 'sit' && p.had.has('label')));
+        b.classList.toggle('ready', relaxed && !!need);
+      });
+      const ct = st.over ? '🚂 The train has gone' : st.leaving ? '🚂 The train is leaving' : `🕒 <span class="pa-long">The train leaves in</span><span class="pa-short">Leaves in</span> ${fmt(Math.max(0, st.left))}`;
+      if (st.ct !== ct) { st.ct = ct; clock.innerHTML = ct; }
+      clock.classList.toggle('warn', st.left <= 30 && !st.over);
+      stat.textContent = `Aboard: ${aboard()} of ${pats.length} · Slips: ${st.slips}`;
+      shade.hidden = !st.paused;
+      box.dataset.idle = st.started && !st.paused && !st.over ? '0' : '1'; box.dataset.busy = st.started && !st.over ? '1' : '0';
+    }
+    function drawAll() { st.big = (pic.clientWidth || 720) < 520; svg.setAttribute('viewBox', st.big ? '0 116 720 284' : '0 0 720 400'); drawTrain(); drawPats(); drawHits(); syncUI(); }
+    $('paBack').innerHTML = backSVG(); $('paPlat').innerHTML = platSVG();
+    drawAll();
+
+    // ---------- looking after a man, and getting him aboard ----------
+    const slip = (text) => { st.slips++; sfx('slip'); msg.textContent = '🤔 ' + text; };
+    const describe = (p) => {
+      const need = CARE.filter((k) => p.needs.has(k) && !p.had.has(k));
+      return `${p.kind === 'lie' ? 'He must lie down for the journey.' : 'He can sit up.'} ${need.length ? 'He needs ' + andList(need.map((k) => NAME[k])) + '.' : 'He is ready to go aboard.'}`;
+    };
+    function select(id, viaKey) {
+      if (!st.started || st.paused || st.over || st.leaving) return;
+      const p = pats.find((q) => q.id === id); if (!p || p.where !== 'wait') return;
+      st.sel = id; sfx('pick'); moveMary(p);
+      msg.textContent = describe(p);
+      drawPats(); drawHits(); syncUI();
+      if (viaKey) { const first = ['label', 'blanket', 'tea', 'word', 'cot', 'seat'].map((k) => B[k]).find((b) => !b.disabled && (b.classList.contains('ready') || ['label', 'blanket', 'tea', 'word'].some((k) => B[k] === b && p.needs.has(k) && !p.had.has(k)))) || B.label; first.focus({ preventScroll: true }); }
+    }
+    function act(k, viaKey) {
+      if (!st.started || st.paused || st.over || st.leaving) return;
+      const p = pats.find((q) => q.id === st.sel); if (!p) { msg.textContent = 'First choose a patient in the picture.'; return; }
+      if (CARE.includes(k)) {
+        if (p.had.has(k)) { msg.textContent = k === 'label' ? 'His label is already tied on.' : `He has already had ${NAME[k]}.`; return; }
+        if (!p.needs.has(k)) { msg.textContent = `He does not need ${NAME[k]} right now. Look at what is in his bubble.`; return; }
+        p.had.add(k); st.met++;
+        if (k === 'label') { sfx('tie'); msg.textContent = 'You tie on his label: his name, his unit and what is wrong, so his notes go with him.'; }
+        else if (k === 'blanket') { sfx('cloth'); msg.textContent = 'You tuck a blanket round him. It is a long, cold ride.'; }
+        else if (k === 'tea') { sfx('cup'); msg.textContent = 'A hot drink, before the journey.'; }
+        else { sfx('word'); const line = SAYS[st.sayI++ % SAYS.length]; showSay(line); msg.textContent = 'You talk to him in a quiet, ordinary voice, about anything at all. It helps.'; }
+        if (!CARE.some((c) => p.needs.has(c) && !p.had.has(c))) msg.textContent += ' He is ready to go aboard.';
+        drawPats(); syncUI();
+        if (viaKey) { const nxt = CARE.find((c) => p.needs.has(c) && !p.had.has(c)); (B[nxt] || B[p.kind === 'lie' ? 'cot' : 'seat']).focus({ preventScroll: true }); }
+        return;
+      }
+      board(p, k, viaKey);
+    }
+    function board(p, k, viaKey) {
+      if (!p.had.has('label')) { slip('Wait: his notes must go with him. Tie on his label first.'); syncUI(); return; }
+      if (k === 'seat' && p.kind === 'lie') { slip('He cannot sit up for the journey. Men who must lie down go into the cots.'); syncUI(); return; }
+      if (k === 'cot' && p.kind === 'sit') { slip('He can sit up. Keep the cots for the men who must lie down.'); syncUI(); return; }
+      if (k === 'cot' && st.carry) { msg.textContent = 'The stretcher-bearers are carrying someone. Look after another man while you wait.'; return; }
+      if (k === 'seat' && st.walk) { msg.textContent = 'An orderly is helping someone aboard. Look after another man while you wait.'; return; }
+      p.missed = CARE.filter((c) => p.needs.has(c) && !p.had.has(c)).length;
+      st.sel = null; moveMary(null); $('paSay').innerHTML = '';
+      if (k === 'cot') {
+        sfx('lift');
+        st.carry = { pid: p.id, phase: 'to', x: IDLE, target: p.x };
+        msg.textContent = 'The stretcher-bearers come for him.' + (p.missed ? ' He still needed ' + andList(CARE.filter((c) => p.needs.has(c) && !p.had.has(c)).map((c) => NAME[c])) + ': the train’s sisters will see to it.' : '');
+      } else {
+        sfx('lift');
+        st.walk = { pid: p.id, x: p.x };
+        msg.textContent = 'An orderly helps him along to the sitting car.' + (p.missed ? ' He still needed ' + andList(CARE.filter((c) => p.needs.has(c) && !p.had.has(c)).map((c) => NAME[c])) + ': the train’s sisters will see to it.' : '');
+      }
+      drawPats(); drawHits(); syncUI();
+      if (viaKey) focusNext();
+      kick();
+    }
+    function focusNext() { const g = pic.querySelector('.pa-pat'); if (g) g.focus({ preventScroll: true }); }
+    function settle(p, where) {
+      p.where = where; p.spot = where === 'cot' ? st.cotsUsed++ : st.seatsUsed++;
+      sfx('step');
+      const left = pats.filter((q) => q.where === 'wait').length;
+      msg.textContent = left ? `Aboard and settled. ${left} still waiting.` : 'Everyone is aboard!';
+      drawTrain(); drawPats(); syncUI();
+      if (!left && !st.carry && !st.walk) later(() => depart(true), 900);
+    }
+
+    // ---------- the clock and the movement ----------
+    function frame(t) {
+      raf = 0; if (!alive) return;
+      const dt = Math.min(0.1, (t - (lastT || t)) / 1000); lastT = t;
+      let moving = false;
+      if (!st.paused && st.started && !st.over) {
+        if (!st.leaving) {
+          st.left -= dt;
+          if (!st.warned && st.left <= 30) { st.warned = true; sfx('whistle'); msg.textContent = '🕒 The guard looks at his watch. Thirty seconds!'; }
+          if (st.left <= 0 && !st.carry && !st.walk) { st.left = 0; depart(false); }
+          if (Math.floor(st.left) !== st.shown) { st.shown = Math.floor(st.left); syncUI(); }
+          moving = true;
+        }
+        // the stretcher-bearers: to the man, back to the ward car's door, then he is put in a cot on his stretcher
+        const c = st.carry;
+        if (c) {
+          const p = pats.find((q) => q.id === c.pid);
+          if (c.phase === 'to') { c.x += Math.sign(c.target - c.x) * SPEED * dt; if (Math.abs(c.target - c.x) < 4) { c.x = c.target; c.phase = 'lift'; c.t = 0; drawPats(); } }
+          else if (c.phase === 'lift') { c.t += dt; if (c.t > 0.5) { c.phase = 'back'; sfx('lift'); } }
+          else if (c.phase === 'back') { c.x += Math.sign(WARD.door[0] - 10 - c.x) * SPEED * 0.8 * dt; if (Math.abs(WARD.door[0] - 10 - c.x) < 4) { c.phase = 'in'; c.t = 0; } }
+          else if (c.phase === 'in') { c.t += dt; if (c.t > 0.5) { st.carry = null; settle(p, 'cot'); } }
+          if (st.carry) $('paCarry').innerHTML = `<g transform="translate(${P(c.x)} 332)">${c.phase === 'to' ? bearersSVG() : carrySVG(p)}</g>`;
+          moving = true;
+        }
+        const w = st.walk;
+        if (w) {
+          const p = pats.find((q) => q.id === w.pid), tx = SITC.door[0] + 8;
+          w.x += Math.sign(tx - w.x) * (relaxed ? 150 : 115) * dt;
+          if (Math.abs(tx - w.x) < 4) { st.walk = null; $('paWalk').innerHTML = ''; settle(p, 'seat'); }
+          else $('paWalk').innerHTML = fg('SOLDIER', w.x, 334, 66, { flip: tx < w.x }) + lookSVG(p, w.x + 2, 304, true);
+          moving = true;
+        }
+      }
+      if (st.leaving) {
+        st.trainX += (RM ? 900 : 120 + st.trainX * 0.9) * dt;
+        $('paTrain').setAttribute('transform', `translate(${P(st.trainX)} 0)`);
+        if (st.trainX > 760) { st.leaving = false; finish(); } else moving = true;
+      }
+      if (st.sayUntil && performance.now() > st.sayUntil) { st.sayUntil = 0; $('paSay').innerHTML = ''; }
+      if (moving || st.sayUntil) kick();
+    }
+    const kick = () => { if (!raf && alive) raf = requestAnimationFrame(frame); };
+    function depart(all) {
+      if (st.leaving || st.over) return;
+      st.sel = null; moveMary(null); drawHits();
+      st.leaving = true; sfx('whistle'); later(() => sfx('steam'), 400);
+      const left = pats.filter((p) => p.where === 'wait').length;
+      msg.textContent = all ? '🚂 Everyone is aboard. The guard blows his whistle, and the train pulls away.' : `🚂 The train has to go. ${left === 1 ? 'One man is' : left + ' men are'} still waiting: the next train will take them, and you will stay with them until it comes.`;
+      syncUI(); kick();
+    }
+
+    // ---------- mouse, finger and keyboard ----------
+    svg.addEventListener('click', (e) => {
+      const g = e.target.closest && e.target.closest('[data-pat], [data-car]'); if (!g) return;
+      if (g.dataset.pat) select(g.dataset.pat, false); else act(g.dataset.car, false);
+    });
+    svg.addEventListener('keydown', (e) => {
+      const g = e.target.closest && e.target.closest('[data-pat], [data-car]'); if (!g || !(e.key === 'Enter' || e.key === ' ' || e.code === 'Space')) return;
+      e.preventDefault(); if (g.dataset.pat) select(g.dataset.pat, true); else act(g.dataset.car, true);
+    });
+    const pause = () => { if (!st.started || st.over) return; st.paused = !st.paused; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; lastT = 0; drawHits(); syncUI(); if (!st.paused) kick(); };
+    pauseBtn.addEventListener('click', pause);
+    startBtn.addEventListener('click', (e) => {
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (er) { /* no sound */ }
+      st.started = true; row.replaceChildren(pauseBtn);
+      msg.textContent = 'Choose a patient in the picture. His bubble shows what he needs.';
+      syncUI(); lastT = 0; kick();
+      fitView();
+      if (e.detail === 0) focusNext();
+    });
+    const kd = (e) => { const tg = document.activeElement; if (tg && /INPUT|TEXTAREA|SELECT/.test(tg.tagName)) return; if (e.code === 'KeyP') pause(); };
+    const vis = () => { if (document.hidden && st.started && !st.over && !st.paused) pause(); };
+    const rs = () => { if (((pic.clientWidth || 720) < 520) !== st.big) drawAll(); };
+    window.addEventListener('keydown', kd); document.addEventListener('visibilitychange', vis); window.addEventListener('resize', rs);
+    const watch = setInterval(() => { if (!box.isConnected) stop(); }, 1000);
+    function stop() {
+      alive = false; timers.forEach(clearTimeout); clearInterval(watch); if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('keydown', kd); document.removeEventListener('visibilitychange', vis); window.removeEventListener('resize', rs);
+      if (stopRun === stop) stopRun = null;
+    }
+    stopRun = stop;
+    msg.textContent = 'Press Start when you are ready.';
+    // a test hook: what each button and patient would do, without the mouse
+    st.api = { select, act, board, depart, pause, tick: (sec) => { st.left -= sec; syncUI(); }, drawAll };
+
+    // ---------- the end ----------
+    function finish() {
+      if (st.over) return;
+      st.over = true; st.sel = null;
+      box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';   // the end screen stays up to be read, even if game time has just run out
+      const n = aboard(), missed = pats.reduce((m, p) => m + (p.where === 'wait' ? 0 : p.missed), 0);
+      const careLeft = pats.filter((p) => p.where === 'wait').reduce((m, p) => m + CARE.filter((c) => p.needs.has(c) && !p.had.has(c)).length, 0);
+      const care = (st.needTotal - missed - careLeft) / st.needTotal;
+      const k = n === pats.length && st.slips <= 1 && care >= 0.85 ? 3 : n >= 6 && care >= 0.6 ? 2 : 1;
+      PROG.patients = Math.max(Number(PROG.patients) || 0, k); saveProg();
+      sfx('win'); win(); syncUI();
+      Object.values(B).forEach((b) => { b.disabled = true; });
+      row.remove();
+      const starsEl = el('p', { class: 'trail-stars', text: stars(k), role: 'img', 'aria-label': `${k} out of 3 stars` });
+      tray.replaceWith(
+        starsEl,
+        winBox(n === pats.length ? 'Everyone is aboard!' : 'The train is away', [
+          n === pats.length ? `All ${pats.length} men went aboard with their labels: the men who had to lie down in the cots, and the men who could sit up in the sitting car.` : `${n} of ${pats.length} men went aboard. The next train took the others, and Mary stayed with them until it came.`,
+          'In April 1918, after the German attack in March, No. 9 Stationary Hospital, the hospital unit from St. Francis Xavier University, closed near St-Omer. Its patients were moved out, the unit went to Étaples, near the coast, and its nursing sisters were sent to work in Canadian hospitals there.',
+          'Moving a hospital meant moving patients, tents, beds and supplies, often in a hurry. Patients went on ambulance trains. A train had ward cars with cots in three tiers for men who had to lie down, cars with seats for men who could sit up, kitchens and a pharmacy, and its own doctors, nursing sisters and orderlies. A label tied to each man, with his name, his unit and his wound, travelled with him.',
+          'When hospitals near the front had to move back in the spring of 1918, the rule was “patients first.” From the end of April 1918, a Canadian staff led by Nursing Sister K. Shaw ran one ambulance train, No. 15.',
+          k === 3 ? 'Three stars: everyone aboard, quickly and carefully.' : `${st.slips} slip${st.slips === 1 ? '' : 's'}, and ${Math.round(care * 100)}% of what the men needed. Play again to get every man aboard with what he needs.`,
+          'Where this comes from: reports by the Matron-in-Chief of the British nursing services in France (on the Canadian nursing service, and on ambulance trains), the Canadian Great War Project’s list of Canadian hospitals, Bruce MacDonald’s history of No. 9 Stationary Hospital (Guysborough Great War Veterans), The Railway Magazine (1915) on ambulance trains, the Science Museum on wound tags, and The British Journal of Nursing (27 April 1918).',
+        ]),
+        timeUp() ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' }) : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '▶ Play again', onclick: () => play() })]),
+      );
+      try { const r = starsEl.getBoundingClientRect(); if (r.bottom > window.innerHeight || r.top < 0) window.scrollBy(0, r.top - Math.max(120, window.innerHeight * 0.3)); } catch (e) { /* old browsers */ }
+    }
+  }
+  play();
+}
 const GAMES = {
   chest: { icon: '🧳', name: 'Pack the sea chest', blurb: 'Tomorrow you sail on the Hector. What goes in the chest?', where: 'Kirsty at Loch Broom', run: (b, w) => gCoffre(b, w, 'chest') },
   fleece: { icon: '🧶', name: 'From fleece to cloth', blurb: 'Make the right choice at each step, from a sheep’s back to warm cloth.', where: 'Kirsty and her grandmother', run: gRoute },
   milling: { icon: '🪵', name: 'The milling frolic', blurb: 'Pound the wet cloth on the board in time with the song.', where: 'Angus on the back land', run: gMilling },
   who: { icon: '📜', name: 'Who wrote this?', blurb: 'Match real words from 1752 to 2022 to the people who wrote them.', where: 'After the real documents', run: gWho },
   decode: { icon: '🔐', name: 'John’s coded note', blurb: 'Crack the secret code in a note from Mary’s brother.', where: 'Mary in Halifax', run: gDecode },
-  ward: { icon: '🚂', name: 'Move the hospital', blurb: 'The hospital is moving. What goes on the train?', where: 'Mary in France, 1918', run: (b, w) => gCoffre(b, w, 'ward') },
+  patients: { icon: '🚂', name: 'Patients first', blurb: 'Help every patient onto the ambulance train, quickly and carefully, before it leaves.', where: 'Mary in France, 1918', run: gPatients },
   timeline: { icon: '🗓️', name: 'Put it in order', blurb: 'Arrange real events from 1752 to today.', where: 'At the endings', run: gTimeline },
   map: { icon: '🗺️', name: 'Where is it?', blurb: 'Find eight places from this history on the map.', where: 'The journeys map', run: gMap },
   memory: { icon: '🧠', name: 'Word memory', blurb: 'Match Gaelic words with their meanings.', where: 'Anytime', run: gMemory },
@@ -6978,7 +7491,7 @@ const GAMES = {
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
 const GAME_AT = { 2: ['fleece'], 55: ['fleece'], 506: ['decode'], 225: ['who'], 541: ['who'], 212: ['memory'], 512: ['memory'], 527: ['kitchen'], 248: ['timeline'] };
-Object.assign(GAME_AT, {"3": ["chest"], "215": ["milling"], "520": ["ward"]});
+Object.assign(GAME_AT, {"3": ["chest"], "215": ["milling"], "520": ["patients"]});
 // ================= GAME TIME =================
 // Each student gets 10 minutes of mini-games a day, so that games do not take over the class.
 // The count is kept in this browser and is shared by all four story games on this site, so switching
@@ -7553,6 +8066,10 @@ const SRC_LIST = [
   { g: '📜 Words written at the time', intro: 'Historians call these primary sources. Ask who wrote each one, and why, and whose voice is missing.', items: [
     ['Nova Scotia Archives: Gaelic Resources (Goireasan Gàidhlig)', 'The 1920 petition for Gaelic in schools, old Gaelic letters, newspapers and songs.', 'https://archives.novascotia.ca/gaelic/'],
     ['Nova Scotia Archives: Mi’kmaw Holdings', 'Papers about the reserve at Whycocomagh, including the petitions of 1855 and 1857.', 'https://archives.novascotia.ca/mikmaq/'],
+    ['The British Journal of Nursing, April 27, 1918: “Patients first”', 'An editorial about moving hospitals back from the front in the spring of 1918, when the rule was “patients first.” (For the game Patients first.)', 'https://rcnarchive.rcn.org.uk/volumes/60/Volume%2060%20Page%20287'],
+    ['E. M. McCarthy, Matron-in-Chief in France: Report on the work of the C.A.M.C. Nursing Service', 'No. 9 Canadian Stationary Hospital at St. Omer, where its nurses went when it closed in 1918, and the Canadian staff of No. 15 Ambulance Train. Transcribed on the Scarletfinders site.', 'https://www.britisharmynurses.com/scarletfinders/20.html'],
+    ['E. M. McCarthy: The work of the nursing services with ambulance trains in France, 1914', 'Nursing sisters on the trains: who looked after the “lying cases” and the “sitting cases.” Transcribed on the Scarletfinders site.', 'https://www.britisharmynurses.com/scarletfinders/39.html'],
+    ['The Railway Magazine, 1915: The story of ambulance trains', 'Ward cars with cots in three tiers, cars for sitting-up cases, kitchens and a pharmacy.', 'https://www.railwaymagazine.co.uk/?p=25699'],
     ['Report from the Select Committee on Emigration from the United Kingdom, 1827', 'Evidence about the emigration from the Isle of Rum in 1826.', 'https://www.parliament.uk/'],
     ['Songs of the 185th Battalion, Cape Breton Highlanders, 1916', 'A song booklet in English and Gaelic, shown on Canada’s Wartime Experience.', 'https://wartimecanada.ca/'],
     ['Halifax Herald, December 5, 1918', 'An advertisement thanking women who volunteered during the war. Quoted in The First World War and Nova Scotia’s Gaels.', 'https://atlanticbooks.ca/books/resistance-and-resilience-series'],
@@ -7571,6 +8088,9 @@ const SRC_LIST = [
     ['Cape Breton’s Magazine and the Beaton Institute', 'The potato famine in Cape Breton, 1845 to 1851, and the families who left.', 'https://www.cbu.ca/'],
     ['Guysborough Historical Society: No. 9 Stationary Hospital', 'The St. Francis Xavier hospital unit, its matron Sadie MacIsaac, and its journey from Antigonish to Bramshott, St-Omer and Étaples.', 'https://www.guysboroughhistoricalsociety.ca/'],
     ['Chestico Museum, Port Hood', 'Port Hood and the First World War.', 'https://www.chesticomuseum.ca/'],
+    ['Guysborough Great War Veterans: Sgt. Horace Goddard MacMillan', 'Bruce MacDonald’s history of No. 9 Stationary Hospital in 1918: the order to evacuate its patients, the move to Étaples and the bombing in May.', 'https://guysboroughgreatwarveterans.blogspot.com/2018/05/remembering-sergeant-horace-goddard.html'],
+    ['Canadian Great War Project: Canadian hospitals overseas', 'Where No. 9 Stationary Hospital was, and when, from the official medical history.', 'https://canadiangreatwarproject.com/articles/camc_overseas_hospitals.php'],
+    ['Science Museum Group: Wound tags', 'The labels tied to wounded soldiers, which travelled with them.', 'https://collection.sciencemuseumgroup.org.uk/objects/co142110'],
     ['Canada’s Wartime Experience', 'The 185th Battalion and life at the camps.', 'https://wartimecanada.ca/'],
     ['Tiree Genealogy and Canmore (Historic Environment Scotland)', 'The Isle of Rum and the emigration of 1826 and 1828.', 'https://canmore.org.uk/'],
   ] },
