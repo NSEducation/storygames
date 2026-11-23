@@ -45,6 +45,97 @@
   @keyframes a-flap { from { transform: scaleY(1); } to { transform: scaleY(0.3); } }
   @keyframes a-glide { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, -3px); } }
 </style>
+<style id="critcss">
+  /* woodland animals in the pictures, and birds that fly across them */
+  .art .critter { cursor: pointer; }
+  .art .critter:focus { outline: none; }
+  .art .critter:focus-visible .cr-hit { stroke: #FFF3C4; stroke-width: 1.6; stroke-dasharray: 3 2; }
+  .art .critter.found .cr-face { filter: drop-shadow(0 0 2px #FFF3C4); }
+  .art .critter .cr-face { transform-box: fill-box; transform-origin: 50% 50%; }
+  .art .critter .fx-leg, .art .critter .pc-leg { transform-box: fill-box; transform-origin: 50% 0%; }
+  .art .critter .fx-tail { transform-box: fill-box; transform-origin: 97% 35%; }
+  .art .critter .fx-head { transform-box: fill-box; transform-origin: 8% 92%; }
+  .art .critter .hr-ears { transform-box: fill-box; transform-origin: 50% 100%; }
+  .art .critter .hr-nose { transform-box: fill-box; transform-origin: 50% 50%; }
+  .art .critter .pc-body { transform-box: fill-box; transform-origin: 50% 100%; }
+  .art .critter .sq-tail { transform-box: fill-box; transform-origin: 85% 95%; }
+  .art .critter .bv-tail { transform-box: fill-box; transform-origin: 100% 60%; opacity: 0; }
+  .art .critter .bv-splash { transform-box: fill-box; transform-origin: 50% 70%; opacity: 0; }
+  .art .critter .bv-wake, .art .critter .ot-wake { transform-box: fill-box; transform-origin: 100% 50%; opacity: .7; }
+  .art .critter .ot-tail { transform-box: fill-box; transform-origin: 100% 80%; }
+  .art .critter .ot-slide { opacity: 0; }
+  .art .fx-cross { cursor: pointer; }
+  @media (prefers-reduced-motion: no-preference) {
+  .art .cr-fox .cr-move{animation:crfx-move 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-fox .cr-face{animation:crfx-face 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-fox .fx-f2,.art .cr-fox .fx-b1{animation:crfx-legA 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-fox .fx-f1,.art .cr-fox .fx-b2{animation:crfx-legB 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-fox .fx-tail{animation:crfx-tail 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-fox .fx-head{animation:crfx-head 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-hare .cr-move{animation:crhr-move 10s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-hare .cr-face{animation:crhr-face 10s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-hare .hr-ears{animation:crhr-ears 10s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-hare .hr-nose{animation:crhr-nose .45s ease-in-out infinite alternate}
+  .art .cr-porcupine .cr-move{animation:crpc-move 18s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-porcupine .cr-face{animation:crpc-face 18s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-porcupine .pc-body{animation:crpc-rock 18s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-porcupine .pc-lf{animation:crpc-legA 18s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-porcupine .pc-lb{animation:crpc-legB 18s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-porcupine .pc-head{animation:crpc-head 18s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-squirrel .sq-tail{animation:crsq-tail 8s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-squirrel .sq-head{animation:crsq-head 8s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-squirrel .sq-paws{animation:crsq-paws 8s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-squirrel .cr-face{animation:crsq-face 8s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-beaver .cr-move{animation:crbv-move 16s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-beaver .bv-dive{animation:crbv-dive 16s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-beaver .bv-tail{animation:crbv-tail 16s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-beaver .bv-splash{animation:crbv-splash 16s linear infinite;animation-delay:var(--crd,0s);}
+  .art .critter .bv-wake,.art .critter .ot-wake{animation:crwake 1.5s ease-out infinite}
+  .art .cr-otter.cv-swim .cr-move{animation:crots-move 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-otter.cv-swim .ot-dive{animation:crots-dive 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-otter.cv-swim .ot-tail{animation:crots-tail 14s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-otter.cv-ice .cr-move{animation:croti-move 12s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-otter.cv-ice .cr-face{animation:croti-face 12s linear infinite;animation-delay:var(--crd,0s);}
+  .art .cr-otter.cv-ice .ot-lope{animation:croti-lope 12s linear infinite;animation-delay:var(--crd,0s);animation-timing-function:step-end;}
+  .art .cr-otter.cv-ice .ot-slide{animation:croti-slide 12s linear infinite;animation-delay:var(--crd,0s);animation-timing-function:step-end;}
+  }
+  @keyframes crfx-move{0%{transform:translate(0.00px,0.00px)}22%{transform:translate(44.00px,0.00px)}50%{transform:translate(44.00px,0.00px)}72%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes crfx-face{0%{transform:scaleX(1)}49.6%{transform:scaleX(1)}50.4%{transform:scaleX(-1)}99.2%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+  @keyframes crfx-legA{0%{transform:rotate(0.0deg)}0.714%{transform:rotate(22.0deg)}2.143%{transform:rotate(-22.0deg)}3.571%{transform:rotate(22.0deg)}5%{transform:rotate(-22.0deg)}6.429%{transform:rotate(22.0deg)}7.857%{transform:rotate(-22.0deg)}9.286%{transform:rotate(22.0deg)}10.714%{transform:rotate(-22.0deg)}12.143%{transform:rotate(22.0deg)}13.571%{transform:rotate(-22.0deg)}15%{transform:rotate(22.0deg)}16.429%{transform:rotate(-22.0deg)}17.857%{transform:rotate(22.0deg)}19.286%{transform:rotate(-22.0deg)}20.714%{transform:rotate(22.0deg)}22%{transform:rotate(0.0deg)}50%{transform:rotate(0.0deg)}50.714%{transform:rotate(22.0deg)}52.143%{transform:rotate(-22.0deg)}53.571%{transform:rotate(22.0deg)}55%{transform:rotate(-22.0deg)}56.429%{transform:rotate(22.0deg)}57.857%{transform:rotate(-22.0deg)}59.286%{transform:rotate(22.0deg)}60.714%{transform:rotate(-22.0deg)}62.143%{transform:rotate(22.0deg)}63.571%{transform:rotate(-22.0deg)}65%{transform:rotate(22.0deg)}66.429%{transform:rotate(-22.0deg)}67.857%{transform:rotate(22.0deg)}69.286%{transform:rotate(-22.0deg)}70.714%{transform:rotate(22.0deg)}72%{transform:rotate(0.0deg)}100%{transform:rotate(0.0deg)}}
+  @keyframes crfx-legB{0%{transform:rotate(0.0deg)}0.714%{transform:rotate(-22.0deg)}2.143%{transform:rotate(22.0deg)}3.571%{transform:rotate(-22.0deg)}5%{transform:rotate(22.0deg)}6.429%{transform:rotate(-22.0deg)}7.857%{transform:rotate(22.0deg)}9.286%{transform:rotate(-22.0deg)}10.714%{transform:rotate(22.0deg)}12.143%{transform:rotate(-22.0deg)}13.571%{transform:rotate(22.0deg)}15%{transform:rotate(-22.0deg)}16.429%{transform:rotate(22.0deg)}17.857%{transform:rotate(-22.0deg)}19.286%{transform:rotate(22.0deg)}20.714%{transform:rotate(-22.0deg)}22%{transform:rotate(0.0deg)}50%{transform:rotate(0.0deg)}50.714%{transform:rotate(-22.0deg)}52.143%{transform:rotate(22.0deg)}53.571%{transform:rotate(-22.0deg)}55%{transform:rotate(22.0deg)}56.429%{transform:rotate(-22.0deg)}57.857%{transform:rotate(22.0deg)}59.286%{transform:rotate(-22.0deg)}60.714%{transform:rotate(22.0deg)}62.143%{transform:rotate(-22.0deg)}63.571%{transform:rotate(22.0deg)}65%{transform:rotate(-22.0deg)}66.429%{transform:rotate(22.0deg)}67.857%{transform:rotate(-22.0deg)}69.286%{transform:rotate(22.0deg)}70.714%{transform:rotate(-22.0deg)}72%{transform:rotate(0.0deg)}100%{transform:rotate(0.0deg)}}
+  @keyframes crfx-tail{0%{transform:rotate(-5.0deg)}22%{transform:rotate(-5.0deg)}26%{transform:rotate(4.0deg)}31%{transform:rotate(-3.0deg)}36%{transform:rotate(5.0deg)}41%{transform:rotate(-3.0deg)}46%{transform:rotate(4.0deg)}50%{transform:rotate(-5.0deg)}72%{transform:rotate(-5.0deg)}76%{transform:rotate(4.0deg)}82%{transform:rotate(-3.0deg)}88%{transform:rotate(5.0deg)}94%{transform:rotate(-2.0deg)}100%{transform:rotate(-5.0deg)}}
+  @keyframes crfx-head{0%{transform:rotate(0.0deg)}24%{transform:rotate(0.0deg)}28%{transform:rotate(24.0deg)}33%{transform:rotate(24.0deg)}34.5%{transform:rotate(19.0deg)}36%{transform:rotate(24.0deg)}37.5%{transform:rotate(19.0deg)}39%{transform:rotate(24.0deg)}43%{transform:rotate(0.0deg)}78%{transform:rotate(0.0deg)}81%{transform:rotate(-9.0deg)}88%{transform:rotate(-9.0deg)}91%{transform:rotate(4.0deg)}95%{transform:rotate(0.0deg)}100%{transform:rotate(0.0deg)}}
+  @keyframes crhr-move{0%{transform:translate(0.00px,0.00px)}30%{transform:translate(0.00px,0.00px)}32%{transform:translate(5.00px,-6.50px)}34%{transform:translate(10.00px,0.00px)}36%{transform:translate(15.00px,-6.50px)}38%{transform:translate(20.00px,0.00px)}62%{transform:translate(20.00px,0.00px)}64%{transform:translate(15.00px,-6.50px)}66%{transform:translate(10.00px,0.00px)}68%{transform:translate(5.00px,-6.50px)}70%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes crhr-face{0%{transform:scaleX(1)}60.6%{transform:scaleX(1)}61.4%{transform:scaleX(-1)}99.2%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+  @keyframes crhr-ears{0%{transform:rotate(0.0deg)}12%{transform:rotate(0.0deg)}13%{transform:rotate(-12.0deg)}14.5%{transform:rotate(5.0deg)}16%{transform:rotate(0.0deg)}30%{transform:rotate(0.0deg)}31%{transform:rotate(-10.0deg)}38%{transform:rotate(-10.0deg)}40%{transform:rotate(0.0deg)}62%{transform:rotate(0.0deg)}63%{transform:rotate(-10.0deg)}70%{transform:rotate(-10.0deg)}72%{transform:rotate(0.0deg)}84%{transform:rotate(0.0deg)}85%{transform:rotate(-11.0deg)}86.5%{transform:rotate(4.0deg)}88%{transform:rotate(0.0deg)}100%{transform:rotate(0.0deg)}}
+  @keyframes crhr-nose{0%{transform:scale(1)}100%{transform:scale(1.35)}}
+  @keyframes crpc-move{0%{transform:translate(0.00px,0.00px)}32%{transform:translate(26.00px,0.00px)}50%{transform:translate(26.00px,0.00px)}82%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes crpc-face{0%{transform:scaleX(1)}49.6%{transform:scaleX(1)}50.4%{transform:scaleX(-1)}99.2%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+  @keyframes crpc-rock{0%{transform:rotate(0.0deg)}1.667%{transform:rotate(2.6deg)}5%{transform:rotate(-2.6deg)}8.333%{transform:rotate(2.6deg)}11.667%{transform:rotate(-2.6deg)}15%{transform:rotate(2.6deg)}18.333%{transform:rotate(-2.6deg)}21.667%{transform:rotate(2.6deg)}25%{transform:rotate(-2.6deg)}28.333%{transform:rotate(2.6deg)}32%{transform:rotate(0.0deg)}50%{transform:rotate(0.0deg)}51.667%{transform:rotate(2.6deg)}55%{transform:rotate(-2.6deg)}58.333%{transform:rotate(2.6deg)}61.667%{transform:rotate(-2.6deg)}65%{transform:rotate(2.6deg)}68.333%{transform:rotate(-2.6deg)}71.667%{transform:rotate(2.6deg)}75%{transform:rotate(-2.6deg)}78.333%{transform:rotate(2.6deg)}82%{transform:rotate(0.0deg)}100%{transform:rotate(0.0deg)}}
+  @keyframes crpc-legA{0%{transform:rotate(0.0deg)}1.667%{transform:rotate(14.0deg)}5%{transform:rotate(-14.0deg)}8.333%{transform:rotate(14.0deg)}11.667%{transform:rotate(-14.0deg)}15%{transform:rotate(14.0deg)}18.333%{transform:rotate(-14.0deg)}21.667%{transform:rotate(14.0deg)}25%{transform:rotate(-14.0deg)}28.333%{transform:rotate(14.0deg)}32%{transform:rotate(0.0deg)}50%{transform:rotate(0.0deg)}51.667%{transform:rotate(14.0deg)}55%{transform:rotate(-14.0deg)}58.333%{transform:rotate(14.0deg)}61.667%{transform:rotate(-14.0deg)}65%{transform:rotate(14.0deg)}68.333%{transform:rotate(-14.0deg)}71.667%{transform:rotate(14.0deg)}75%{transform:rotate(-14.0deg)}78.333%{transform:rotate(14.0deg)}82%{transform:rotate(0.0deg)}100%{transform:rotate(0.0deg)}}
+  @keyframes crpc-legB{0%{transform:rotate(0.0deg)}1.667%{transform:rotate(-14.0deg)}5%{transform:rotate(14.0deg)}8.333%{transform:rotate(-14.0deg)}11.667%{transform:rotate(14.0deg)}15%{transform:rotate(-14.0deg)}18.333%{transform:rotate(14.0deg)}21.667%{transform:rotate(-14.0deg)}25%{transform:rotate(14.0deg)}28.333%{transform:rotate(-14.0deg)}32%{transform:rotate(0.0deg)}50%{transform:rotate(0.0deg)}51.667%{transform:rotate(-14.0deg)}55%{transform:rotate(14.0deg)}58.333%{transform:rotate(-14.0deg)}61.667%{transform:rotate(14.0deg)}65%{transform:rotate(-14.0deg)}68.333%{transform:rotate(14.0deg)}71.667%{transform:rotate(-14.0deg)}75%{transform:rotate(14.0deg)}78.333%{transform:rotate(-14.0deg)}82%{transform:rotate(0.0deg)}100%{transform:rotate(0.0deg)}}
+  @keyframes crpc-head{0%{transform:translate(0.00px,0.00px)}35%{transform:translate(0.00px,0.00px)}37%{transform:translate(0.60px,1.20px)}39%{transform:translate(0.00px,0.00px)}41%{transform:translate(0.60px,1.20px)}43%{transform:translate(0.00px,0.00px)}45%{transform:translate(0.60px,1.20px)}47%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes crsq-tail{0%{transform:rotate(0.0deg)}2%{transform:rotate(-16.0deg)}4%{transform:rotate(7.0deg)}6%{transform:rotate(-16.0deg)}8%{transform:rotate(7.0deg)}10%{transform:rotate(0.0deg)}50%{transform:rotate(0.0deg)}52%{transform:rotate(-16.0deg)}54%{transform:rotate(7.0deg)}56%{transform:rotate(-16.0deg)}58%{transform:rotate(0.0deg)}100%{transform:rotate(0.0deg)}}
+  @keyframes crsq-head{0%{transform:translate(0.00px,0.00px)}16%{transform:translate(0.00px,0.00px)}19%{transform:translate(0.00px,0.70px)}20.6%{transform:translate(0.00px,0.70px)}22.2%{transform:translate(0.00px,0.10px)}23.8%{transform:translate(0.00px,0.70px)}25.4%{transform:translate(0.00px,0.10px)}27%{transform:translate(0.00px,0.70px)}28.6%{transform:translate(0.00px,0.10px)}30.2%{transform:translate(0.00px,0.70px)}31.8%{transform:translate(0.00px,0.10px)}33.4%{transform:translate(0.00px,0.70px)}35%{transform:translate(0.00px,0.10px)}36.6%{transform:translate(0.00px,0.70px)}39%{transform:translate(0.00px,0.70px)}42%{transform:translate(0.00px,0.00px)}72%{transform:translate(0.00px,0.00px)}75%{transform:translate(0.00px,0.70px)}76.6%{transform:translate(0.00px,0.70px)}78.2%{transform:translate(0.00px,0.10px)}79.8%{transform:translate(0.00px,0.70px)}81.4%{transform:translate(0.00px,0.10px)}83%{transform:translate(0.00px,0.70px)}84.6%{transform:translate(0.00px,0.10px)}86.2%{transform:translate(0.00px,0.70px)}87.8%{transform:translate(0.00px,0.10px)}89.4%{transform:translate(0.00px,0.70px)}91%{transform:translate(0.00px,0.70px)}94%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes crsq-paws{0%{transform:translate(0.00px,0.00px)}16%{transform:translate(0.00px,0.00px)}19%{transform:translate(-0.30px,-2.60px)}39%{transform:translate(-0.30px,-2.60px)}42%{transform:translate(0.00px,0.00px)}72%{transform:translate(0.00px,0.00px)}75%{transform:translate(-0.30px,-2.60px)}91%{transform:translate(-0.30px,-2.60px)}94%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes crsq-face{0%{transform:scaleX(1)}63.6%{transform:scaleX(1)}64.4%{transform:scaleX(-1)}99.2%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+  @keyframes crbv-move{0%{transform:translate(0.00px,0.00px)}56%{transform:translate(64.00px,0.00px)}70%{transform:translate(64.00px,0.00px)}70.2%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes crbv-dive{0%{transform:translate(0.00px,0.00px);opacity:1}57%{transform:translate(0.00px,0.00px);opacity:1}62%{transform:translate(0.00px,7.00px);opacity:0}84%{transform:translate(0.00px,7.00px);opacity:0}91%{transform:translate(0.00px,0.00px);opacity:1}95%{transform:translate(0.00px,0.60px);opacity:1}100%{transform:translate(0.00px,0.00px);opacity:1}}
+  @keyframes crbv-tail{0%{opacity:0;transform:rotate(0deg)}54%{opacity:0;transform:rotate(0deg)}55%{opacity:1;transform:rotate(0deg)}57%{opacity:1;transform:rotate(-38deg)}58%{opacity:1;transform:rotate(4deg)}59.5%{opacity:0;transform:rotate(0deg)}100%{opacity:0;transform:rotate(0deg)}}
+  @keyframes crbv-splash{0%{opacity:0;transform:scale(.3)}57.8%{opacity:0;transform:scale(.3)}58.2%{opacity:1;transform:scale(.6)}63%{opacity:0;transform:scale(1.7)}100%{opacity:0;transform:scale(1.7)}}
+  @keyframes crwake{0%{opacity:.9;transform:scaleX(.55)}100%{opacity:0;transform:scaleX(1.15)}}
+  @keyframes crots-move{0%{transform:translate(0.00px,0.00px)}72%{transform:translate(90.00px,0.00px)}82%{transform:translate(90.00px,0.00px)}82.2%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes crots-dive{0%{transform:translate(0.00px,0.00px);opacity:1}20%{transform:translate(0.00px,0.00px);opacity:1}23%{transform:translate(0.00px,6.00px);opacity:0}26%{transform:translate(0.00px,6.00px);opacity:0}29%{transform:translate(0.00px,0.00px);opacity:1}46%{transform:translate(0.00px,0.00px);opacity:1}49%{transform:translate(0.00px,6.00px);opacity:0}52%{transform:translate(0.00px,6.00px);opacity:0}55%{transform:translate(0.00px,0.00px);opacity:1}71%{transform:translate(0.00px,0.00px);opacity:1}76%{transform:translate(0.00px,6.00px);opacity:0}90%{transform:translate(0.00px,6.00px);opacity:0}97%{transform:translate(0.00px,0.00px);opacity:1}100%{transform:translate(0.00px,0.00px);opacity:1}}
+  @keyframes crots-tail{0%{transform:rotate(0deg)}19%{transform:rotate(0deg)}21%{transform:rotate(-28deg)}23%{transform:rotate(0deg)}45%{transform:rotate(0deg)}47%{transform:rotate(-28deg)}49%{transform:rotate(0deg)}70%{transform:rotate(0deg)}72.5%{transform:rotate(-34deg)}75%{transform:rotate(0deg)}100%{transform:rotate(0deg)}}
+  @keyframes croti-move{0%{transform:translate(0.00px,0.00px)}3.5%{transform:translate(5.50px,-3.20px)}7%{transform:translate(11.00px,0.00px)}10.5%{transform:translate(16.50px,-3.20px)}14%{transform:translate(22.00px,0.00px)}18%{transform:translate(36.00px,0.00px)}24%{transform:translate(52.00px,0.00px)}30%{transform:translate(58.00px,0.00px)}50%{transform:translate(58.00px,0.00px)}53.5%{transform:translate(52.50px,-3.20px)}57%{transform:translate(47.00px,0.00px)}60.5%{transform:translate(41.50px,-3.20px)}64%{transform:translate(36.00px,0.00px)}68%{transform:translate(22.00px,0.00px)}74%{transform:translate(6.00px,0.00px)}80%{transform:translate(0.00px,0.00px)}100%{transform:translate(0.00px,0.00px)}}
+  @keyframes croti-face{0%{transform:scaleX(1)}49.6%{transform:scaleX(1)}50.4%{transform:scaleX(-1)}99.2%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+  @keyframes croti-lope{0%{opacity:1}14%{opacity:1}14.3%{opacity:0}30%{opacity:0}30.3%{opacity:1}64%{opacity:1}64.3%{opacity:0}80%{opacity:0}80.3%{opacity:1}100%{opacity:1}}
+  @keyframes croti-slide{0%{opacity:0}14%{opacity:0}14.3%{opacity:1}30%{opacity:1}30.3%{opacity:0}64%{opacity:0}64.3%{opacity:1}80%{opacity:1}80.3%{opacity:0}100%{opacity:0}}
+  /* hold still to be clicked: hover holds an animal or a bird; a bird that is tabbed to waits at its place */
+  .art .critter:hover *, .art .critter:focus-visible * { animation-play-state: paused; }
+  .art .fx-cross:hover { animation-play-state: paused; }
+  .art .fx-cross:focus-within { animation: none; }
+</style>
 <style id="quizcss">
   .quizbox .quizcount { font-size: 0.9rem; opacity: 0.85; margin: 0.2rem 0; }
   .quizbox .quizq { font-weight: 700; font-size: 1.1rem; margin: 0.3rem 0 0.6rem; }
@@ -410,7 +501,7 @@
     @keyframes a-sway { from { transform: skewX(-1.3deg); } to { transform: skewX(1.3deg); } }
     .art .anim-breathe { transform-box: fill-box; transform-origin: 50% 100%; animation: a-breathe 4.2s ease-in-out infinite alternate; }
     @keyframes a-breathe { from { transform: scale(1, 1); } to { transform: scale(1.006, 1.018); } }
-    .art .anim-fly { animation: a-fly 42s linear infinite; }
+    .art .anim-fly { animation: a-fly 24s linear infinite; }
     @keyframes a-fly { from { transform: translate(0, 0); } 50% { transform: translate(360px, -10px); } to { transform: translate(720px, 4px); } }
     .art .anim-flap { transform-box: fill-box; transform-origin: 50% 50%; animation: a-flap 0.7s ease-in-out infinite alternate; }
     @keyframes a-flap { to { transform: scaleY(0.4); } }
@@ -2421,7 +2512,12 @@ const ART = (() => {
   const snowshoes = (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="#2A221C" stroke-width="2.5"><ellipse cx="-9" cy="0" rx="6" ry="15"/><ellipse cx="9" cy="0" rx="6" ry="15"/><path d="M-9,-12 L-9,12 M-14,-2 L-4,-2 M-14,4 L-4,4 M9,-12 L9,12 M4,-2 L14,-2 M4,4 L14,4" stroke-width="1"/></g>`;
   const dory = (x, y, s = 1, n = 2) => '<g class="anim-bob">' + g(x, y, s, `<path d="M-52,-14 L52,-14 L40,4 L-40,4 Z"/>` + Array.from({ length: n }, (_, i) => { const cx = n === 1 ? 0 : -20 + i * 40; return `<circle cx="${cx}" cy="-34" r="6"/><path d="M${cx - 8},-14 L${cx + 8},-14 L${cx + 6},-27 L${cx - 6},-27 Z"/>`; }).join('') + `<rect x="18" y="-24" width="18" height="10" fill="#6E5A44"/>`) + '</g>';
   const trap = (x, y, s = 1) => g(x, y, s, `<rect x="-14" y="-14" width="28" height="14" fill="#6E5A44"/><path d="M-14,-14 Q0,-26 14,-14" fill="none" stroke="#6E5A44" stroke-width="3"/>`);
-  const gulls = (pts) => pts.map(([x, y, sc = 1]) => `<g transform="translate(${x} ${y}) scale(${sc})"><path class="anim-flap" d="M-8,0 Q-4,-5 0,0 Q4,-5 8,0" stroke="#F2EFE6" stroke-width="1.8" fill="none" stroke-linecap="round"/></g>`).join('');
+  const gulls = (pts) => pts.map(([x, y, sc = 1], i) => {   // each gull crosses the picture and comes round again
+    const gull = `<g transform="translate(${x} ${y}) scale(${sc})"><path class="anim-flap" d="M-8,0 Q-4,-5 0,0 Q4,-5 8,0" stroke="#F2EFE6" stroke-width="1.8" fill="none" stroke-linecap="round"/></g>`;
+    if (typeof flyKeys !== 'function') return gull;
+    const nm = `gx${Math.round(x)}_${Math.round(y)}`, { P, css } = flyKeys(nm, x, i % 2, 40 + i * 7, 600, 0);
+    return `<style>${css}@media (prefers-reduced-motion: no-preference){.art .${nm}{animation:${nm} ${P.toFixed(2)}s linear ${-(i * 3.7).toFixed(1)}s infinite}}</style><g class="${nm}">${gull}</g>`;
+  }).join('');
   const wharf = (x0, x1, y) => `<rect x="${x0}" y="${y - 6}" width="${x1 - x0}" height="8" fill="#5A4A3A"/>` + Array.from({ length: Math.floor((x1 - x0) / 26) + 1 }, (_, i) => `<rect x="${x0 + i * 26}" y="${y}" width="5" height="34" fill="#4A3C30"/>`).join('');
   const liner = (x, y, s = 1, o = {}) => '<g class="anim-bob">' + g(x, y, s, `<path d="M-150,-30 L150,-30 L132,8 L-136,8 Z"/><rect x="-118" y="-52" width="214" height="22"/><rect x="-90" y="-68" width="150" height="16"/><rect x="-60" y="-104" width="22" height="38" fill="${o.fun || MID}"/><rect x="-14" y="-104" width="22" height="38" fill="${o.fun || MID}"/><rect x="32" y="-104" width="22" height="38" fill="${o.fun || MID}"/>` + (o.dazzle ? `<path d="M-130,-28 L-90,4 M-70,-28 L-40,4 M0,-28 L40,4 M70,-28 L100,4" stroke="#8495A0" stroke-width="7" fill="none"/>` : ''), o) + '</g>';
   const willow = (x, y, s = 1) => `<g class="anim-sway" style="animation-delay:-${(x % 5)}s">` + g(x, y, s, `<rect x="-5" y="-44" width="10" height="44"/><ellipse cx="0" cy="-62" rx="30" ry="20"/><ellipse cx="-22" cy="-50" rx="18" ry="16"/><ellipse cx="22" cy="-50" rx="18" ry="16"/>` + [-36, -28, -20, -12, -4, 4, 12, 20, 28, 36].map((dx, i) => `<path d="M${dx},-52 Q${dx + (i % 2 ? 2 : -2)},-30 ${dx * 1.05},${-14 - (i % 3) * 5}" stroke-width="3" fill="none"/>`).join(''), { c: '#4E5E3C' }) + '</g>';
@@ -2855,6 +2951,7 @@ const GAME = {
     wordcarrier: { icon: '🗣️', name: 'Word Carrier', text: 'Learn all 16 Mi’kmaw and Acadian French words to carry.' },
     inkkeeper: { icon: '🔦', name: 'Keeper of Hidden History', text: 'Find all eight Hidden Ink words around the school.' },
     chickspotter: { icon: '🐦', name: 'Chickadee Spotter', text: 'Spot 12 chickadees hiding in the pictures.' },
+    woodwatcher: { icon: '🦊', name: 'Woodland Watcher', text: 'Spot all 6 kinds of woodland animals in the pictures: a beaver, a red fox, a snowshoe hare, a porcupine, a red squirrel and a river otter.' },
     forestwise: { icon: '🌲', name: 'Forest Knowledge', text: 'Learn all 12 pieces of Mi’kmaw forest knowledge by searching forest scenes.' },
     first: { icon: '📖', name: 'First Ending', text: 'Reach any ending.' },
     survivor: { icon: '🌅', name: 'Survivor', text: 'Reach an ending where your character lives.' },
@@ -4391,11 +4488,11 @@ function cover() {
 
 // ================= GAME ENGINE =================
 const KEY_GAME = 'soldiers-came-game';
-const PROG = Object.assign({ items: [], secrets: [], visited: [], riddles: [], glints: [], words: [], badges: [], seen: [], voyages: [], docs: [], forest: [], ideas: [], chicks: [], ink: [], games: [], doors: [], cross: [], journal: {}, ff: {}, review: { right: 0, total: 0 }, name: '', reflection: '' }, load(KEY_GAME, {}));
+const PROG = Object.assign({ items: [], secrets: [], visited: [], riddles: [], glints: [], words: [], badges: [], seen: [], voyages: [], docs: [], forest: [], ideas: [], chicks: [], critters: [], ink: [], games: [], doors: [], cross: [], journal: {}, ff: {}, review: { right: 0, total: 0 }, name: '', reflection: '' }, load(KEY_GAME, {}));
 const saveProg = () => save(KEY_GAME, PROG);
 // What the reader finds on this journey only (reset each time a story starts).
 let RUN = {};
-const RUN_KEYS = ['items', 'docs', 'riddles', 'secrets', 'doors', 'forest', 'words', 'chicks', 'games', 'cross'];
+const RUN_KEYS = ['items', 'docs', 'riddles', 'secrets', 'doors', 'forest', 'words', 'chicks', 'critters', 'games', 'cross'];
 function runAdd(list, v) { if (!RUN_KEYS.includes(list)) return; (RUN[list] = RUN[list] || []); if (!RUN[list].includes(v)) RUN[list].push(v); }
 const addTo = (list, v) => { runAdd(list, v); if (!PROG[list].includes(v)) { PROG[list].push(v); saveProg(); return true; } return false; };
 let PACK = new Set();      // items carried on this path
@@ -4441,6 +4538,7 @@ function checkBadges() {
   if (Object.keys(GAME.secrets).every((k) => PROG.visited.includes(k))) award('explorer');
   if (Object.keys(GAME.items).every((k) => PROG.items.includes(k))) award('collector');
   if ((PROG.chicks || []).length >= 12) award('chickspotter');
+  if (typeof CRITTERS !== 'undefined' && new Set((PROG.critters || []).map((x) => x.split(':')[0])).size >= Object.keys(CRITTERS).length) award('woodwatcher');
   if (typeof DOORS !== 'undefined' && Object.keys(DOORS).every((k) => (PROG.doors || []).includes(k))) award('pathfinder');
   if (typeof THREAD_ALL !== 'undefined' && THREAD_ALL.every((k) => PROG.words.includes(k))) award('wordcarrier');
   if (typeof GAMES !== 'undefined' && Object.keys(GAMES).every((k) => (PROG.games || []).includes(k))) award('gamemaster');
@@ -4553,11 +4651,210 @@ function birdFor(where, svg) {   // which bird flies on this page: the same one 
   const k = kinds[(Math.imul(Number(where), 2654435761) >>> 0) % 10], sky = (/data-sky="(\w+)"/.exec(svg) || [])[1];
   return sky === 'winter' && ['osprey', 'goose', 'heron'].includes(k) ? 'chickadee' : k;   // these three fly south for the winter
 }
+// ================= BIRDS FLY ACROSS THE PICTURE =================
+// A bird drawn flying crosses the whole picture, comes back in from the other side to where it started, glides there a few seconds, and goes again.
+// Hover it to hold it still; Tab to it and it waits at its place. Nothing moves when the device asks for reduced motion.
+const FLY_SPEED = { chickadee: 62, bluejay: 58, gull: 46, raven: 48, goose: 52, heron: 36, osprey: 42, eagle: 32 };   // picture units a second
+function flyKeys(name, x, left, speed, W, rest) {
+  const m = 46, out = left ? -(x + m) : W + m - x, back = left ? W + m - x : -(x + m);   // off one side, then in from the other
+  const tOut = Math.abs(out) / speed, tIn = Math.abs(back) / speed, P = rest + tOut + tIn;
+  const pc = (t) => (t / P * 100).toFixed(3) + '%';
+  const tr = (dx, dy) => `{transform:translate(${dx.toFixed(1)}px,${dy}px)}`;
+  const k = [[0, tr(0, 0)], [rest, tr(0, 0)], [rest + tOut * 0.5, tr(out * 0.5, -7)], [rest + tOut, tr(out, -3)], [rest + tOut + 0.01, tr(back, 4)], [rest + tOut + tIn * 0.5, tr(back * 0.5, 7)], [P, tr(0, 0)]];
+  return { P, css: `@keyframes ${name}{${k.map(([t, v]) => pc(t) + v).join('')}}` };
+}
+function flyAcross(x, y, left, kind, where, W) {
+  const id = String(where).replace(/\W/g, ''), rest = 6 + (Number(where) % 4);
+  const { P, css } = flyKeys('fxk' + id, x, left, FLY_SPEED[kind] || 48, W, rest);
+  const delay = -(rest - 1.5);   // the first crossing starts a moment after the page opens
+  return `<style>${css}@media (prefers-reduced-motion: no-preference){.art .fxc${id}{animation:fxk${id} ${P.toFixed(2)}s linear ${delay}s infinite}}</style><g class="fx-cross fxc${id}">${FLY_SVG(x, y, left, kind)}</g>`;
+}
 function withChick(svg, where) {
   const spot = chickSpot(svg, where); if (!spot) return svg;
   const i = svg.lastIndexOf('</svg>');
   const perch = SCENE_IMG[where] && SCENE_IMG[where].chick;   // a hand-picked perch: the sitting chickadee
-  return svg.slice(0, i) + (perch ? CHICK_SVG(spot[0], spot[1], Number(where) % 2) : FLY_SVG(spot[0], spot[1], Number(where) % 2, birdFor(where, svg))) + svg.slice(i);
+  if (perch) return svg.slice(0, i) + CHICK_SVG(spot[0], spot[1], Number(where) % 2) + svg.slice(i);
+  const W = Number((/viewBox="0 0 (\d+)/.exec(svg) || [])[1]) || 600;
+  return svg.slice(0, i) + flyAcross(spot[0], spot[1], Number(where) % 2, birdFor(where, svg), where, W) + svg.slice(i);
+}
+
+// ================= WOODLAND ANIMALS =================
+// A beaver, a red fox, a snowshoe hare, a porcupine, a red squirrel or a river otter, at a hand-picked spot in pictures whose place and season suit it.
+// Facts: Shubenacadie Wildlife Park (beaver, porcupine), Parks Canada, Fundy National Park (snowshoe hare, red squirrel, beaver), Hinterland Who's Who (red fox),
+// The Canadian Encyclopedia (squirrels), U.S. National Park Service and Maine Inland Fisheries and Wildlife (river otter), and Nicolas Denys, who described
+// Acadia's animals in 1672 (W. F. Ganong's translation, Champlain Society, 1908).
+const CRITTERS = {
+  fox: ['🦊', 'A red fox', 'a red fox', [
+    'A red fox listens for a mouse moving in the grass or under the snow. Then it pounces!',
+    'About one third of a red fox’s length is its big, bushy tail. Look for the white tip on the tail and the black paws.',
+    'Red foxes help farmers. They eat huge numbers of mice and insects that damage crops.',
+    'In 1672, Nicolas Denys wrote that Acadia had several kinds of foxes, told apart by their colours. A red fox can be red, brown or black.']],
+  beaver: ['🦫', 'A beaver', 'a beaver', [
+    'The beaver is the biggest rodent in North America. Its front teeth look orange because they have iron in them.',
+    'A beaver can hold its breath for up to 15 minutes. To warn other beavers, it slaps its flat tail on the water.',
+    'Beavers do not sleep all winter. In the fall, they store food underwater, where it keeps cool under the ice until spring.',
+    'In 1672, Nicolas Denys wrote that the beaver “is a fish like the Otter.” It is not! Beavers and otters are mammals.']],
+  hare: ['🐇', 'A snowshoe hare', 'a snowshoe hare', [
+    'A snowshoe hare changes its coat twice a year: dark brown in spring and white in fall. The tips of its ears are black.',
+    'The snowshoe hare is named for its large hind feet.',
+    'In summer, snowshoe hares eat green plants. In winter, they eat twigs, buds and bark.',
+    'In 1672, Nicolas Denys wrote that Acadia’s hares were red in summer and all white in winter.']],
+  porcupine: ['🐾', 'A porcupine', 'a porcupine', [
+    'A porcupine cannot shoot its quills. They come loose only when something touches them.',
+    'Porcupines climb trees slowly and carefully. They eat buds, needles, small twigs and the inner bark of evergreen trees.',
+    'A porcupine can be up to 1 metre long, but it weighs only about 10 kilograms.',
+    'In 1672, Nicolas Denys wrote that Acadia’s porcupine was “of the size of a middling Dog, but shorter.”']],
+  squirrel: ['🐿️', 'A red squirrel', 'a red squirrel', [
+    'A red squirrel stores cones in a big pile called a midden, so it has food all winter.',
+    'Red squirrels do not hibernate. They stay busy all winter long.',
+    'Squirrels use their bushy tails to send signals to other squirrels.',
+    'Red squirrels help the forest grow, because they spread the seeds of trees.',
+    'In 1672, Nicolas Denys wrote that the biggest squirrels in Acadia were “quite like those of France.”']],
+  otter: ['🦦', 'A river otter', 'a river otter', [
+    'On snow and ice, a river otter runs and then slides on its belly, again and again. It can go 24 kilometres an hour!',
+    'The river otter spends more time in the water than any other member of the weasel family. It can stay underwater for two or three minutes.',
+    'River otters have sleek, dark brown, waterproof fur. They eat mostly fish.',
+    'In 1672, Nicolas Denys described Acadia’s otters, along with the beaver and the muskrat.']],
+};
+// scene: [kind, x, y, facing left (1) or right (0), size, how it moves or looks]
+const CRITTER_AT = {
+  '22': ['hare', 466, 229, 1, 1, 'winter'],
+  '32': ['squirrel', 574, 204, 1, 1.05],
+  '120': ['porcupine', 92, 232, 0, 1.05],
+  '403': ['otter', 498, 228, 0, 1.05, 'ice'],
+  '214': ['fox', 470, 232, 1, 1.1],
+  '240': ['squirrel', 560, 216, 1, 1.05],
+  '241': ['porcupine', 466, 238, 1, 1.05],
+  '246': ['hare', 84, 231, 0, 1, 'winter'],
+  '250': ['otter', 176, 192, 0, 0.9, 'swim'],
+  '504': ['otter', 120, 222, 0, 1, 'swim'],
+  '508': ['squirrel', 466, 197, 1, 1],
+  '511': ['beaver', 516, 192, 0, 0.9, 'lodge'],
+  '522': ['hare', 72, 223, 0, 0.95, 'winter'],
+  '567': ['beaver', 70, 224, 0, 1, 'swim'],
+  '578': ['fox', 400, 226, 1, 1.15],
+  '605': ['beaver', 452, 214, 0, 1, 'swim'],
+  '630': ['fox', 520, 228, 1, 1.1],
+  '713': ['fox', 486, 234, 1, 1.05],
+  '741': ['fox', 448, 224, 1, 1.15],
+  '781': ['porcupine', 438, 205, 1, 0.95],
+  '890': ['squirrel', 61, 126, 0, 0.95, 'post'],
+};
+const CRIT_DRAW = (() => {
+  const P = (a) => a.map((v) => (typeof v === 'number' ? v.toFixed(1) : v)).join(' ');
+  // the porcupine's quills: pale tips along its back, pointing back and up
+  let quills = '';
+  for (let i = 0; i < 26; i++) {
+    const t = i / 25, ang = Math.PI * (0.96 - t * 0.78), bx = -1 + Math.cos(ang) * 14.2, by = -3 - Math.sin(ang) * 13.4;
+    const da = ang + 0.55, len = 4.2 + (i % 3) * 0.9;
+    quills += `<path d="M${P([bx, by])} L${P([bx + Math.cos(da) * len, by - Math.sin(da) * len])}"/>`;
+  }
+  const fox = (() => {
+    const o = '#C8622A', d = '#9A471C', c = '#F4E7D4', k = '#251A14';
+    return `<g class="fx-leg fx-b1"><path d="M-10.6,-11.4 L-9.6,-0.4 L-12,-0.4 L-13.4,-10.8 Z" fill="${k}"/></g><g class="fx-leg fx-f1"><path d="M6.8,-11.2 L7.4,-0.4 L5.2,-0.4 L4.8,-11.2 Z" fill="${k}"/></g>` +
+      `<g transform="translate(0 -3)"><g class="fx-tail"><path d="M-12.4,-12.6 C-20,-16.6 -31,-15.8 -38.4,-9.6 C-35.6,-7.2 -27,-6 -13,-8.6 Z" fill="${o}"/><path d="M-13,-12.9 C-20.4,-16.4 -30.6,-15.6 -37.6,-10.4" fill="none" stroke="${d}" stroke-width="1.3" stroke-linecap="round" opacity=".7"/><path d="M-38.4,-9.6 C-36.9,-11.6 -33.8,-12 -32.2,-10.8 C-33.2,-8.5 -35.6,-7.6 -37.6,-8.4 Z" fill="${c}"/></g>` +
+      `<path d="M-15.4,-11 C-13.8,-17 7,-18.6 12.6,-13.6 C14.6,-11.6 13.3,-7.4 10,-6.4 L-11.2,-6.2 C-15.2,-6.4 -16.6,-8.4 -15.4,-11 Z" fill="${o}"/>` +
+      `<path d="M-13.6,-13.8 C-7,-16.8 4,-17.6 10.6,-14.8" fill="none" stroke="${d}" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>` +
+      `<path d="M-10.4,-6.6 C-3,-5.4 4,-5.4 9.8,-6.8 L10.8,-8.6 C4,-7.2 -3,-7.2 -11,-8.2 Z" fill="${c}" opacity=".95"/></g>` +
+      `<g class="fx-leg fx-b2"><path d="M-13,-12.8 C-9.4,-14.4 -6.6,-12.2 -7.3,-9.6 L-6.7,-0.4 L-9.3,-0.4 L-10.6,-8.6 C-12.8,-9.2 -13.8,-11 -13,-12.8 Z" fill="${o}"/><path d="M-7.2,-5.4 L-6.7,-0.4 L-9.3,-0.4 L-10,-5 Z" fill="${k}"/></g>` +
+      `<g class="fx-leg fx-f2"><path d="M8.2,-12.8 L10.2,-12.6 L9.7,-0.4 L7.4,-0.4 Z" fill="${o}"/><path d="M9.9,-5.8 L9.7,-0.4 L7.4,-0.4 L7.7,-5.8 Z" fill="${k}"/></g>` +
+      `<g transform="translate(0 -3)"><g class="fx-head"><path d="M9,-12.6 C10.6,-16.2 13,-18.8 15.8,-19.2 L18,-14.2 C15.2,-12.6 12.4,-10.8 10.6,-9 Z" fill="${o}"/><path d="M10.6,-10.6 C12.4,-12.6 14.8,-13.8 17,-14.6 L16.6,-12.4 C14.6,-11.6 12.6,-10.4 11.4,-8.8 Z" fill="${c}"/>` +
+      `<path d="M14.2,-20.2 L14.6,-26.2 L17.2,-21.2 Z" fill="${k}"/><path d="M16,-20.4 L17.8,-26.8 L19.6,-20.6 Z" fill="${k}"/><path d="M16.9,-21 L17.8,-25 L18.7,-21 Z" fill="#E7AE84"/>` +
+      `<ellipse cx="17.6" cy="-18.2" rx="4.5" ry="3.6" fill="${o}"/><path d="M19.5,-19.7 L26.4,-17.3 C26.6,-16.6 26.2,-16.1 25.5,-15.9 L19.6,-15.3 Z" fill="${o}"/>` +
+      `<path d="M16.2,-16.3 C18.6,-15 22,-15.2 25.7,-16.1 L25.1,-15.3 C22,-14.3 18.6,-14.1 16,-15.1 Z" fill="${c}"/><circle cx="26.1" cy="-16.9" r=".95" fill="${k}"/><path d="M18.5,-19.3 Q19.6,-20.1 20.7,-19.2 Q19.6,-18.6 18.5,-19.3 Z" fill="${k}"/></g></g>`;
+  })();
+  const hare = (coat) => {
+    const w = coat === 'winter', b = w ? '#F7F6F2' : '#8C6B48', s = w ? '#AEB6BC' : '#5E4630', e = '#28221D', ft = w ? '#F7F6F2' : '#E6DDCB';
+    return `<ellipse cx="-1" cy="0.2" rx="11.5" ry="1.5" fill="#1B2529" opacity=".14"/>` +
+      `<g class="hr-ears"><path d="M5.6,-18 C4.2,-22.6 3.8,-26.1 4.6,-28.1 C6,-27.2 7.2,-23.6 7.4,-18.6 Z" fill="${b}" stroke="${s}" stroke-width=".5"/><path d="M4.6,-28.1 C4.4,-26.6 4.5,-25.4 4.8,-24.8 C5.6,-25 6.3,-25.6 6.6,-26.1 C6,-27.2 5.3,-27.8 4.6,-28.1 Z" fill="${e}"/>` +
+      `<path d="M7.4,-18.2 C7,-23 7.6,-26.9 8.8,-28.7 C10,-27.4 10.4,-23.4 9.6,-18.4 Z" fill="${b}" stroke="${s}" stroke-width=".5"/><path d="M8.8,-28.7 C8.4,-27.4 8.3,-26.2 8.4,-25.5 C9.2,-25.6 9.9,-26 10.3,-26.4 C10,-27.4 9.5,-28.1 8.8,-28.7 Z" fill="${e}"/></g>` +
+      `<path d="M-10.6,-0.6 C-12.7,-7.3 -8.4,-13.7 -1,-13.9 C4.4,-14.1 8.2,-11.2 8.8,-7.2 C9.2,-4.2 8.4,-1.6 7.2,-0.6 Z" fill="${b}" stroke="${s}" stroke-width=".6"/>` +
+      `<path d="M-8,-4 C-6,-9 -1,-10.2 2,-7" fill="none" stroke="${s}" stroke-width=".7" opacity=".7"/>` +
+      (w ? '' : `<path d="M5.4,-9.4 C7.4,-8.2 8.6,-5.6 8.4,-2.4 C7.2,-4 5.8,-6.2 5.4,-9.4 Z" fill="#CDB592"/>`) +
+      `<circle cx="-11.2" cy="-5.6" r="2.2" fill="#FFFFFF" stroke="${s}" stroke-width=".4"/>` +
+      `<path d="M-9.4,-0.3 C-6,-2.1 1,-2.1 4.2,-0.5 Z" fill="${ft}" stroke="${s}" stroke-width=".5"/><ellipse cx="6.6" cy="-0.8" rx="1.9" ry="1" fill="${ft}" stroke="${s}" stroke-width=".4"/>` +
+      `<ellipse cx="8.4" cy="-15.2" rx="4.4" ry="3.9" fill="${b}" stroke="${s}" stroke-width=".6"/><ellipse cx="12" cy="-14.4" rx="1.9" ry="1.7" fill="${b}" stroke="${s}" stroke-width=".5"/>` +
+      `<ellipse class="hr-nose" cx="13.7" cy="-14.6" rx=".75" ry=".6" fill="#A86F66"/><circle cx="10" cy="-16.2" r="1.05" fill="${e}"/><circle cx="10.35" cy="-16.55" r=".3" fill="#FFFFFF"/>`;
+  };
+  const porcupine = `<ellipse cx="0" cy="0.2" rx="16" ry="1.6" fill="#1B2529" opacity=".14"/>` +
+    `<g class="pc-leg pc-lb"><path d="M-8.6,-3 L-7.8,0 L-5.2,0 L-5.6,-3 Z" fill="#211A15"/></g><g class="pc-leg pc-lf"><path d="M7,-3 L7.6,0 L10.2,0 L9.8,-3 Z" fill="#211A15"/></g>` +
+    `<g class="pc-body"><path d="M-14.2,-4.6 C-17.4,-4.6 -20.4,-3.2 -21.6,-2 C-18.6,-1.4 -15.8,-1.8 -13.8,-2.4 Z" fill="#3A3029"/>` +
+    `<path d="M-15.2,-2.2 C-16.2,-10 -8.8,-17 0.4,-17.2 C8.8,-17.4 14.6,-11.6 14.8,-5.6 C15,-3.4 14,-2 12.4,-2 L-13.6,-2 C-14.6,-2 -15.1,-2.1 -15.2,-2.2 Z" fill="#3D3229"/>` +
+    `<path d="M-11,-9 C-8,-13.6 -2,-15.6 4,-15 M-12.6,-5 C-10,-9 -5,-11.4 1,-11.4 M-6,-4.2 C-3,-7 2,-8 7,-7" fill="none" stroke="#6E5C48" stroke-width=".8" opacity=".9"/>` +
+    `<g stroke="#ECE2C7" stroke-width=".75" stroke-linecap="round" opacity=".95">${quills}</g>` +
+    `<g class="pc-head"><ellipse cx="14.4" cy="-6" rx="4.1" ry="3.3" fill="#2B231D"/><ellipse cx="17.6" cy="-5.2" rx="1.7" ry="1.35" fill="#2B231D"/><circle cx="18.9" cy="-5.4" r=".65" fill="#0F0C0A"/>` +
+    `<circle cx="15.7" cy="-7.2" r=".7" fill="#0C0907"/><circle cx="15.9" cy="-7.4" r=".22" fill="#FFFFFF"/><circle cx="12.3" cy="-8.7" r="1.05" fill="#2B231D"/></g></g>` +
+    `<path d="M-7,-2.4 L-6.4,0 L-3.8,0 L-4.2,-2.4 Z M9,-2.6 L9.6,0 L12.2,0 L11.8,-2.6 Z" fill="#2A221C"/>`;
+  const squirrel = `<ellipse cx="0" cy="0.2" rx="7" ry="1" fill="#1B2529" opacity=".16"/>` +
+    `<g class="sq-tail"><path d="M-2.4,-2.2 C-8.8,-2.6 -10.7,-8.6 -8.9,-13.3 C-7.7,-16.5 -4.4,-17.9 -2.6,-16.3 C-1.8,-15.3 -2.6,-14.4 -3.6,-14.6 C-5.6,-14.2 -6.6,-11.8 -6,-9 C-5.4,-6.2 -3.2,-4.4 -1,-3.6 Z" fill="#A54B24"/>` +
+    `<path d="M-8.9,-13.3 C-7.7,-16.5 -4.4,-17.9 -2.6,-16.3 M-9.6,-9 C-9.4,-6 -7,-3.4 -3,-2.6" fill="none" stroke="#6B2E16" stroke-width=".9" stroke-linecap="round" opacity=".75"/></g>` +
+    `<ellipse cx="-0.6" cy="-2.8" rx="3.9" ry="2.8" fill="#B4532A"/>` +
+    `<path d="M-3.3,-3 C-4.3,-7.6 -2.6,-11.7 0.8,-12.5 C3.6,-12.9 5.1,-10.2 4.7,-6.8 C4.3,-4 2.6,-2 0,-1.8 Z" fill="#B4532A"/>` +
+    `<path d="M1.2,-11.1 C3.4,-10.5 4.3,-8 3.9,-5.6 C3.5,-3.6 2.2,-2.6 0.8,-2.6 C1.8,-5 1.8,-8.4 1.2,-11.1 Z" fill="#F3EEE4"/><path d="M1.2,-11.1 C1.8,-8.4 1.8,-5 0.8,-2.6" fill="none" stroke="#3B2A20" stroke-width=".55" opacity=".8"/>` +
+    `<ellipse cx="1.7" cy="-0.5" rx="2.7" ry=".9" fill="#9E4623"/>` +
+    `<g class="sq-paws"><ellipse cx="4.8" cy="-8.4" rx="1.6" ry="2.2" fill="#7A5634"/><path d="M3.9,-9.6 L5.7,-9.6 M3.8,-8.5 L5.8,-8.5 M3.9,-7.4 L5.7,-7.4" stroke="#5A3E25" stroke-width=".4"/><path d="M3.2,-9.2 Q4.6,-10.3 5.8,-9.4" stroke="#B4532A" stroke-width="1.2" fill="none" stroke-linecap="round"/></g>` +
+    `<g class="sq-head"><circle cx="2.6" cy="-14" r="3.35" fill="#B4532A"/><path d="M0.8,-16.4 L0.5,-19.4 L2.3,-16.9 Z M2.7,-17 L3.3,-19.8 L4.3,-16.9 Z" fill="#8A3B1C"/>` +
+    `<ellipse cx="5.4" cy="-13.4" rx="1.5" ry="1.25" fill="#B4532A"/><circle cx="6.7" cy="-13.6" r=".45" fill="#2A1E18"/><circle cx="3.6" cy="-14.6" r="1.3" fill="#F3EEE4"/><circle cx="3.75" cy="-14.6" r=".72" fill="#1B1410"/></g>`;
+  const wake = (cls) => `<g class="${cls}" fill="none" stroke="#F1F6F8" stroke-width=".9" stroke-linecap="round"><path d="M-13,0.5 Q-19,-0.4 -25,0.9"/><path d="M-15,1.7 Q-22.5,1.9 -29.5,3.3" opacity=".6"/></g>`;
+  const beaver = `<g class="bv-dive"><ellipse cx="-2" cy="2.2" rx="13" ry="3.4" fill="#3E2E22" opacity=".35"/>${wake('bv-wake')}` +
+    `<g class="bv-tail"><path d="M-12,0 C-16,-1.2 -23,-3.6 -25.6,-1.6 C-24.7,0.4 -17,1 -12,0.8 Z" fill="#3A2A1E"/><path d="M-14,-0.4 L-24,-1.8 M-15,0.4 L-24.6,-0.6" stroke="#2A1E15" stroke-width=".35"/></g>` +
+    `<path d="M-12.6,0.3 C-10.6,-4.2 -3,-6.5 4,-5.9 C7.6,-5.5 10,-3.4 10.4,0.3 Z" fill="#6B4528"/><path d="M-9,-2.7 C-5,-4.9 1,-5.5 5,-4.7" fill="none" stroke="#8C6040" stroke-width="1" stroke-linecap="round" opacity=".85"/>` +
+    `<ellipse cx="12.2" cy="-2.5" rx="4.7" ry="3.3" fill="#6B4528"/><path d="M15,-3.9 C17.4,-3.7 18.7,-2.2 18.3,-0.6 L14.6,-0.2 Z" fill="#5A3A22"/><ellipse cx="17.7" cy="-2.7" rx=".85" ry=".62" fill="#1E1510"/>` +
+    `<circle cx="13.4" cy="-3.9" r=".68" fill="#120D0A"/><circle cx="13.6" cy="-4.1" r=".2" fill="#FFFFFF"/><circle cx="10.2" cy="-4.7" r="1.15" fill="#5A3A22"/>` +
+    `<path d="M-15,0.35 L20,0.35" stroke="#E2ECEF" stroke-width=".8" opacity=".6"/></g>` +
+    `<g class="bv-splash" fill="none" stroke="#F5F9FA" stroke-width="1" stroke-linecap="round"><ellipse cx="-20" cy="0" rx="4.4" ry="1.4"/><path d="M-22.4,-1 L-24,-4.2 M-20,-1.4 L-20,-5 M-17.6,-1 L-16.2,-4.2"/></g>`;
+  const lodge = `<g class="bv-lodge"><path d="M-26,0.6 C-24,-11 -10,-18.4 2,-18.4 C14,-18.4 25,-11 28,0.6 Z" fill="#5C4733"/>` +
+    `<g stroke-linecap="round" stroke-width="1.1" fill="none"><path d="M-20,-4 L-4,-15 M-14,-1 L6,-17 M-6,0 L14,-14 M2,0 L22,-8 M-22,-1 L-8,-9 M8,-1 L26,-3 M-16,-10 L4,-6 M-2,-17 L18,-10" stroke="#3E2E20"/>` +
+    `<path d="M-18,-7 L-2,-12 M0,-15 L16,-6 M-10,-3 L10,-9 M6,-2 L20,-6" stroke="#8A7052"/></g>` +
+    `<path d="M-6,-12 C-2,-14 4,-14 7,-12 C4,-11 -2,-11 -6,-12 Z M10,-6 C13,-7 17,-6.4 19,-5 C15,-4.6 12,-5 10,-6 Z" fill="#7A6248"/><path d="M-27,0.7 L29,0.7" stroke="#E2ECEF" stroke-width=".9" opacity=".6"/></g>`;
+  const ottSwim = `<g class="ot-dive"><ellipse cx="-6" cy="2" rx="16" ry="2.6" fill="#2E2219" opacity=".3"/>${wake('ot-wake')}` +
+    `<g class="ot-tail"><path d="M-10,0.2 C-14,-0.6 -18,-2.6 -20.4,-4.6 C-19.2,-2 -15,0.4 -10,1 Z" fill="#4B3527"/></g>` +
+    `<path d="M-10.4,0.3 C-7,-2.7 2,-3.9 7,-3.1 C9.2,-2.7 10.4,-1.4 10.8,0.3 Z" fill="#4B3527"/>` +
+    `<path d="M8,-0.2 C8.6,-3.9 11,-6.1 14.2,-6.1 C17.4,-6.1 19.5,-4.6 19.7,-3 C19.5,-2 18.4,-1.6 17,-1.6 L12,-0.2 Z" fill="#4B3527"/>` +
+    `<path d="M13,-1.4 C15,-1.6 17.4,-1.8 19.1,-2.6 C18.7,-1.6 17,-0.8 14.4,-0.6 Z" fill="#B9A78D"/><ellipse cx="19.3" cy="-3.4" rx=".72" ry=".56" fill="#120D0A"/>` +
+    `<circle cx="15.6" cy="-4.4" r=".62" fill="#0D0A08"/><circle cx="15.8" cy="-4.6" r=".2" fill="#FFFFFF"/><circle cx="12.6" cy="-5.5" r=".85" fill="#3E2B20"/>` +
+    `<path d="M18.4,-2.6 L21.8,-2 M18.4,-2.2 L21.5,-1.1" stroke="#E2DACD" stroke-width=".25"/><path d="M-12,0.35 L21,0.35" stroke="#E2ECEF" stroke-width=".8" opacity=".55"/></g>`;
+  const ottHead = (cx, cy) => `<ellipse cx="${cx}" cy="${cy}" rx="4.1" ry="3" fill="#4B3527"/><path d="M${P([cx - 0.6, cy + 2.4])} C${P([cx + 1.4, cy + 2.4])} ${P([cx + 3.4, cy + 1.8])} ${P([cx + 4.2, cy + 1])} C${P([cx + 3.6, cy + 2.2])} ${P([cx + 1.8, cy + 3])} ${P([cx - 0.2, cy + 3.2])} Z" fill="#B9A78D"/>` +
+    `<ellipse cx="${(cx + 4).toFixed(1)}" cy="${(cy - 0.4).toFixed(1)}" rx=".7" ry=".55" fill="#120D0A"/><circle cx="${(cx + 1.2).toFixed(1)}" cy="${(cy - 1).toFixed(1)}" r=".6" fill="#0D0A08"/><circle cx="${(cx - 1.8).toFixed(1)}" cy="${(cy - 2.2).toFixed(1)}" r=".8" fill="#3E2B20"/>`;
+  const ottIce = `<ellipse cx="-2" cy="0.2" rx="16" ry="1.4" fill="#1B2529" opacity=".14"/>` +
+    `<g class="ot-lope"><path d="M-13.6,-3.6 C-18,-3.2 -24,-1.8 -27,-0.6 C-23.6,-0.2 -18,-1 -13,-2 Z" fill="#4B3527"/>` +
+    `<path d="M-10,-3.4 L-11,0 L-8.4,0 L-7.4,-3.4 Z M8,-4 L9,0 L11.4,0 L10.6,-4.4 Z" fill="#3B2A1F"/>` +
+    `<path d="M-14,-4 C-12,-11 -2,-14 6,-11 C10,-9.6 12,-7.6 13,-6 C14,-4.6 12.6,-3.4 11,-3.6 L-12,-2.6 C-14,-2.8 -14.6,-3.2 -14,-4 Z" fill="#4B3527"/>` +
+    `<path d="M-6,-11.4 C-1,-12.8 4,-12.2 8,-10" fill="none" stroke="#6A4D3A" stroke-width="1" stroke-linecap="round"/>${ottHead(15.6, -6.6)}</g>` +
+    `<g class="ot-slide"><path d="M-15.6,-1.2 C-20,-1.6 -26,-1.2 -30,-0.4 C-26,0.2 -20,0.2 -15.4,0 Z" fill="#4B3527"/>` +
+    `<path d="M-16,-0.4 C-15,-4.6 -4,-6 6,-5.4 C11,-5 14.6,-4 15.6,-2.6 C16,-1.2 14.8,-0.2 13,-0.2 Z" fill="#4B3527"/>${ottHead(17.8, -3.2)}` +
+    `<g class="ot-spray" fill="#FFFFFF"><circle cx="-15" cy="-1.6" r=".9"/><circle cx="-18" cy="-2.8" r=".7"/><circle cx="-20.6" cy="-1.5" r=".6"/><circle cx="-23" cy="-2.6" r=".5"/></g></g>`;
+  return {
+    fox: { draw: () => fox, hit: [-41, -32, 70, 35] },
+    hare: { draw: (v) => hare(v), hit: [-16, -31, 34, 33] },
+    porcupine: { draw: () => porcupine, hit: [-24, -22, 46, 24] },
+    squirrel: { draw: () => squirrel, hit: [-13, -22, 23, 24] },
+    beaver: { draw: (v) => beaver, extra: (v) => (v === 'lodge' ? `<g transform="translate(90 0)">${lodge}</g>` : ''), hit: [-28, -10, 50, 14] },
+    otter: { draw: (v) => (v === 'ice' ? ottIce : ottSwim), hit: [-30, -14, 54, 17] },
+  };
+})();
+function critSVG(kind, x, y, left, size, variant, where) {
+  const D = CRIT_DRAW[kind], s = size || 1, [hx, hy, hw, hh] = D.hit;
+  const d = -((Number(String(where).replace(/\D/g, '')) * 7) % 11);   // start each animal at a different point in its walk
+  return `<g class="critter cr-${kind}${variant ? ' cv-' + variant : ''}" data-crit="${kind}" role="button" tabindex="0" aria-label="An animal is here" style="--crd:${d}s" transform="translate(${x} ${y}) scale(${left ? -s : s} ${s})">` +
+    (D.extra ? D.extra(variant) : '') +
+    `<g class="cr-move"><g class="cr-face"><rect class="cr-hit" x="${hx}" y="${hy}" width="${hw}" height="${hh}" rx="6" fill="transparent"/>${D.draw(variant)}</g></g></g>`;
+}
+function withCritter(svg, where) {
+  const c = CRITTER_AT[String(where)]; if (!c) return svg;
+  const i = svg.lastIndexOf('</svg>'); if (i < 0) return svg;
+  return svg.slice(0, i) + critSVG(c[0], c[1], c[2], c[3], c[4], c[5], where) + svg.slice(i);
+}
+function onCritter(where, node) {
+  const kind = node && node.dataset.crit, C = CRITTERS[kind]; if (!C) return;
+  const v = kind + ':' + where;
+  PROG.critters = PROG.critters || [];
+  runAdd('critters', v);
+  if (!PROG.critters.includes(v)) { PROG.critters.push(v); saveProg(); }
+  const n = new Set(PROG.critters.map((x) => x.split(':')[0])).size, seen = PROG.critters.filter((x) => x.startsWith(kind + ':')).length;
+  node.classList.add('found'); node.setAttribute('aria-label', C[1]);
+  toast(`${C[0]} You spotted ${C[2]}! (${n} of ${Object.keys(CRITTERS).length} woodland animals found) ${C[3][(seen - 1 + C[3].length) % C[3].length]}`);
+  checkBadges();
 }
 function onChick(where, node) {
   const kind = node && node.dataset.kind;
@@ -4579,8 +4876,10 @@ function onChick(where, node) {
   checkBadges();
 }
 function gamePicture(svg, where) {
-  const wrap = picture(withChick(withGlints(svg, where), where));
+  const wrap = picture(withCritter(withChick(withGlints(svg, where), where), where));
   const hit = (e) => {
+    const cr = e.target.closest && e.target.closest('.critter');
+    if (cr) { if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); onCritter(where, cr); return; }
     const c = e.target.closest && e.target.closest('.chick');
     if (c) { if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); onChick(where, c); return; }
     const ow = e.target.closest && e.target.closest('.owl');
@@ -4706,6 +5005,7 @@ function runSummary() {
   add('🗝️', 'Secret places you discovered', R('secrets').map((k) => safe(() => GAME.secrets[k].name)));
   add('🔓', 'Hidden paths you opened', R('doors').map((k) => safe(() => DOORS[k].label)));
   add('🌿', 'Forest knowledge you learned', R('forest').map((k) => safe(() => `${FOREST_KNOW[k][0]} ${FOREST_KNOW[k][1]}`)));
+  add('🦊', 'Woodland animals you spotted in the pictures', [...new Set(R('critters').map((k) => safe(() => CRITTERS[k.split(':')[0]][1])))]);
   add('🎮', 'Games you played', R('games').map((k) => safe(() => GAMES[k].name)));
   add('💬', 'Words you looked up', R('words').map((k) => safe(() => { const g = GLOSSARY[k]; return `${g[0]}${g[1] ? ' (' + g[1] + ')' : ''}: ${g[2].split(/[.;]/)[0]}`; })));
   const chicks = R('chicks').length;
@@ -10684,6 +10984,19 @@ const SRC_LIST = [
   { g: '🍲 Food', items: [
     ['Health Canada: Fiddlehead safety', 'Why fiddleheads must always be cooked.', 'https://www.canada.ca/en/health-canada/services/food-safety-fruits-vegetables/fiddlehead-safety-tips.html'],
     ['Tourism New Brunswick: Ployes', 'The Acadian buckwheat pancake from Madawaska.', 'https://tourismnewbrunswick.ca/madawaska-ploye-pancake'],
+  ] },
+  { g: '🦊 Animals and birds in the pictures', intro: 'Facts about the animals and birds you can find in the pictures come from these.', items: [
+    ['Nicolas Denys, The Description and Natural History of the Coasts of North America (Acadia), 1672', 'A French trader in Acadia described the animals he saw there, including beavers, otters, foxes, hares, porcupines and squirrels. Translated by W. F. Ganong for the Champlain Society, 1908.', 'https://archive.org/details/descriptionnatur00deny'],
+    ['Shubenacadie Wildlife Park: Beaver', 'Nova Scotia’s wildlife park on the beaver’s teeth, tail, lodges and winter food.', 'https://wildlifepark.novascotia.ca/node/1113'],
+    ['Shubenacadie Wildlife Park: Porcupine', 'Quills, climbing and food.', 'https://wildlifepark.novascotia.ca/node/1144'],
+    ['Parks Canada, Fundy National Park: Snowshoe hare', 'The hare’s two coats, its feet and ears, and what it eats.', 'https://pc.gc.ca/pn-np/nb/fundy/nature/faune-animals/mammiferes-mammals/lievre-hare'],
+    ['Parks Canada, Fundy National Park: Squirrels', 'Red squirrels in the Acadian forest.', 'https://parks.canada.ca/pn-np/nb/fundy/nature/faune-animals/mammiferes-mammals/ecureuils-squirrels'],
+    ['Parks Canada, Fundy National Park: Beavers', 'How beaver dams change the land.', 'https://parks.canada.ca/pn-np/nb/fundy/nature/faune-animals/mammiferes-mammals/castor-beaver'],
+    ['Hinterland Who’s Who: Red Fox', 'The red fox’s colours, senses and hunting, from the Canadian Wildlife Federation and Environment and Climate Change Canada.', 'https://www.hww.ca/wildlife/mammals/red-fox/'],
+    ['The Canadian Encyclopedia: Squirrel', 'Canada’s squirrels, and how the red squirrel stores cones in a midden.', 'https://thecanadianencyclopedia.ca/index.php/en/article/squirrel'],
+    ['U.S. National Park Service: Northern river otters', 'How river otters swim, and how they run and slide on snow and ice.', 'https://www.nps.gov/thingstodo/northern-river-otters.htm'],
+    ['Maine Inland Fisheries and Wildlife: River otter', 'Where river otters live, what they eat, and their waterproof fur.', 'https://www.maine.gov/IFW/fish-wildlife/wildlife/species-information/mammals/river-otter.html'],
+    ['Cornell Lab of Ornithology: All About Birds', 'Facts about the eagle, osprey, gull, raven, blue jay, goose and heron that fly through the pictures.', 'https://www.allaboutbirds.org/'],
   ] },
   { g: '🔊 Sounds', intro: 'The nature sounds are real recordings shared on Pixabay, free to use under the Pixabay Content License. Thank you to the people who recorded them.', items: [
     ['White-throated sparrow song (freesound_community)', 'The “Oh sweet Canada” song heard in the woods of Acadie and Mi’kma’ki.', 'https://pixabay.com/sound-effects/white-throated-sparrow-77mel-b-190504-62182/'],
