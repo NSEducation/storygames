@@ -4933,7 +4933,7 @@ function riddleBox(id) {
       checkBadges(); render(current);
     } else {
       tries += 1;
-      msg.textContent = tries === 1 ? `Not quite. Hint: ${r.hint}` : 'Not quite. Try again, or give up to hear the answer.';
+      msg.textContent = tries === 1 ? `Not quite. Hint: ${r.hint}` : `Not quite. Hint: ${r.hint} Keep trying, or keep reading: the story goes on either way.`;
       input.select();
     }
   };
@@ -4941,8 +4941,7 @@ function riddleBox(id) {
   body.append(
     el('p', { class: 'readable riddle-q', text: r.q }),
     el('div', { class: 'row tight' }, [input,
-      el('button', { class: 'gamebtn', type: 'button', text: 'Answer', onclick: check }),
-      el('button', { class: 'gamebtn', type: 'button', text: 'Give up', onclick: () => { msg.textContent = `The answer was “${r.a[0]}.” You can type it in to claim the reward.`; } })]),
+      el('button', { class: 'gamebtn', type: 'button', text: 'Answer', onclick: check })]),
     msg);
   box.append(open, body);
   return box;
@@ -8854,7 +8853,7 @@ function gDecode(box, win) {
     el('p', { class: 'readable' }, [el('strong', { text: 'Clue: ' }), document.createTextNode('“The key is hidden in the name of the river where our camp is hidden. Count its letters.”')]),
     el('div', { class: 'row tight gshiftrow' }, [gbtn('−', () => { n = (n + 25) % 26; draw(); }, 'secondary'), el('span', { text: 'Shift back by: ' }), num, gbtn('+', () => { n = (n + 1) % 26; draw(); }, 'secondary')]),
     el('p', { class: 'readable', text: 'Decoded message:' }), out, msg,
-    gbtn('💡 Hint', (e) => { e.currentTarget.replaceWith(el('p', { class: 'hint', text: '💡 Beausoleil’s camp is on the Petitcodiac River. P-E-T-I-T-C-O-D-I-A-C.' })); }, 'secondary inkhint'));
+    gbtn('💡 Hint', (e) => { e.currentTarget.replaceWith(el('p', { class: 'hint', text: '💡 The river is named in the story when you reach Beausoleil’s hidden camp. It is in what is now New Brunswick, and its name starts with P.' })); }, 'secondary inkhint'));
   draw();
 }
 
@@ -9020,7 +9019,7 @@ function gMorse(box, win) {
   box.append(el('p', { class: 'readable', text: 'A message clicks in over the wire from the front line. Each letter is a group of dots (·) and dashes (−). A slash (/) means a new word. Use the key to decode it, then type the message.' }),
     el('p', { class: 'gcode coded', text: code }), key,
     el('div', { class: 'row tight' }, [input, gbtn('✔ Check', check)]), msg,
-    gbtn('💡 Hint', (e) => { e.currentTarget.replaceWith(el('p', { class: 'hint', text: '💡 The message has four words. The first word is HILL.' })); }, 'secondary inkhint'));
+    gbtn('💡 Hint', (e) => { e.currentTarget.replaceWith(el('p', { class: 'hint', text: '💡 Work one group at a time, and find each group in the key. The first group, ····, is the letter H. A slash means a new word, and there are four words.' })); }, 'secondary inkhint'));
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') check(); });
 }
 

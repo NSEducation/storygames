@@ -4043,7 +4043,7 @@ function riddleBox(id) {
       checkBadges(); render(current);
     } else {
       tries += 1;
-      msg.textContent = tries === 1 ? `Not quite. Hint: ${r.hint}` : 'Not quite. Try again, or give up to hear the answer.';
+      msg.textContent = tries === 1 ? `Not quite. Hint: ${r.hint}` : `Not quite. Hint: ${r.hint} Keep trying, or keep reading: the story goes on either way.`;
       input.select();
     }
   };
@@ -4051,8 +4051,7 @@ function riddleBox(id) {
   body.append(
     el('p', { class: 'readable riddle-q', text: r.q }),
     el('div', { class: 'row tight' }, [input,
-      el('button', { class: 'gamebtn', type: 'button', text: 'Answer', onclick: check }),
-      el('button', { class: 'gamebtn', type: 'button', text: 'Give up', onclick: () => { msg.textContent = `The answer was “${r.a[0]}.” You can type it in to claim the reward.`; } })]),
+      el('button', { class: 'gamebtn', type: 'button', text: 'Answer', onclick: check })]),
     msg);
   box.append(open, body);
   return box;
@@ -7981,7 +7980,7 @@ function gDecode(box, win) {
     el('p', { class: 'readable' }, [el('strong', { text: 'Clue: ' }), document.createTextNode('“The key is the number of letters in the name of our church.”')]),
     el('div', { class: 'row tight gshiftrow' }, [gbtn('−', () => { n = (n + 25) % 26; draw(); }, 'secondary'), el('span', { text: 'Shift back by: ' }), num, gbtn('+', () => { n = (n + 1) % 26; draw(); }, 'secondary')]),
     el('p', { class: 'readable', text: 'Decoded message:' }), out, msg,
-    gbtn('💡 Hint', (e) => { e.currentTarget.replaceWith(el('p', { class: 'hint', text: '💡 Africville’s church was Seaview. S-E-A-V-I-E-W.' })); }, 'secondary inkhint'));
+    gbtn('💡 Hint', (e) => { e.currentTarget.replaceWith(el('p', { class: 'hint', text: '💡 Ruth’s church is named in her story, on the Sunday when the whole community is at church.' })); }, 'secondary inkhint'));
   draw();
 }
 // ---------- 8. Put it in order (timeline) ----------
@@ -9326,7 +9325,7 @@ const INK = [
     riddle: 'Every summer, families come back together to share food, music and memories. Your next word is waiting where the whole school comes together to eat.',
     learn: 'The Africville Reunion has brought former residents and their descendants back to the site of Africville every summer since 1983, with a church service, food, music and visiting. The community was destroyed, but its people still gather.' },
   { place: 'The main lobby', icon: '🚪', word: 'Seaview',
-    riddle: 'In Africville, everyone passed through the church doors: for Sunday service, choir, weddings and meetings. Your next word is waiting by the doors that everyone in this school passes through.',
+    riddle: 'In Ruth’s community, everyone passed through the church doors: for Sunday service, choir, weddings and meetings. Your next word is waiting by the doors that everyone in this school passes through.',
     learn: 'Seaview United Baptist Church was the heart of Africville. The City of Halifax bulldozed it in the middle of the night in November 1967. A replica of the church, built after the 2010 apology, is now the Africville Museum.' },
   { place: 'A hot water pipe', icon: '🔥', word: 'pit house',
     riddle: 'In the first winters at Birchtown, families stayed warm in shelters dug into the ground. Your word is keeping warm where this school’s heat travels.',

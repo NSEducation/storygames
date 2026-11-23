@@ -3777,7 +3777,7 @@ function riddleBox(id) {
       checkBadges(); render(current);
     } else {
       tries += 1;
-      msg.textContent = tries === 1 ? `Not quite. Hint: ${r.hint}` : 'Not quite. Try again, or give up to hear the answer.';
+      msg.textContent = tries === 1 ? `Not quite. Hint: ${r.hint}` : `Not quite. Hint: ${r.hint} Keep trying, or keep reading: the story goes on either way.`;
       input.select();
     }
   };
@@ -3785,8 +3785,7 @@ function riddleBox(id) {
   body.append(
     el('p', { class: 'readable riddle-q', text: r.q }),
     el('div', { class: 'row tight' }, [input,
-      el('button', { class: 'gamebtn', type: 'button', text: 'Answer', onclick: check }),
-      el('button', { class: 'gamebtn', type: 'button', text: 'Give up', onclick: () => { msg.textContent = `The answer was “${r.a[0]}.” You can type it in to claim the reward.`; } })]),
+      el('button', { class: 'gamebtn', type: 'button', text: 'Answer', onclick: check })]),
     msg);
   box.append(open, body);
   return box;
@@ -7271,7 +7270,7 @@ function gDecode(box, win) {
     el('p', { class: 'readable' }, [el('strong', { text: 'Clue: ' }), document.createTextNode('“The key is the number of letters in the Mi’kmaw word for thank you. Do not count the apostrophe.”')]),
     el('div', { class: 'row tight gshiftrow' }, [gbtn('−', () => { n = (n + 25) % 26; draw(); }, 'secondary'), el('span', { text: 'Shift back by: ' }), num, gbtn('+', () => { n = (n + 1) % 26; draw(); }, 'secondary')]),
     el('p', { class: 'readable', text: 'Decoded message:' }), out, msg,
-    gbtn('💡 Hint', (e) => { e.currentTarget.replaceWith(el('p', { class: 'hint', text: '💡 Thank you is wela’lin. W-E-L-A-L-I-N.' })); }, 'secondary inkhint'));
+    gbtn('💡 Hint', (e) => { e.currentTarget.replaceWith(el('p', { class: 'hint', text: '💡 Look for the Mi’kmaw word for thank you in Theresa’s or Muin’s story, and tap it to see how it is spelled.' })); }, 'secondary inkhint'));
   draw();
 }
 // ---------- 8. Put it in order (timeline) ----------
