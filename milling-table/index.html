@@ -6503,9 +6503,10 @@ function homePage() {
     ]),
     el('h2', { class: 'hp-h', text: '🧭 Learn more and make something' }),
     el('div', { class: 'hp-grid' }, [
+      tile('🗺️', 'Maps', 'Watch the journeys in these stories', () => openVoyages(homePage)),
       tile('💬', 'Big Questions', 'Think, talk and write as a class', () => bigQuestions()),
       tile('🌱', 'The Gaels Today', 'Where Gaelic is spoken and taught now', () => todayPage()),
-      tile('🗣️', 'Gaelic words to carry', 'Gaelic words, and how to say them', () => wordsPage(homePage)),
+      tile('🗣️', 'Words in this game', 'Gaelic words, and how to say them', () => wordsPage(homePage)),
       tile('🥣', 'The Kitchen', 'Oatcakes, porridge and their stories', mikmawKitchen),
       tile('🧶', 'The Milling Frolic', 'How neighbours made cloth together', gardenPage),
       tile('🎨', 'Show Ideas Through Art', 'Pick a project and see what to bring', () => artPage()),

@@ -7679,6 +7679,7 @@ function homePage() {
     ]),
     el('h2', { class: 'hp-h', text: '🧭 Learn more and make something' }),
     el('div', { class: 'hp-grid' }, [
+      tile('🗺️', 'Maps', 'Watch the ships sail: Acadian voyages, 1604 to 1785', () => openVoyages(homePage)),
       tile('💬', 'Big Questions', 'Think, talk and write as a class', () => bigQuestions()),
       tile('🌱', 'Acadie and Mi’kma’ki Today', 'Communities, languages and celebrations now', () => todayPage()),
       tile('🗣️', 'Words in this game', 'Acadian and Mi’kmaw words, and how to say them', () => wordsPage(homePage)),

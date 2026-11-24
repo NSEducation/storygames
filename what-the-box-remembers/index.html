@@ -6674,6 +6674,7 @@ function homePage() {
     ]),
     el('h2', { class: 'hp-h', text: '🧭 Learn more and make something' }),
     el('div', { class: 'hp-grid' }, [
+      tile('🗺️', 'Maps', 'Watch the journeys, 1783 to 1919', () => openVoyages(homePage)),
       tile('💬', 'Big Questions', 'Think, talk and write as a class', () => bigQuestions()),
       tile('🌱', 'African Nova Scotians Today', 'Communities, celebrations and dates to remember', () => todayPage()),
       tile('🗣️', 'Words in this game', 'Words to know, and what they mean', () => wordsPage(homePage)),
