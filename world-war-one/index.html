@@ -2882,7 +2882,7 @@ const PACK_SETS = {
 const GAME_TITLE = 'World War I: Vimy Ridge and the Somme';
 const HERO_START = { vimy: 'middleton', somme: 'springhill' };
 const RECIPES_NEW = [
-  { id: 'warcake', group: 'mikmaw', name: 'War Cake', fr: 'War Cake', sayLine: 'A cake with no eggs, butter or milk, from the years of saving food', time: '1 hour 20 minutes', yields: '1 loaf, about 12 slices',
+  { id: 'warcake', group: 'mikmaw', kind: 'home', name: 'War Cake', fr: 'War Cake', sayLine: 'A cake with no eggs, butter or milk, from the years of saving food', time: '1 hour 20 minutes', yields: '1 loaf, about 12 slices',
     heat: 'stove and oven', easy: 'Easy', season: 'Any time of year',
     story: 'During the First World War, families in Canada were asked to save butter, eggs, milk, sugar and wheat flour, so that more food could be shipped to the soldiers and to Britain and France. Cooks made “war cake,” also called boiled raisin cake, with no eggs, butter or milk. It kept for weeks, so families often baked it to mail overseas in parcels, along with socks and letters. This is a simple classroom version written for this game, not anyone’s family recipe.',
     ing: [
@@ -2911,7 +2911,7 @@ const RECIPES_NEW = [
     ],
     tips: ['No raisins? Try chopped dates or dried apples, which Valley families would have had.', 'Wrapped well, war cake keeps for a week or more. That is why it was mailed overseas.', 'Have an adult handle the hot syrup. Boiling sugar burns badly.'],
     allergy: 'Contains wheat (gluten). No eggs, milk or butter. Check the oil or shortening if anyone has a soy or other allergy.' },
-  { id: 'hardtack', group: 'mikmaw', name: 'Army Biscuit (Hardtack)', fr: 'Army Biscuit', sayLine: 'The rock-hard biscuit soldiers carried in their emergency rations', time: '1 hour 15 minutes', yields: 'about 12 biscuits',
+  { id: 'hardtack', group: 'mikmaw', kind: 'ration', name: 'Army Biscuit (Hardtack)', fr: 'Army Biscuit', sayLine: 'The rock-hard biscuit soldiers carried in their emergency rations', time: '1 hour 15 minutes', yields: 'about 12 biscuits',
     heat: 'oven', easy: 'Easiest', season: 'Any time of year',
     story: 'Soldiers carried hard, dry biscuits in their emergency rations, because they lasted for months without going bad. They were so hard that soldiers soaked them in tea, crumbled them into stew, or broke them with the handle of a knife. Soldiers made jokes about breaking their teeth on them. This is a simple classroom version of a plain army-style biscuit, written for this game. Taste it, and think about eating it every day.',
     ing: [
@@ -2930,6 +2930,99 @@ const RECIPES_NEW = [
     ],
     tips: ['Do not bite a whole biscuit straight from the pan. Soldiers really did crack teeth.', 'Dipping it in warm soup is the tastiest way to eat it.', 'The holes help the biscuits dry out all the way through, so they keep.'],
     allergy: 'Contains wheat (gluten). Just flour, salt and water.' },
+  { id: 'trenchcake', group: 'mikmaw', kind: 'home', name: 'Trench Cake', fr: 'Trench Cake', sayLine: 'A fruit cake with no eggs, baked to post to a soldier at the front', time: '1 hour 20 minutes', yields: '1 small loaf, about 10 slices',
+    heat: 'oven', easy: 'Easy', season: 'Any time of year',
+    story: 'In Britain, families baked “trench cake” and posted it to soldiers at the front. It has no eggs: vinegar and baking soda make it rise instead, and dried fruit kept it moist on the long trip. Canadian families mailed cakes too, and soldiers shared whatever came in a parcel, so a cake like this could end up in a Nova Scotian’s dugout. The ingredients are the ones in a British recipe of the time. The amounts have been changed to cups and spoons for this game.',
+    ing: [
+      [1.75, 'cup', 'all-purpose flour'],
+      [0.5, 'cup', 'margarine or butter, cold'],
+      [6, 'tbsp', 'brown sugar, packed'],
+      [0.5, 'cup', 'currants or raisins'],
+      [2, 'tsp', 'cocoa powder'],
+      [0.5, 'tsp', 'ground nutmeg'],
+      [0.5, 'tsp', 'ground ginger'],
+      [1, '', ['lemon, washed (you will grate the yellow skin)', 'lemons, washed (you will grate the yellow skin)']],
+      [0.5, 'tsp', 'baking soda'],
+      [1, 'tsp', 'vinegar'],
+      [0.67, 'cup', 'milk'],
+    ],
+    steps: [
+      { t: 'Heat the oven to 350°F (175°C). Grease a small loaf pan, or line it with parchment paper.' },
+      { t: 'Put the flour in a bowl. Cut the margarine into small pieces and rub it into the flour with your fingertips, until it looks like breadcrumbs.' },
+      { t: 'Grate the yellow skin of the lemon into the bowl. Stir in the brown sugar, the currants, the cocoa, the nutmeg and the ginger.' },
+      { t: 'In a cup, stir the baking soda into the vinegar. It will fizz. Then stir in the milk.' },
+      { t: 'Pour the milk mixture into the bowl and beat well with a wooden spoon. The batter will be thick.' },
+      { t: 'Scrape the batter into the pan and smooth the top.' },
+      { t: 'With an adult, bake it. Start checking after 50 minutes: it is done when a toothpick poked into the middle comes out clean.', min: 60 },
+      { t: 'Let it cool in the pan for 10 minutes, then lift it out to cool the rest of the way. Families wrapped the cake in paper and cloth and packed it in a tin for the post.' },
+    ],
+    tips: ['No currants? Use raisins or chopped dates.', 'Trench cake is plain and not very sweet. Sugar was scarce, and the cake had to last through a week or more in the mail.', 'Try this: wrap a slice in paper, leave it for three days, and then taste it. That is closer to what a soldier got.'],
+    allergy: 'Contains wheat (gluten) and milk. No eggs. Check the margarine if anyone has a soy or other allergy.' },
+  { id: 'chowder', group: 'mikmaw', kind: 'home', name: 'Fish Chowder', fr: 'Fish Chowder', sayLine: 'A fish and vegetable meal, to save wheat, meat and fats for the soldiers', time: '40 minutes', yields: '4 to 6 small bowls',
+    heat: 'stove', easy: 'Easy', season: 'Any time of year',
+    story: 'In 1918, the Canada Food Board asked families to eat more fish and vegetables, so that wheat, meat and fats could be shipped overseas to the soldiers and the Allies. It printed posters, and a whole booklet of recipes for Canadian fish. In Nova Scotia, a pot of fish chowder was already an old habit. This is a simple classroom version written for this game. It is not a recipe from the booklet.',
+    ing: [
+      [1, 'lb', 'haddock or other white fish, with the skin and bones taken out'],
+      [3, '', ['medium potato, peeled and cut in small cubes', 'medium potatoes, peeled and cut in small cubes']],
+      [1, '', ['onion, chopped small', 'onions, chopped small']],
+      [1, 'tbsp', 'butter'],
+      [2, 'cup', 'water'],
+      [2, 'cup', 'milk'],
+      [1, 'tsp', 'coarse kosher salt'],
+      [0.25, 'tsp', 'black pepper'],
+    ],
+    steps: [
+      { t: 'With an adult, melt the butter in a large pot over medium heat. Add the onion and cook it gently, stirring, until it is soft.', min: 5 },
+      { t: 'Add the potatoes, the water and the salt. Bring it to a boil, then turn the heat down and let it bubble gently until the potatoes are soft.', min: 12 },
+      { t: 'Cut the fish into pieces about the size of a walnut. Feel each piece with your fingers for bones, and pull out any you find.' },
+      { t: 'Add the fish to the pot. Cook it gently until the fish turns white and flakes apart.', min: 6 },
+      { t: 'Pour in the milk and add the pepper. Heat it until it steams. Do not let it boil, or the milk may curdle.', min: 4 },
+      { t: 'Taste it with a clean spoon. Add a little more salt if it needs it. Serve it hot.' },
+    ],
+    tips: ['Any firm white fish works: haddock, cod, pollock or hake.', 'Count what is not in the pot: no meat, no wheat and hardly any fat. That is what the Food Board was asking for.', 'An adult should lift and pour the hot pot.'],
+    allergy: 'Contains fish and milk. No wheat flour or eggs. Watch for small bones.' },
+  { id: 'maconochie', group: 'mikmaw', kind: 'ration', name: 'Ration Stew (Maconochie)', fr: 'Ration Stew (Maconochie)', sayLine: 'The beef and vegetable stew that soldiers ate from a tin', time: '1 hour 45 minutes', yields: '6 small bowls',
+    heat: 'stove', easy: 'Medium', season: 'Any time of year',
+    story: 'One of the most common meals at the front came in a tin: a stew of beef, potatoes, carrots, turnips, onions and beans in thin gravy, made by the Maconochie company in Scotland. Soldiers just called it “Maconochie.” Heated up, it was a welcome change from corned beef. Cold, it was another story, and in the front line it was often eaten cold. This is a simple classroom version of the same kind of stew, made fresh. Taste a spoonful hot. Then let a spoonful go cold, and taste that.',
+    ing: [
+      [1, 'lb', 'stewing beef, cut in small cubes'],
+      [1, 'tbsp', 'vegetable oil'],
+      [1, '', ['onion, chopped', 'onions, chopped']],
+      [2, '', ['carrot, sliced', 'carrots, sliced']],
+      [2, '', ['medium potato, peeled and cubed', 'medium potatoes, peeled and cubed']],
+      [1, 'cup', 'turnip (rutabaga), peeled and cubed'],
+      [1, 'cup', 'cooked white beans (navy beans), drained'],
+      [4, 'cup', 'water'],
+      [1, 'tsp', 'coarse kosher salt'],
+      [0.25, 'tsp', 'black pepper'],
+    ],
+    steps: [
+      { t: 'With an adult, heat the oil in a large pot over medium-high heat. Add the beef and brown it on all sides.', min: 6 },
+      { t: 'Add the onion and stir for a minute or two.' },
+      { t: 'Add the water, the salt and the pepper. Bring it to a boil. Then turn the heat down low, put the lid on, and let it bubble gently.', min: 45 },
+      { t: 'Add the carrots, the turnip and the potatoes. Put the lid back on and cook until the vegetables and the beef are tender.', min: 30 },
+      { t: 'Stir in the beans and heat them through.', min: 5 },
+      { t: 'Taste it with a clean spoon. The gravy should be thin, like the stew in the tin.' },
+    ],
+    tips: ['The army’s stew often had more turnip and carrot than beef. Make yours that way if you like.', 'When soldiers could, they heated the tin. Close to the front line, they often could not light a fire.', 'An adult should brown the beef and lift the hot pot.'],
+    allergy: 'No wheat flour, eggs or milk. Contains beef and beans.' },
+  { id: 'trenchpudding', group: 'mikmaw', kind: 'ration', name: 'Trench Pudding', fr: 'Trench Pudding', sayLine: 'What soldiers made from hard biscuits, tinned milk and jam', time: '15 minutes', yields: '4 small bowls',
+    heat: 'stove', easy: 'Easiest', season: 'Any time of year',
+    story: 'Soldiers got very tired of hard biscuits, and of the same jam week after week, which was usually plum and apple. So they invented their own pudding. They pounded the biscuits into powder, stirred in a tin of milk and a tin of jam, and heated it up. This classroom version does the same thing. Make the Army Biscuits first, or use plain crackers.',
+    ing: [
+      [2, 'cup', 'crushed army biscuits or plain crackers'],
+      [1, 'cup', 'evaporated milk (from a tin)'],
+      [0.5, 'cup', 'water'],
+      [0.5, 'cup', 'plum jam, or any jam you have'],
+    ],
+    steps: [
+      { t: 'Put the biscuits in a clean bag or a clean cloth, and pound them with a rolling pin until they are crumbs. Measure 2 cups.' },
+      { t: 'With an adult, put the crumbs, the milk and the water in a pot. Stir over low heat until it is thick, like porridge.', min: 6 },
+      { t: 'Stir in the jam and heat it for one more minute.' },
+      { t: 'Spoon it into small bowls. Let it cool a little, then eat it warm.' },
+    ],
+    tips: ['Evaporated milk is milk in a tin with some of the water taken out. Soldiers’ milk came in tins too.', 'If it gets too thick, stir in a little more water.', 'Hot jam burns. Let the pudding cool a little before you taste it.'],
+    allergy: 'Contains wheat (gluten) and milk. Check the crackers and the jam for other allergens.' },
 ];
 const DISH_NEW = (() => {
   const room = '<rect width="600" height="240" fill="#EDE3D0"/><rect y="168" width="600" height="72" fill="#9C6B44"/><path d="M0,190 H600 M0,214 H600" stroke="#8A5C38" stroke-width="2"/>';
@@ -2938,6 +3031,12 @@ const DISH_NEW = (() => {
   return {
     warcake: () => room + plate() + `<rect x="170" y="110" width="200" height="60" rx="8" fill="#7A4A2A"/><rect x="170" y="110" width="200" height="14" rx="6" fill="#5E3A22"/>` + raisins(185, 128, 14) + `<path d="M380,150 L430,118 L436,170 L384,174 Z" fill="#8A5634"/>` + raisins(392, 140, 4) + `<rect x="460" y="70" width="80" height="96" rx="6" fill="#D8CDB0"/><path d="M460,90 H540 M460,104 H540" stroke="#A8987A" stroke-width="2"/><path d="M470,128 L530,128 M470,140 L520,140" stroke="#6A5A4A" stroke-width="2"/>`,
     hardtack: () => room + plate() + [[200, 150, -6], [300, 142, 4], [400, 152, 10], [250, 176, 16], [350, 178, -12]].map(([x, y, r]) => `<g transform="rotate(${r} ${x} ${y})"><rect x="${x - 40}" y="${y - 30}" width="80" height="60" rx="6" fill="#D9C08A"/><rect x="${x - 40}" y="${y - 30}" width="80" height="60" rx="6" fill="none" stroke="#B8975A" stroke-width="2"/>${[0, 1, 2, 3].map((a) => [0, 1, 2].map((b) => `<circle cx="${x - 27 + a * 18}" cy="${y - 16 + b * 16}" r="1.8" fill="#9A7A42"/>`).join('')).join('')}</g>`).join('') + `<path d="M470,150 Q480,110 520,112 L540,160 Z" fill="#FFFFFF" opacity="0.8"/><ellipse cx="505" cy="160" rx="40" ry="10" fill="#C9A66B"/>`,
+    trenchcake: () => room + plate(230, 172, 170, 40) + `<rect x="120" y="112" width="190" height="58" rx="8" fill="#5A3622"/><rect x="120" y="112" width="190" height="13" rx="6" fill="#46281A"/>` + raisins(134, 130, 12) + `<path d="M318,150 L362,122 L368,170 L322,174 Z" fill="#6B4228"/>` + raisins(330, 142, 3) + `<rect x="430" y="96" width="130" height="78" rx="4" fill="#B9925E"/><path d="M430,134 H560 M495,96 V174" stroke="#F4EEDD" stroke-width="3"/><path d="M487,128 q8,-12 16,0 q-8,10 -16,0 Z" fill="none" stroke="#F4EEDD" stroke-width="2.4"/><rect x="446" y="146" width="40" height="18" fill="#F4EEDD"/><path d="M450,152 h30 M450,158 h22" stroke="#6A5A4A" stroke-width="1.6"/>`,
+    chowder: () => room + `<ellipse cx="300" cy="212" rx="130" ry="12" fill="#7A5232" opacity="0.35"/><path d="M140,124 Q152,206 300,210 Q448,206 460,124 Z" fill="#F4F1EA"/><ellipse cx="300" cy="124" rx="160" ry="32" fill="#E8E2D4"/><ellipse cx="300" cy="126" rx="146" ry="25" fill="#FBF3DC"/>` + [[230, 122], [270, 134], [318, 120], [356, 132], [388, 122], [296, 140], [250, 138]].map(([x, y], i) => i % 2 ? `<rect x="${x - 9}" y="${y - 7}" width="18" height="13" rx="3" fill="#F0DFA8"/>` : `<path d="M${x - 14},${y} q14,-10 28,0 q-14,8 -28,0 Z" fill="#FFFFFF"/>`).join('') + [[214, 132], [340, 140], [404, 130]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.4" fill="#6E8A4A"/>`).join('') + `<path d="M470,70 Q500,60 520,100 L484,190" stroke="#B8B2A4" stroke-width="9" fill="none" stroke-linecap="round"/><ellipse cx="478" cy="196" rx="14" ry="20" fill="#C9C4B6" transform="rotate(18 478 196)"/>`,
+    maconochie: () => room + `<ellipse cx="150" cy="198" rx="62" ry="12" fill="#7A5232" opacity="0.35"/><rect x="92" y="92" width="116" height="106" fill="#B8B2A4"/><ellipse cx="150" cy="198" rx="58" ry="12" fill="#A8A294"/><ellipse cx="150" cy="92" rx="58" ry="12" fill="#D8D4C8"/><ellipse cx="150" cy="93" rx="48" ry="8" fill="#6B4228"/><rect x="92" y="116" width="116" height="60" fill="#F4EEDD"/><rect x="92" y="116" width="116" height="10" fill="#B5442E"/><text x="150" y="146" font-family="Georgia, serif" font-size="13" font-weight="700" text-anchor="middle" fill="#3A2A1C">MEAT &amp;</text><text x="150" y="163" font-family="Georgia, serif" font-size="13" font-weight="700" text-anchor="middle" fill="#3A2A1C">VEGETABLE</text>` +
+      `<ellipse cx="400" cy="206" rx="140" ry="12" fill="#7A5232" opacity="0.35"/><path d="M262,128 L274,200 Q400,214 526,200 L538,128 Z" fill="#9AA0A4"/><ellipse cx="400" cy="128" rx="138" ry="26" fill="#C4C8CA"/><ellipse cx="400" cy="130" rx="126" ry="20" fill="#8A5A34"/>` + [[330, 126, '#E08A3A'], [362, 136, '#F0DFA8'], [396, 124, '#6B3A22'], [430, 136, '#E08A3A'], [462, 126, '#F0DFA8'], [384, 140, '#F4F1EA'], [444, 122, '#6B3A22'], [348, 122, '#F4F1EA']].map(([x, y, c]) => `<rect x="${x - 9}" y="${y - 6}" width="18" height="12" rx="4" fill="${c}"/>`).join('') + `<path d="M538,140 H584" stroke="#9AA0A4" stroke-width="8" stroke-linecap="round"/>`,
+    trenchpudding: () => room + `<ellipse cx="290" cy="206" rx="140" ry="12" fill="#7A5232" opacity="0.35"/><path d="M152,128 L164,200 Q290,214 416,200 L428,128 Z" fill="#9AA0A4"/><ellipse cx="290" cy="128" rx="138" ry="26" fill="#C4C8CA"/><ellipse cx="290" cy="130" rx="126" ry="20" fill="#C99A8A"/><path d="M210,128 q30,-10 60,0 t60,0 t40,0" stroke="#9A3A4A" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M428,140 H474" stroke="#9AA0A4" stroke-width="8" stroke-linecap="round"/>` +
+      `<rect x="486" y="112" width="84" height="86" fill="#B8B2A4"/><ellipse cx="528" cy="198" rx="42" ry="9" fill="#A8A294"/><ellipse cx="528" cy="112" rx="42" ry="9" fill="#D8D4C8"/><rect x="486" y="130" width="84" height="48" fill="#F4EEDD"/><text x="528" y="150" font-family="Georgia, serif" font-size="11" font-weight="700" text-anchor="middle" fill="#7A2E4A">PLUM &amp;</text><text x="528" y="165" font-family="Georgia, serif" font-size="11" font-weight="700" text-anchor="middle" fill="#7A2E4A">APPLE JAM</text>` + [[60, 176, -8], [104, 192, 10]].map(([x, y, r]) => `<g transform="rotate(${r} ${x} ${y})"><rect x="${x - 26}" y="${y - 18}" width="52" height="36" rx="4" fill="#D9C08A" stroke="#B8975A" stroke-width="2"/>${[0, 1, 2].map((a) => [0, 1].map((b) => `<circle cx="${x - 14 + a * 14}" cy="${y - 7 + b * 14}" r="1.6" fill="#9A7A42"/>`).join('')).join('')}</g>`).join(''),
   };
 })();
 const ART_NICE = { 'Drawing or Painting': 'a painting', 'Model': 'a model', 'Diorama': 'a diorama', 'Journey Map': 'a journey map', 'Stop-Motion Video': 'a stop-motion video', 'Comic or Graphic Story': 'a comic', 'Picture Book': 'a picture book', 'Board Game': 'a board game', 'Two Front Pages': 'two front pages', 'Letters Across Time': 'letters across time', 'Memorial Design': 'a memorial design', 'Interview or Podcast': 'an interview', 'Trench Model': 'a trench model', 'Poppy Wreath': 'a poppy wreath', 'Mini Cookbook': 'a mini cookbook', 'Word Wall': 'a word wall' };
@@ -6985,7 +7084,7 @@ function homePage() {
       tile('💬', 'Big Questions', 'Think, talk and write as a class', () => bigQuestions()),
       tile('🌺', 'Remembering Today', 'How Nova Scotia remembers the war', () => todayPage()),
       tile('🗣️', 'Words in this game', 'Trench words, French words and Mi’kmaw words', () => wordsPage(homePage)),
-      tile('🥫', 'The Kitchen', 'War cake, army biscuits and their stories', mikmawKitchen),
+      tile('🥫', 'The Kitchen', 'Home-front recipes and soldiers’ rations', mikmawKitchen),
       tile('🎨', 'Show Ideas Through Art', 'Pick a project and see what to bring', () => artPage()),
       tile('🕯️', 'Epilogue: 2026', 'After the two stories', () => epiloguePage(homePage)),
       tile('🎮', 'Games', 'Quick games about the story', () => gamesHub()),
@@ -10068,6 +10167,8 @@ const SRC_LIST = [
   { g: '🏛️ Government and museum sources', intro: 'Start here. These are the most reliable places to check a fact about the First World War.', items: [
     ['Veterans Affairs Canada: the First World War', 'Battles, people, numbers and classroom materials, including Vimy Ridge, the Somme and Beaumont-Hamel.', 'https://www.veterans.gc.ca/en/remembrance/history/first-world-war'],
     ['Canadian War Museum: Canada and the First World War', 'The history of the war, with photographs and objects from the museum.', 'https://www.warmuseum.ca/firstworldwar/'],
+    ['Canada Food Board poster: “Fish & Vegetable meals will save wheat, meat & fats”', 'A real poster from about 1918, asking families at home to change what they ate. Toronto Public Library.', 'https://digitalarchive.tpl.ca/objects/274726/fish--vegetable-meals-will-save-wheat-meat--fats-for-our'],
+    ['National Army Museum (London): An army marches on its stomach', 'What soldiers ate, from hard biscuits and tinned beef to Maconochie stew.', 'https://www.nam.ac.uk/explore/army-marches-its-stomach'],
     ['Library and Archives Canada', 'Soldiers’ personnel records, war diaries, maps and photographs.', 'https://www.bac-lac.gc.ca/eng/discover/military-heritage/first-world-war/Pages/introduction.aspx'],
     ['Veterans Affairs Canada: Heroes Remember', 'Interviews with veterans, including Roy Henley on the creeping barrage at Vimy.', 'https://www.veterans.gc.ca/en/remembrance/those-who-served/heroes-remember'],
   ] },
@@ -10137,15 +10238,19 @@ function mikmawKitchen() {
     ]),
     el('div', { class: 'kpic' }, [(() => { const d = el('div'); d.innerHTML = MIKMAW_SVG; return d.firstChild; })()]),
     el('h1', { text: 'The Kitchen' }),
-    el('p', { class: 'readable', text: 'During the First World War, food was a weapon too. Families in Canada were asked to save butter, eggs, sugar, meat and wheat, so that more could be shipped to the soldiers and the Allies. At the front, soldiers lived on tinned beef, hard biscuits, jam and tea. Here you can make a cake from a home kitchen of the time, and a biscuit from a soldier’s emergency ration.' }),
+    el('p', { class: 'readable', text: 'During the First World War, food was a weapon too. Families in Canada were asked to save butter, eggs, sugar, meat and wheat, so that more could be shipped to the soldiers and the Allies. At the front, soldiers lived on tinned beef, hard biscuits, jam and tea. Here you can cook from both sides of the ocean: recipes from a home kitchen of the time, and meals made from a soldier’s rations.' }),
     el('p', { class: 'readable', text: 'War cake was often baked to mail overseas, because it kept for weeks. Army biscuits were so hard that soldiers soaked them in tea. Taste both, and think about eating the second one every day.' }),
     el('section', { class: 'content-note' }, [el('p', { class: 'readable', text: 'A note before you cook: these are simple classroom versions written for this game, not family recipes. Many families have their own versions of war cake, sometimes called boiled raisin cake.' })]),
     el('section', { class: 'note' }, [
       el('h2', { class: 'readable', text: '🧼 Kitchen safety' }),
-      el('p', { class: 'readable', text: 'Wash your hands before you start. An adult must help with sharp knives, the stove and the oven. Before anyone tastes anything, check with your teacher about food allergies. Both recipes contain wheat flour.' }),
+      el('p', { class: 'readable', text: 'Wash your hands before you start. An adult must help with sharp knives, the stove and the oven. Before anyone tastes anything, check with your teacher about food allergies. Every recipe says what it contains. The two cakes, the biscuit and the pudding have wheat flour in them. The chowder and the stew do not.' }),
     ]),
-    el('h2', { text: 'Recipes' }),
-    el('div', { class: 'doors' }, RECIPES.filter(r => r.group === 'mikmaw').map(recipeCard)),
+    el('h2', { text: '🏠 From a home kitchen' }),
+    el('p', { class: 'readable', text: 'What families cooked and baked while they saved wheat, meat, sugar and fats for overseas.' }),
+    el('div', { class: 'doors' }, RECIPES.filter(r => r.group === 'mikmaw' && r.kind !== 'ration').map(recipeCard)),
+    el('h2', { text: '🪖 From a soldier’s rations' }),
+    el('p', { class: 'readable', text: 'What soldiers were given to eat, and what they made of it.' }),
+    el('div', { class: 'doors' }, RECIPES.filter(r => r.group === 'mikmaw' && r.kind === 'ration').map(recipeCard)),
   ]);
 }
 function recipePage(id, back) {
