@@ -4634,14 +4634,25 @@ function flyerInner(kind) {
 }
 const FLY_SVG = (x, y, flip, kind, label) => `<g class="chick flyer" data-chick="1" data-kind="${kind}" data-animal="${kind}" role="button" tabindex="0" aria-label="${label || 'A bird is flying here'}" transform="translate(${x} ${y}) scale(${flip ? -1.35 : 1.35} 1.35)"><circle r="19" fill="transparent"/><g class="flybody">${flyerInner(kind)}</g></g>`;
 const BIRDS = {"eagle": ["🦅", "A bald eagle", "a bald eagle", ["Bald eagles are not really bald. Their heads are covered in white feathers.", "A bald eagle holds its wide wings flat, like a board, when it soars.", "The biggest bald eagle nest ever measured was 2.9 metres across and 6.1 metres tall."]], "osprey": ["🪶", "An osprey", "an osprey", ["Ospreys eat live fish. They dive into the water feet first to catch them.", "An osprey can turn one toe backward, and its feet have rough pads. That is how it holds on to a slippery fish."]], "gull": ["🪶", "A herring gull", "a herring gull", ["Herring gulls can drink sea water. Special glands above their eyes get rid of the salt.", "The herring gull is the most familiar gull of the North Atlantic."]], "raven": ["🪶", "A raven", "a raven", ["Ravens are among the smartest of all birds.", "Ravens do rolls and somersaults in the air. One was seen flying upside down for more than half a mile."]], "bluejay": ["🪶", "A blue jay", "a blue jay", ["Blue jays love acorns. They are given credit for helping oak trees spread after the last ice age.", "Blue jays are known for being clever, and for their close family bonds."]], "goose": ["🪶", "A Canada goose", "a Canada goose", ["Canada geese are big water birds with long necks, large webbed feet and wide, flat bills."]], "heron": ["🪶", "A great blue heron", "a great blue heron", ["A great blue heron is tall, but it weighs only about 2.5 kilograms. One reason is that its bones are hollow, like the bones of all birds.", "A great blue heron flies with its neck tucked in, on slow, deep wingbeats."]]};
-function birdFor(where, svg) {   // which bird flies on this page: the same one every time
-  const kinds = ['chickadee', 'chickadee', 'chickadee', 'eagle', 'osprey', 'gull', 'raven', 'bluejay', 'goose', 'heron'];
-  const k = kinds[(Math.imul(Number(where), 2654435761) >>> 0) % 10], sky = (/data-sky="(\w+)"/.exec(svg) || [])[1];
-  return sky === 'winter' && ['osprey', 'goose', 'heron'].includes(k) ? 'chickadee' : k;   // these three fly south for the winter
+function birdFor(where, svg) {   // which bird flies on this page: one that belongs in the picture, and the same one every time
+  const alt = (/aria-label="([^"]*)"/.exec(svg) || [])[1] || '', a = alt.toLowerCase(), sky = (/data-sky="(\w+)"/.exec(svg) || [])[1];
+  const text = STORY[where] ? STORY[where].p.join(' ') : '';
+  // no bird over a battle, a burned village, a grave or someone being taken away, and none of these birds in pictures set far from home
+  if (/\b(shell|barbed wire|trench\w*|charg\w+|ruined|burn\w*|ashes|bayonets?|cannons?|muskets?|fallen soldier|hands tied|hands up|tied|marched|catching|grabbing|guarded|prisoners|swept|under fire|firing|smoke|wooden cross(es)?|soldiers walking families|sawmill|mountain forest)\b/.test(a)) return '';
+  if (CHICK_AWAY.test(alt) || /\b(machine guns?|shelling|barrage|gunfire)\b/i.test(text)) return '';
+  const h = Math.imul(Number(where), 2654435761) >>> 0, pick = (list) => list[h % list.length];
+  let k;
+  if (/\b(ships?|troopships?|warships?|deck|sails?|sailing|sailboat|schooner|harbour|wharf|piers?|anchor\w*|ocean|atlantic)\b/.test(a)) k = pick(['gull', 'gull', 'gull', 'osprey']);   // harbours and ships
+  else if (/\b(shore|coast|beach|bay|cliffs?|island|tide|marsh|dykes?|mud|mudflats|rowboat|boats?|aboiteau|fish\w*|strait|basin|sea)\b/.test(a)) k = pick(['heron', 'osprey', 'goose', 'gull', 'eagle']);   // salt marsh and shore
+  else if (/\b(rivers?|riverbank|canoes?|lakes?|falls|brook|stream|creek|pond|swamp|eels?|weir|portage)\b/.test(a)) k = pick(['heron', 'osprey', 'goose', 'eagle']);   // rivers and lakes
+  else if (/\b(forest|woods|trees?|treeline|birch\w*|camp|trail|clearing|lean-to|spruce|bushes)\b/.test(a)) k = pick(['chickadee', 'chickadee', 'bluejay', 'raven']);   // the woods
+  else k = pick(['chickadee', 'chickadee', 'bluejay', 'raven', 'goose']);   // farms, orchards and villages
+  if (sky === 'winter' && ['osprey', 'goose', 'heron'].includes(k)) k = /\b(shore|coast|harbour|wharf|bay|ships?|sea)\b/.test(a) ? 'gull' : 'chickadee';   // these three fly south for the winter
+  return k;
 }
 // ================= BIRDS FLY ACROSS THE PICTURE =================
-// A bird drawn flying crosses the whole picture, comes back in from the other side to where it started, glides there a few seconds, and goes again.
-// Hover it to hold it still; Tab to it and it waits at its place. Nothing moves when the device asks for reduced motion.
+// A bird drawn flying comes in from off the picture, crosses it, and comes back at a new height on its next pass. It never hangs in one place.
+// Hover it to hold it still; Tab to it and it waits. Nothing moves when the device asks for reduced motion.
 const FLY_SPEED = { chickadee: 62, bluejay: 58, gull: 46, raven: 48, goose: 52, heron: 36, osprey: 42, eagle: 32 };   // picture units a second
 function flyKeys(name, x, left, speed, W, rest) {
   const m = 46, out = left ? -(x + m) : W + m - x, back = left ? W + m - x : -(x + m);   // off one side, then in from the other
@@ -4652,18 +4663,42 @@ function flyKeys(name, x, left, speed, W, rest) {
   return { P, css: `@keyframes ${name}{${k.map(([t, v]) => pc(t) + v).join('')}}` };
 }
 function flyAcross(x, y, left, kind, where, W) {
-  const id = String(where).replace(/\W/g, ''), rest = 6 + (Number(where) % 4);
-  const { P, css } = flyKeys('fxk' + id, x, left, FLY_SPEED[kind] || 48, W, rest);
-  const delay = -(rest - 1.5);   // the first crossing starts a moment after the page opens
-  return `<style>${css}@media (prefers-reduced-motion: no-preference){.art .fxc${id}{animation:fxk${id} ${P.toFixed(2)}s linear ${delay}s infinite}}</style><g class="fx-cross fxc${id}">${FLY_SVG(x, y, left, kind)}</g>`;
+  return `<g class="fx-cross" data-dir="${left ? -1 : 1}" data-speed="${FLY_SPEED[kind] || 48}" data-y="${y}" data-w="${W}">${FLY_SVG(x, y, left, kind)}</g>`;
 }
+const FX_RM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+function fxFlyStart(el) {
+  if (el.dataset.flying || FX_RM) return;
+  let bb; try { bb = el.getBBox(); } catch (e) { bb = null; }
+  if (!bb || !bb.width) return;
+  el.dataset.flying = '1';
+  const W = Number(el.dataset.w) || 600, dir = Number(el.dataset.dir) || 1, speed = Number(el.dataset.speed) || 48, home = Number(el.dataset.y) || 90;
+  const x0 = dir > 0 ? -(bb.x + bb.width) - 30 : W + 30 - bb.x, x1 = dir > 0 ? W + 30 - bb.x : -(bb.x + bb.width) - 30;
+  const lo = Math.max(18, Math.min(home, 100) - 55), hi = Math.min(110, home + 15), mid = bb.y + bb.height / 2;   // keeps to the sky
+  let cur = null, held = false;
+  const pass = (first) => {
+    if (!el.isConnected) return;
+    const a = lo + Math.random() * (hi - lo), b = Math.max(lo, Math.min(hi, a + (Math.random() - 0.5) * 30));   // a new height each time
+    cur = el.animate([{ transform: `translate(${x0}px, ${a - mid}px)` }, { transform: `translate(${(x0 + x1) / 2}px, ${(a + b) / 2 - mid - 6}px)` }, { transform: `translate(${x1}px, ${b - mid}px)` }],
+      { duration: (Math.abs(x1 - x0) / speed) * 1000, easing: 'linear', fill: 'both', delay: first ? 400 + Math.random() * 1400 : 2500 + Math.random() * 6000 });
+    if (held) cur.pause();
+    cur.onfinish = () => pass(false);
+  };
+  const hold = (v) => { held = v; if (cur) { if (v) cur.pause(); else cur.play(); } };
+  el.addEventListener('pointerenter', () => hold(true)); el.addEventListener('pointerleave', () => hold(false));
+  // Tab to it and it waits at its own place, where it can be seen; Tab away and it sets off again
+  el.addEventListener('focusin', () => { held = false; if (cur) { cur.onfinish = null; cur.cancel(); cur = null; } });
+  el.addEventListener('focusout', () => { if (!cur) pass(true); });
+  pass(true);
+}
+try { new MutationObserver(() => document.querySelectorAll('.art .fx-cross').forEach(fxFlyStart)).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) { /* older browsers: the bird stays at its place */ }
 function withChick(svg, where) {
   const spot = chickSpot(svg, where); if (!spot) return svg;
   const i = svg.lastIndexOf('</svg>');
   const perch = SCENE_IMG[where] && SCENE_IMG[where].chick;   // a hand-picked perch: the sitting chickadee
   if (perch) return svg.slice(0, i) + CHICK_SVG(spot[0], spot[1], Number(where) % 2) + svg.slice(i);
   const W = Number((/viewBox="0 0 (\d+)/.exec(svg) || [])[1]) || 600;
-  return svg.slice(0, i) + flyAcross(spot[0], spot[1], Number(where) % 2, birdFor(where, svg), where, W) + svg.slice(i);
+  const kind = birdFor(where, svg); if (!kind) return svg;
+  return svg.slice(0, i) + flyAcross(spot[0], spot[1], Number(where) % 2, kind, where, W) + svg.slice(i);
 }
 
 // ================= WOODLAND ANIMALS =================
