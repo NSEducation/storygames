@@ -1876,7 +1876,9 @@ const ART = (() => {
       }
       ctx.plan = ctx.rec; ctx.rec = null; ctx.i = 0; ctx.kc = {}; ctx.bk = 0; ctx.padL = null;
     }
-    return { fig, begin, plan, backs, paddlers, inBed, t: T, ROLE, CAST };
+    // a few people for a picture outside the story scenes (the mini-games): the same figures, dressed as in that passage
+    function group(key, list) { begin(key); plan(null); return list.map(([kind, x, y, h, o]) => fig(kind, x, y, h, o || {})).join(''); }
+    return { fig, begin, plan, backs, paddlers, inBed, group, t: T, ROLE, CAST };
   })();
   const fig = (kind, x, y, h, o = {}) => PPL.fig(kind, x, y, h, o);   // people are drawn in colour (PPL, above)
 
@@ -4293,7 +4295,7 @@ function cover() {
         el('summary', { text: 'About this story (for teachers and curious readers)' }),
         el('p', { text: 'Who wrote it: This game was written by Mark MacFadyen, a Grade 7 and 8 teacher at Middleton Regional High School who is not Mi’kmaw, working with an AI writing assistant and published sources. It was not written by Mi’kmaw writers. Mi’kmaw readers may notice things we got wrong, and we want to know.' }),
         el('p', { text: 'Review: A Mi’kmaw reviewer read the plan for Lizzie’s, Theresa’s and Muin’s stories before the game was built and asked for no changes. Chickadee’s story and the animal cards were added afterward. We also recommend that a Survivor, or the Mi’kmawey Debert Survivors’ Advisory Circle, be asked about the residential school thread in Theresa’s story.' }),
-        el('p', { text: 'The pictures: In November 2026 the people in the pictures were redrawn in colour. What they wear follows museum and archive records, listed on the Sources page under “What people wear in the pictures”. Clothing from before the 1600s is not recorded anywhere, so Chickadee’s family is drawn from the earliest descriptions. The new drawings were made after the review, and no Mi’kmaw reviewer has seen them yet. If something is wrong, we want to know.' }),
+        el('p', { text: 'The pictures: In November 2026 the people in the pictures and in the mini-games were redrawn in colour. What they wear follows museum and archive records, listed on the Sources page under “What people wear in the pictures”. Clothing from before the 1600s is not recorded anywhere, so Chickadee’s family is drawn from the earliest descriptions. The new drawings were made after the review, and no Mi’kmaw reviewer has seen them yet. If something is wrong, we want to know.' }),
         el('p', { text: 'Before your class plays Theresa’s story: preview the scenes from September 1959. A content note comes first, with a choice to read a short summary instead. Let your school’s Mi’kmaw student support worker know when the class will reach it. In those scenes there are no games, items, sounds or quiz questions.' }),
         el('p', { text: 'Perspective: The story is told by Mi’kmaw characters, about their own lives. They make their own choices and lead their own communities. Nobody rescues them. Animals in the pictures are never guides or messengers to the characters.' }),
         el('p', { text: 'Language: Mi’kmaw words follow the Smith-Francis spelling as closely as we could manage, and should be checked by a fluent speaker. The game never uses slurs. Real documents that use words like “Indian” carry an “About the words” note.' }),
@@ -4958,6 +4960,108 @@ function wordsPage(back) {
   undoBtn.hidden = true;
 }
 
+// ================= THE RUNNER, IN COLOUR =================
+// The person who runs in The trail home and in the outdoor challenges. The figure moves exactly the way the old ink
+// runner did, but it is drawn in the skin, hair and clothes that the same person has in the story pictures
+// (see PEOPLE IN COLOUR, in the pictures' own code, for the records the clothing follows).
+// Chickadee: a robe of smoked hide with a painted hem, leggings and moccasins, and a fur robe over her shoulders in winter.
+// Lizzie, 1916: a dark red dress, a white pinafore, black stockings and boots, braids with a blue ribbon.
+// Frank, 1915: a wool jacket, trousers, boots and a flat cap. Theresa, 1959: a blue dress, a red cardigan, ankle socks.
+// Muin, 2026: a hoodie, jeans and sneakers.
+const RUNNER = (() => {
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const sh = (h, k) => '#' + rgb(h).map((v) => Math.round(clamp(v * k, 0, 255)).toString(16).padStart(2, '0')).join('');
+  const LOOKS = {
+    chickadee: { skin: '#C39A74', hair: '#1A1410', hairStyle: 'tail', top: '#C9AA7A', sleeve: '#BC9A68', skirt: 'tunic', skirtC: '#C9AA7A', hem: ['#9C3B26', '#EFE6D0'], belt: '#6B5438', thigh: '#B8966A', shin: '#B8966A', fringe: '#8E7048', shoe: '#8A6A45', cloakCold: '#5A4332' },
+    lizzie: { skin: '#C39A74', hair: '#221912', hairStyle: 'braid', ribbon: '#3E5C8A', top: '#8A3F32', sleeve: '#8A3F32', skirt: 'mid', skirtC: '#8A3F32', apron: '#EDE7D6', thigh: '#2A2622', shin: '#2A2622', shoe: '#17130F' },
+    frank: { skin: '#BE9069', hair: '#1A1410', hairStyle: 'crop', hat: 'flatcap', hatC: '#5E5A4E', top: '#5A5248', sleeve: '#5A5248', coat: 1, shirt: '#D9DEE2', thigh: '#4A4038', shin: '#4A4038', shoe: '#2A211C' },
+    theresa: { skin: '#CBA37E', hair: '#221912', hairStyle: 'braid', ribbon: '#C9584A', top: '#8A3A3A', sleeve: '#8A3A3A', front: '#4F86B0', skirt: 'knee', skirtC: '#4F86B0', thigh: '#CBA37E', shin: '#CBA37E', sock: '#F2EEE4', shoe: '#3A2A22' },
+    muin: { skin: '#C39A74', hair: '#1A1410', hairStyle: 'crop', top: '#2E4A7A', sleeve: '#2E4A7A', hood: 1, thigh: '#3D5A80', shin: '#3D5A80', shoe: '#F4F1E8' },
+  };
+  const PLAIN = { skin: '#C39A74', hair: '#1A1410', hairStyle: 'crop', top: '#5A5248', sleeve: '#5A5248', thigh: '#4A4038', shin: '#4A4038', shoe: '#2A211C' };
+  // the look for one person; in the cold, Chickadee has her fur robe on
+  const look = (key, o) => { const K = Object.assign({}, LOOKS[key] || PLAIN); if (o && o.cold && K.cloakCold) K.cloak = K.cloakCold; return K; };
+
+  // c: the canvas, with its origin at the runner's feet and the runner facing right.
+  // p: { ph, moving, air, up, feet, hold(c, sway), behind(c, bob, sway), near: [[elbow], [hand]] }
+  function draw(c, K, p) {
+    const ph = p.ph || 0, moving = !!p.moving, air = !!p.air, up = !!p.up;
+    const sway = moving && !air ? Math.sin(ph) : 0;
+    const fl = 2.4 * Math.sin(ph * 0.7) + (air ? 4 : 0) + (moving ? 0 : -3), bob = moving ? Math.sin(ph * 2 + 1) : 0;
+    const FAR = 0.8;   // the far arm and leg are a little darker, as they were in ink
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    const seg = (x0, y0, x1, y1, col, w) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); };
+    const dot = (x, y, r, col) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); };
+    const poly = (pts, col) => { c.fillStyle = col; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill(); };
+    const leg = (pp, far) => {
+      let th, kn;
+      if (air) { th = far ? (up ? -0.55 : -0.25) : (up ? 1.05 : 0.55); kn = far ? (up ? 1.0 : 0.5) : (up ? 1.45 : 0.25); }
+      else if (!moving) { th = far ? -0.07 : 0.07; kn = 0.04; }
+      else { th = 0.86 * Math.sin(pp); kn = 0.12 + 1.2 * Math.pow(Math.max(0, Math.sin(pp - 3.95)), 1.2); }
+      const kx = 12 * Math.sin(th), ky = -24 + 12 * Math.cos(th), fx = kx + 12.5 * Math.sin(th - kn), fy = ky + 12.5 * Math.cos(th - kn);
+      const toe = air ? 0.5 : clamp(kn * 0.7, 0, 0.9), k = far ? FAR : 1;   // the toe drops as the heel lifts
+      seg(0, -24, kx, ky, sh(K.thigh, k), 5.2); seg(kx, ky, fx, fy, sh(K.shin, k), 5);
+      if (K.fringe) { const nx = -(fy - ky) / 12.5, ny = (fx - kx) / 12.5; c.strokeStyle = sh(K.fringe, k); c.lineWidth = 1; c.beginPath(); [0.2, 0.5, 0.8].forEach((t) => { const x = kx + (fx - kx) * t - nx * 2.2, y = ky + (fy - ky) * t - ny * 2.2; c.moveTo(x, y); c.lineTo(x - nx * 2 - 0.6, y - ny * 2 + 1.2); }); c.stroke(); }
+      if (K.sock) seg(kx + (fx - kx) * 0.68, ky + (fy - ky) * 0.68, fx, fy, sh(K.sock, k), 5);
+      seg(fx, fy, fx + 5.6 * Math.cos(toe), fy + 5.6 * Math.sin(toe), sh(K.shoe, k), 4.4);
+      if (p.feet === 'snowshoes') { c.save(); c.translate(fx + 1.5, fy + 1.6); c.rotate(toe * 0.5); c.strokeStyle = far ? '#8A7350' : '#6B5434'; c.lineWidth = 1.7; c.beginPath(); c.ellipse(0, 0, 10.5, 3.3, 0, 0, 7); c.stroke(); c.lineWidth = 0.9; c.beginPath(); c.moveTo(-5.5, -2.6); c.lineTo(-5.5, 2.6); c.moveTo(0, -3.2); c.lineTo(0, 3.2); c.moveTo(5.5, -2.6); c.lineTo(5.5, 2.6); c.stroke(); c.restore(); }
+    };
+    const arm = (ex, ey, hx, hy, far) => { const k = far ? 0.72 : 0.9; c.strokeStyle = sh(K.sleeve, k); c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(ex, ey); c.lineTo(hx, hy); c.stroke(); dot(hx, hy, 2.3, sh(K.skin, far ? FAR : 1)); };
+    // far arm: it holds what the runner is carrying, or it swings
+    if (p.hold) {
+      const bu = 0.5 + 0.12 * sway, bex = 3.6 + 9 * Math.sin(bu), bey = -41.5 + 9 * Math.cos(bu), bhx = bex + 8 * Math.sin(bu + 0.9), bhy = bey + 8 * Math.cos(bu + 0.9);
+      arm(bex, bey, bhx, bhy, true);
+      c.save(); c.translate(bhx, bhy); c.rotate(0.12 * sway - (air ? 0.25 : 0)); p.hold(c, sway); c.restore();
+    } else {
+      const u = moving ? 0.95 * Math.sin(ph + Math.PI) : -0.1, ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u);
+      arm(ex, ey, ex + 8.5 * Math.sin(u + 1.2), ey + 8.5 * Math.cos(u + 1.2), true);
+    }
+    if (p.behind) p.behind(c, bob, sway);
+    leg(ph + Math.PI, true);
+    // a fur robe over the shoulders, lifting behind
+    if (K.cloak) { c.fillStyle = K.cloak; c.beginPath(); c.moveTo(7, -46); c.quadraticCurveTo(-8 - fl, -44, -13.5 - fl * 1.2, -25 + (air ? -4 : 0)); c.lineTo(-3, -26); c.lineTo(0, -44); c.closePath(); c.fill(); }
+    leg(ph, false);   // the near leg, before the body: a skirt or the hem of a jacket hangs over the top of it
+    // body
+    seg(0, -25.5, 4.4, -42.5, K.top, K.coat ? 10.8 : 10);
+    if (K.cloak) seg(-2.4, -27, 1.9, -43, K.cloak, 5.4);                    // the robe covers her back and shoulders
+    if (K.front) seg(3.1, -26.6, 7.3, -41.6, K.front, 3.4);                 // the dress, where the cardigan is open
+    if (K.apron) seg(3.2, -27.4, 7, -40.4, K.apron, 4);                     // the bib of the pinafore
+    if (K.shirt) seg(6.6, -41.2, 7.6, -43.6, K.shirt, 2.2);                 // a shirt collar at the neck
+    if (K.hood) { c.fillStyle = sh(K.top, 0.84); c.beginPath(); c.ellipse(1.2, -44.6, 4.8, 3, -0.35, 0, 7); c.fill(); }
+    seg(4.7, -43.4, 6, -47.5, K.skin, 4.6);                                 // neck
+    if (K.coat) poly([[-5.4, -31], [6.4, -31], [8, -21.5 - (air ? 1.5 : 0)], [-7 - fl * 0.3, -21.5]], K.top);
+    if (K.hood) poly([[-5.2, -31], [6.2, -31], [7, -23.2], [-5.8 - fl * 0.2, -23.2]], K.top);
+    if (K.skirt) {
+      const hem = { long: -5.5, mid: -10, knee: -14.5, tunic: -15.5 }[K.skirt] || -10, tun = K.skirt === 'tunic';
+      const sw = moving && !air ? 2.4 * Math.sin(ph) : 0, lift = air ? 4.5 : 0, wf = tun ? 8.2 : 11.5, wb = tun ? 7.6 : 10.5;
+      const fx = wf + sw + lift, fy = hem - lift * 0.5, bx = -wb + sw - lift - fl * 0.4, by = hem + 1 - lift;
+      c.fillStyle = K.skirtC; c.beginPath(); c.moveTo(-5.6, -29); c.lineTo(6.2, -29); c.lineTo(fx, fy); c.quadraticCurveTo(1, hem + 3.5, bx, by); c.closePath(); c.fill();
+      if (K.apron) { c.fillStyle = K.apron; c.beginPath(); c.moveTo(0.6, -29); c.lineTo(6.2, -29); c.lineTo(fx - 0.6, fy - 0.4); c.quadraticCurveTo(fx * 0.55, hem + 1.2, fx * 0.22 + sw * 0.4, hem + 1.6); c.closePath(); c.fill(); }
+      if (K.hem) { c.lineWidth = 1.3; c.strokeStyle = K.hem[0]; c.beginPath(); c.moveTo(fx - 0.5, fy - 1.6); c.quadraticCurveTo(1, hem + 1.7, bx + 0.6, by - 1.7); c.stroke(); c.lineWidth = 0.9; c.strokeStyle = K.hem[1]; c.beginPath(); c.moveTo(fx - 1, fy - 3.4); c.quadraticCurveTo(1, hem - 0.2, bx + 1.1, by - 3.5); c.stroke(); }
+    }
+    if (K.belt) seg(-4.6, -29.4, 6, -29.4, K.belt, 1.5);
+    // near arm
+    if (p.near) arm(p.near[0][0], p.near[0][1], p.near[1][0], p.near[1][1], false);
+    else { const u = air ? -1.15 : moving ? -0.95 * Math.sin(ph + Math.PI) : 0.1, e = air ? 1.0 : 1.35, ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u); arm(ex, ey, ex + 8.5 * Math.sin(u + e), ey + 8.5 * Math.cos(u + e), false); }
+    // head: hair that hangs or trails goes first, then the head, the hair over it, and a cap
+    const hx = 6.6, hy = -52, hr = 6.4;
+    c.fillStyle = K.hair; c.strokeStyle = K.hair;
+    if (K.hairStyle === 'tail') { c.beginPath(); c.moveTo(hx - 1.5, hy - hr + 0.4); c.quadraticCurveTo(hx - hr - 3.4, hy - hr + 1.6, hx - hr - 2.4, hy + 4); c.quadraticCurveTo(hx - 10 - fl * 0.7, hy + 10, hx - 11.5 - fl * 1.1, hy + 17.5 + bob); c.quadraticCurveTo(hx - 6.2, hy + 13.5, hx - 2.2, hy + 6); c.closePath(); c.fill(); }   // long hair tied behind
+    if (K.hairStyle === 'braid') {
+      const ex = hx - 10.4 - fl, ey = hy + 15.5 + bob * 1.6;
+      c.lineWidth = 3.4; c.beginPath(); c.moveTo(hx - 4.6, hy + 2.4); c.quadraticCurveTo(hx - 9.6 - fl * 0.5, hy + 6.5 + bob, ex, ey); c.stroke();
+      if (K.ribbon) dot(ex + 0.2, ey - 1.2, 2, K.ribbon);
+    }
+    dot(hx, hy, hr, K.skin);
+    poly([[hx + hr - 1.2, hy - 1.4], [hx + hr + 1.6, hy + 1], [hx + hr - 1.4, hy + 2.4]], K.skin);   // nose
+    const a0 = -1.05, a1 = 2.5, r = hr + 0.55;
+    c.fillStyle = K.hair; c.beginPath(); c.arc(hx, hy, r, a0, a1, true); c.quadraticCurveTo(hx - 3.4, hy + 0.2, hx + r * Math.cos(a0), hy + r * Math.sin(a0)); c.closePath(); c.fill();
+    dot(hx + 3.5, hy - 0.5, 0.95, '#1B1410');   // eye
+    if (K.hat === 'flatcap') { c.fillStyle = K.hatC; c.strokeStyle = K.hatC; c.beginPath(); c.ellipse(hx - 1.2, hy - 3.2, hr + 1.6, hr - 1.1, -0.12, Math.PI, 0); c.closePath(); c.fill(); c.lineWidth = 2.6; c.beginPath(); c.moveTo(hx + 3, hy - 3.6); c.lineTo(hx + 11.6, hy - 2.2); c.stroke(); }
+  }
+  return { look, draw, LOOKS };
+})();
 // ================= FOREST CHALLENGE (mini-game) =================
 // ================= WOODS CHALLENGE (mini-game) =================
 const FOREST = {
@@ -5178,7 +5282,7 @@ function startForest(id) {
   const bike = () => sprite(50, 34, 25, 30, (g) => { g.strokeStyle = INK; g.lineWidth = 1.8; g.beginPath(); g.arc(11, 22, 8.4, 0, 7); g.stroke(); g.beginPath(); g.arc(39, 22, 8.4, 0, 7); g.stroke(); g.lineWidth = 2; g.beginPath(); g.moveTo(11, 22); g.lineTo(20, 9); g.lineTo(34, 9); g.lineTo(39, 22); g.moveTo(20, 9); g.lineTo(25, 22); g.lineTo(34, 9); g.moveTo(25, 22); g.lineTo(11, 22); g.moveTo(34, 9); g.lineTo(33, 4); g.lineTo(38, 3); g.moveTo(17, 6); g.lineTo(23, 6); g.stroke(); });
 
   // ---------- people ----------
-  // The runner is the same ink figure as on The trail home: shaped for that person's people and time. Only what they carry has colour.
+  // The runner is the person in the story pictures, in the same colours and clothes (RUNNER, above). FIGL still gives the size.
   let heroKey = null; try { heroKey = Object.keys(HEROES).find((k) => HEROES[k] === heroOf(id)) || null; } catch (e) { heroKey = null; }
   const FIGL = (typeof TRAIL !== 'undefined' && TRAIL.heroes && TRAIL.heroes[heroKey]) || { head: 'short', coat: 1 };
   const FK = 0.78 * (FIGL.size || 1);
@@ -5209,30 +5313,8 @@ function startForest(id) {
       c.restore();
     }
   }
-  function drawPerson(c, a) {
-    const L = FIGL, ph = a.ph, moving = a.moving, sway = moving ? Math.sin(ph) : 0;
-    c.lineCap = 'round'; c.lineJoin = 'round';
-    if (moving) c.translate(0, -Math.abs(Math.sin(ph)) * 1.8);
-    const leg = (p, far) => {
-      let th, kn;
-      if (!moving) { th = far ? -0.07 : 0.07; kn = 0.04; }
-      else { th = 0.86 * Math.sin(p); kn = 0.12 + 1.2 * Math.pow(Math.max(0, Math.sin(p - 3.95)), 1.2); }
-      const kx = 12 * Math.sin(th), ky = -24 + 12 * Math.cos(th), fx = kx + 12.5 * Math.sin(th - kn), fy = ky + 12.5 * Math.cos(th - kn);
-      c.strokeStyle = far ? INKF : INK; c.lineWidth = 5.2; c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke();
-      const toe = clamp(kn * 0.7, 0, 0.9);
-      c.lineWidth = 4.4; c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx + 5.6 * Math.cos(toe), fy + 5.6 * Math.sin(toe)); c.stroke();
-      if (FEET === 'snowshoes') { c.save(); c.translate(fx + 1.5, fy + 1.6); c.rotate(toe * 0.5); c.strokeStyle = far ? '#8A7350' : '#6B5434'; c.lineWidth = 1.7; c.beginPath(); c.ellipse(0, 0, 10.5, 3.3, 0, 0, 7); c.stroke(); c.lineWidth = 0.9; c.beginPath(); c.moveTo(-5.5, -2.6); c.lineTo(-5.5, 2.6); c.moveTo(0, -3.2); c.lineTo(0, 3.2); c.moveTo(5.5, -2.6); c.lineTo(5.5, 2.6); c.stroke(); c.restore(); }
-    };
-    const fl = 2.4 * Math.sin(ph * 0.7) + (moving ? 0 : -3), bob = moving ? Math.sin(ph * 2 + 1) : 0;
-    // far arm: it holds what the runner is carrying, or it swings
-    if (FRONT) {
-      const bu = 0.5 + 0.12 * sway, bex = 3.6 + 9 * Math.sin(bu), bey = -41.5 + 9 * Math.cos(bu), bhx = bex + 8 * Math.sin(bu + 0.9), bhy = bey + 8 * Math.cos(bu + 0.9);
-      c.strokeStyle = INKF; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(bex, bey); c.lineTo(bhx, bhy); c.stroke();
-      c.save(); c.translate(bhx, bhy); c.rotate(0.12 * sway); drawCarry(c, sway); c.restore();
-    } else {
-      const u = moving ? 0.95 * Math.sin(ph + Math.PI) : -0.1, ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u);
-      c.strokeStyle = INKF; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(ex, ey); c.lineTo(ex + 8.5 * Math.sin(u + 1.2), ey + 8.5 * Math.cos(u + 1.2)); c.stroke();
-    }
+  // what rides on the shoulder: skates tied by their laces, or an axe
+  const shoulderLoad = (c, bob, sway) => {
     if (CARRY === 'skates') {   // hockey skates, tied by the laces and slung over the shoulder
       c.strokeStyle = '#E9E2D0'; c.lineWidth = 1; c.beginPath(); c.moveTo(6, -45); c.quadraticCurveTo(-2, -47, -5.5, -39 + bob); c.stroke();
       [[-8, -32, 0.25], [-3.5, -30, -0.12]].forEach(([x, y, r]) => { c.save(); c.translate(x, y + bob * 1.5); c.rotate(r + 0.1 * sway); c.fillStyle = '#22252B'; c.beginPath(); c.moveTo(-2.6, -8); c.lineTo(2.6, -8); c.lineTo(3, -1); c.lineTo(7.6, 1.2); c.lineTo(7.6, 4); c.lineTo(-3, 4); c.closePath(); c.fill(); c.strokeStyle = '#C9D2D8'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-3.6, 6.4); c.lineTo(8.4, 6.4); c.stroke(); c.lineWidth = 1; c.beginPath(); c.moveTo(-1.6, 4); c.lineTo(-1.6, 6.4); c.moveTo(5.6, 4); c.lineTo(5.6, 6.4); c.stroke(); c.restore(); });
@@ -5241,36 +5323,12 @@ function startForest(id) {
       c.strokeStyle = '#8A6238'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(12, -37); c.lineTo(-13, -53 + bob * 0.6); c.stroke();
       c.fillStyle = '#8D979C'; c.beginPath(); c.moveTo(-11, -55.5 + bob * 0.6); c.lineTo(-17.5, -57.5 + bob * 0.6); c.lineTo(-19.5, -48.5 + bob * 0.6); c.lineTo(-13.6, -49.5 + bob * 0.6); c.closePath(); c.fill();
     }
-    leg(ph + Math.PI, true);
-    c.fillStyle = INK; c.strokeStyle = INK;
-    if (L.cape) { c.beginPath(); c.moveTo(7, -46); c.quadraticCurveTo(-8 - fl, -44, -13.5 - fl * 1.2, -25); c.lineTo(-3, -26); c.lineTo(0, -44); c.closePath(); c.fill(); }
-    c.lineWidth = L.coat ? 10.8 : 10; c.beginPath(); c.moveTo(0, -25.5); c.lineTo(4.4, -42.5); c.stroke();
-    c.lineWidth = 5; c.beginPath(); c.moveTo(4.6, -43); c.lineTo(6, -47.5); c.stroke();
-    if (L.coat) { c.beginPath(); c.moveTo(-5.4, -31); c.lineTo(6.4, -31); c.lineTo(8, -21.5); c.lineTo(-7 - fl * 0.3, -21.5); c.closePath(); c.fill(); }
-    if (L.skirt) {
-      const hem = { long: -5.5, mid: -10, knee: -14.5, tunic: -15.5 }[L.skirt] || -10, tun = L.skirt === 'tunic';
-      const sw = moving ? 2.4 * Math.sin(ph) : 0, wf = tun ? 8.2 : 11.5, wb = tun ? 7.6 : 10.5;
-      c.beginPath(); c.moveTo(-5.6, -29); c.lineTo(6.2, -29); c.lineTo(wf + sw, hem); c.quadraticCurveTo(1, hem + 3.5, -wb + sw - fl * 0.4, hem + 1); c.closePath(); c.fill();
-    }
-    leg(ph, false);
-    // near arm
-    if (SHOULDER) { c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(10.5, -34.5); c.lineTo(CARRY === 'tools' ? 12 : 7, CARRY === 'tools' ? -38 : -44.5); c.stroke(); }
-    else if (CARRY === 'wood' || CARRY === 'boughs') { c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(8.5, -33.5); c.lineTo(15, -36); c.stroke(); }
-    else { const u = moving ? -0.95 * Math.sin(ph + Math.PI) : 0.1, ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u); c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(ex, ey); c.lineTo(ex + 8.5 * Math.sin(u + 1.35), ey + 8.5 * Math.cos(u + 1.35)); c.stroke(); }
-    // head: hair that trails goes first, then the head, then a hat
-    const hx = 6.6, hy = -52, hr = 6.4;
-    c.fillStyle = INK; c.strokeStyle = INK;
-    if (L.head === 'long') { c.beginPath(); c.moveTo(hx + 1.5, hy - hr - 0.8); c.quadraticCurveTo(hx - hr - 4.5, hy - hr + 0.5, hx - hr - 3, hy + 5); c.quadraticCurveTo(hx - 12 - fl, hy + 11, hx - 16.5 - fl * 1.6, hy + 19 + bob); c.quadraticCurveTo(hx - 7.5, hy + 16, hx - 1.5, hy + 6.5); c.closePath(); c.fill(); }
-    if (L.head === 'tied') { c.beginPath(); c.ellipse(hx - 1.2, hy - 0.8, hr + 0.9, hr + 0.5, 0, 0, 7); c.fill(); c.lineWidth = 3.6; c.beginPath(); c.moveTo(hx - 5.5, hy + 1.5); c.quadraticCurveTo(hx - 11 - fl, hy + 3 + bob, hx - 12.5 - fl * 1.3, hy + 10.5 + bob * 2); c.stroke(); }
-    if (L.head === 'puffs') { c.beginPath(); c.arc(hx - 6.2, hy - 4.6 + bob * 0.5, 4.1, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 0.8, hy - 7.6, 3.3, 0, 7); c.fill(); }
-    if (L.head === 'bun') { c.beginPath(); c.ellipse(hx - 1, hy - 0.8, hr + 0.8, hr + 0.5, 0, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 6.8, hy - 3.6, 3.8, 0, 7); c.fill(); }
-    if (L.head === 'short') { c.beginPath(); c.ellipse(hx - 0.9, hy - 1, hr + 0.7, hr + 0.4, 0, 0, 7); c.fill(); }
-    c.beginPath(); c.arc(hx, hy, hr, 0, 7); c.fill();
-    c.beginPath(); c.moveTo(hx + hr - 1.2, hy - 1.4); c.lineTo(hx + hr + 1.6, hy + 1); c.lineTo(hx + hr - 1.4, hy + 2.4); c.closePath(); c.fill();
-    if (L.head === 'coif') { c.beginPath(); c.ellipse(hx - 2.3, hy - 1.6, 7.7, 7.2, -0.3, 0, 7); c.fill(); c.beginPath(); c.moveTo(hx - 7, hy + 2.5); c.lineTo(hx - 10.4 - fl * 0.3, hy + 5.4); c.lineTo(hx - 4.5, hy + 5.2); c.closePath(); c.fill(); }
-    else if (L.head === 'flathat') { rrp(c, hx - 5.2, hy - hr - 4.8, 10.6, 6.4, 1.6); c.fill(); c.lineWidth = 2.8; c.beginPath(); c.moveTo(hx - 11, hy - hr + 1.3); c.lineTo(hx + 11.8, hy - hr + 1.3); c.stroke(); }
-    else if (L.head === 'flatcap') { c.beginPath(); c.ellipse(hx - 1.2, hy - 3.2, hr + 1.6, hr - 1.1, -0.12, Math.PI, 0); c.closePath(); c.fill(); c.lineWidth = 2.6; c.beginPath(); c.moveTo(hx + 3, hy - 3.6); c.lineTo(hx + 11.6, hy - 2.2); c.stroke(); }
-    else if (L.head === 'bonnet') { c.beginPath(); c.ellipse(hx - 1.2, hy - hr + 0.2, 10, 3.9, -0.14, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 1.8, hy - hr - 3.6, 1.9, 0, 7); c.fill(); }
+  };
+  function drawPerson(c, a) {
+    const K = RUNNER.look(heroKey, { cold: LK.season === 'winter' });
+    if (a.moving) c.translate(0, -Math.abs(Math.sin(a.ph)) * 1.8);
+    RUNNER.draw(c, K, { ph: a.ph, moving: a.moving, feet: FEET, hold: FRONT ? drawCarry : null, behind: SHOULDER ? shoulderLoad : null,
+      near: SHOULDER ? [[10.5, -34.5], [CARRY === 'tools' ? 12 : 7, CARRY === 'tools' ? -38 : -44.5]] : CARRY === 'wood' || CARRY === 'boughs' ? [[8.5, -33.5], [15, -36]] : null });
   }
   // A soldier of 1755, drawn the way the story pictures draw them: an ink figure with a three-cornered hat, a long coat
   // and a musket on the shoulder. No coat colour is shown: the men at Grand-Pré were mostly New England soldiers, and what
@@ -5396,9 +5454,9 @@ function startForest(id) {
   });
   const wikuomSpr = (sc) => sprite(96 * sc, 108 * sc, 48 * sc, 101 * sc, (g) => {
     g.scale(sc, sc); const x = 48, y = 100, sn = SNOWY;
-    g.strokeStyle = '#2A211B'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(x - 9, y - 96); g.lineTo(x + 6, y - 72); g.moveTo(x + 9, y - 96); g.lineTo(x - 6, y - 72); g.moveTo(x, y - 99); g.lineTo(x, y - 74); g.stroke();
-    g.fillStyle = '#3A2F27'; g.beginPath(); g.moveTo(x - 42, y + 2); g.lineTo(x, y - 82); g.lineTo(x + 42, y + 2); g.closePath(); g.fill();
-    g.strokeStyle = 'rgba(255,255,255,.16)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x - 30, y - 22); g.quadraticCurveTo(x, y - 15, x + 30, y - 22); g.moveTo(x - 19, y - 44); g.quadraticCurveTo(x, y - 39, x + 19, y - 44); g.moveTo(x - 9, y - 63); g.quadraticCurveTo(x, y - 60, x + 9, y - 63); g.stroke();
+    g.strokeStyle = '#5A4330'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(x - 9, y - 96); g.lineTo(x + 6, y - 72); g.moveTo(x + 9, y - 96); g.lineTo(x - 6, y - 72); g.moveTo(x, y - 99); g.lineTo(x, y - 74); g.stroke();
+    g.fillStyle = '#DACDAE'; g.beginPath(); g.moveTo(x - 42, y + 2); g.lineTo(x, y - 82); g.lineTo(x + 42, y + 2); g.closePath(); g.fill(); g.strokeStyle = '#A8997A'; g.lineWidth = 1.2; g.stroke();   // sheets of birchbark
+    g.strokeStyle = '#A8997A'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(x - 30, y - 22); g.quadraticCurveTo(x, y - 15, x + 30, y - 22); g.moveTo(x - 19, y - 44); g.quadraticCurveTo(x, y - 39, x + 19, y - 44); g.moveTo(x - 9, y - 63); g.quadraticCurveTo(x, y - 60, x + 9, y - 63); g.stroke();
     if (sn) { g.fillStyle = 'rgba(255,255,255,.92)'; g.beginPath(); g.moveTo(x - 42, y + 2); g.lineTo(x - 31, y - 20); g.quadraticCurveTo(x - 24, y - 6, x - 13, y + 2); g.closePath(); g.fill(); g.beginPath(); g.moveTo(x + 42, y + 2); g.lineTo(x + 33, y - 16); g.quadraticCurveTo(x + 26, y - 5, x + 16, y + 2); g.closePath(); g.fill(); }
     g.fillStyle = '#17100C'; g.beginPath(); g.moveTo(x - 10, y + 2); g.lineTo(x - 10, y - 20); g.quadraticCurveTo(x, y - 30, x + 10, y - 20); g.lineTo(x + 10, y + 2); g.closePath(); g.fill();
     g.fillStyle = warm; g.beginPath(); g.moveTo(x - 7, y + 2); g.lineTo(x - 7, y - 18); g.quadraticCurveTo(x, y - 26, x + 7, y - 18); g.lineTo(x + 7, y + 2); g.closePath(); g.fill();
@@ -7080,12 +7138,8 @@ function gWikuom(box, win) {
     };
   })();
 
-  // The people are the story pictures' own ink figures: Nukumi (LE) and Chickadee (CHILD).
-  const FIG = {
-    LE: `<circle cx="6" cy="-80" r="8"/><path d="M0,-84 Q-9,-80 -8,-58 L-4,-59 Q-5,-76 3,-83 Z"/><path d="M-6,-72 L12,-70 L10,-54 L18,0 L-16,0 L-8,-54 Z"/><path d="M18,-56 L26,0" stroke="${INK}" stroke-width="3" fill="none"/>`,
-    CHILD: `<circle cx="0" cy="-62" r="7"/><path d="M-8,-54 L8,-54 L12,0 L-12,0 Z"/>`,
-  };
-  const fig = (k, x, y, s, flip) => `<g transform="translate(${x} ${y}) scale(${flip ? -s : s} ${s})" fill="${INK}">${FIG[k]}</g>`;
+  // The people are the ones in the story pictures: Nukumi and Chickadee, drawn by the pictures' own code and dressed as in passage 706.
+  const people = () => (typeof ART !== 'undefined' && ART.people && ART.people.group ? ART.people.group('706', [['LE', 150, 348, 95, { role: 'cnukumi' }], ['CHILD', 612, 352, 80, { role: 'chick8', flip: true }]]) : '');
 
   // ---------- the shape of the wikuom (seen from the outside) ----------
   const AX = 390, AY = 88, BY = 332, BW = 146, ER = 25, HY = 136;
@@ -7262,9 +7316,9 @@ function gWikuom(box, win) {
       s += `<path d="M0,244 Q180,238 360,244 Q540,250 720,242 L720,262 L0,262 Z" fill="#D9CCA6"/>`;
       s += `<rect y="258" width="720" height="142" fill="#93A86A"/><path d="M0,262 Q360,254 720,262 L720,272 L0,272 Z" fill="#A6B97C"/>`;
       // the other families' wikuoms, a canoe drawn up on the beach, and the heap of old shells (story scene 706)
-      const far = (x, y, k) => `<g transform="translate(${x} ${y}) scale(${k})" fill="${INK}"><path d="M-6,-62 L4,-46 M6,-62 L-4,-46" stroke="${INK}" stroke-width="2.5" fill="none"/><path d="M-24,0 L0,-54 L24,0 Z"/><path d="M-6,0 L-6,-12 Q0,-18 6,-12 L6,0 Z" fill="#0E1416"/></g>`;
+      const far = (x, y, k) => `<g transform="translate(${x} ${y}) scale(${k})"><path d="M-6,-62 L4,-46 M6,-62 L-4,-46 M0,-64 L0,-48" stroke="#5A4330" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M-24,0 L0,-54 L24,0 Z" fill="#DDD2B6" stroke="#A69A80" stroke-width="0.8"/><path d="M-19.5,-10 Q0,-5 19.5,-10 M-14,-22.5 Q0,-18 14,-22.5 M-8.6,-34.5 Q0,-31 8.6,-34.5" stroke="#A69A80" stroke-width="1.1" fill="none"/><path d="M-6,0 L-6,-12 Q0,-18 6,-12 L6,0 Z" fill="#3A2C22"/></g>`;
       s += far(62, 266, 0.9) + far(120, 262, 0.7);
-      s += `<g transform="translate(600 254)" fill="${INK}"><path d="M-36,-8 Q-32,4 -16,4 L16,4 Q32,4 36,-8 Q20,-3 0,-3 Q-20,-3 -36,-8 Z"/></g>`;
+      s += `<g transform="translate(600 254)"><path d="M-36,-8 Q-32,4 -16,4 L16,4 Q32,4 36,-8 Q20,-3 0,-3 Q-20,-3 -36,-8 Z" fill="#C2A677"/><path d="M-36,-8 Q-20,-3 0,-3 Q20,-3 36,-8" stroke="#7A5A3C" stroke-width="1.4" fill="none"/><path d="M-22,-3.6 L-21,3.4 M-8,-3 L-8,4 M8,-3 L8,4 M22,-3.6 L21,3.4" stroke="#A8906A" stroke-width="0.8" fill="none"/></g>`;
       s += `<path d="M626,272 Q660,236 702,272 Z" fill="#E9E2D2"/><g fill="#C9BFA9"><circle cx="650" cy="262" r="2.4"/><circle cx="664" cy="254" r="2"/><circle cx="676" cy="264" r="2.6"/><circle cx="688" cy="268" r="2"/><circle cx="657" cy="268" r="1.8"/></g>`;
       // the circle where the wikuom will stand
       if (st.poles < MAIN.length) s += `<ellipse cx="${AX}" cy="${BY}" rx="${BW}" ry="${ER}" fill="rgba(90,70,40,.12)" stroke="#6E5A3C" stroke-width="2" stroke-dasharray="7 6"/>`;
@@ -7303,7 +7357,7 @@ function gWikuom(box, win) {
       // the bark collar, over the top in bad weather
       if (st.collar) s += `<path d="M${AX - 24},${AY + 14} L${AX - 12},${AY - 16} L${AX + 12},${AY - 16} L${AX + 24},${AY + 14} Q${AX},${AY + 20} ${AX - 24},${AY + 14} Z" fill="${BARK}" stroke="#A8977A" stroke-width="1.4"/><path d="M${AX - 17},${AY + 2} h34 M${AX - 13},${AY - 8} h26" stroke="${ROOT}" stroke-width="1.6" stroke-dasharray="3 3"/>`;
       // the people
-      s += fig('LE', 150, 348, 0.95, false) + fig('CHILD', 612, 352, 0.78, true);
+      s += people();
       // the summer shower
       if (st.rain) {
         s += `<g class="wk-rain" stroke="#6F8794" stroke-width="1.4" stroke-linecap="round" opacity=".7">`;
@@ -8283,6 +8337,17 @@ function gForestRun(box, win) {
   const MOOSE = ['M-44,-42 Q-46,-56 -28,-56 L2,-58 Q14,-68 28,-60 L36,-52 Q46,-50 54,-44 L62,-37 Q64,-31 57,-31 L50,-33 Q46,-31 44,-27 L42,-21 L39,-27 L34,-36 Q30,-30 20,-30 L-28,-30 Q-42,-30 -44,-42 Z', 'M16,-32 L18,0 L22,0 L22,-32 Z M24,-32 L27,0 L31,0 L29,-32 Z M-32,-32 L-31,0 L-27,0 L-26,-32 Z M-24,-32 L-21,0 L-17,0 L-18,-32 Z', 'M36,-55 Q28,-60 22,-70 L26,-69 L25,-75 L29,-70 L30,-77 L34,-70 Q37,-63 40,-57 Z M41,-57 Q48,-64 56,-67 L55,-72 L60,-69 L61,-75 L64,-69 L66,-63 Q57,-56 44,-54 Z'];
 
   const heroKeys = Object.keys(T.heroes).filter((k) => HEROES[k]);
+  // a small picture of each runner, for the "Who is running?" buttons
+  const runnerPortrait = (k) => {
+    const cv = document.createElement('canvas'), d = Math.min(2, window.devicePixelRatio || 1), w = 46, h = 62;
+    cv.width = w * d; cv.height = h * d; cv.setAttribute('aria-hidden', 'true');
+    cv.style.cssText = `width:${w}px;height:${h}px;display:block;margin:0 auto 3px;border-radius:10px;background:#F6F1E4`;
+    try {
+      const g = cv.getContext('2d'), sz = (T.heroes[k].size || 1) * 0.92; g.setTransform(d, 0, 0, d, 0, 0); g.translate(w / 2 - 3 * sz, h - 5); g.scale(sz, sz);
+      RUNNER.draw(g, RUNNER.look(k, { cold: (T.heroes[k].season || T.season) === 'winter' }), { ph: 0, moving: false });
+    } catch (e) { /* the picture is a nicety; the name on the button is what matters */ }
+    return cv;
+  };
   // start with the character whose story is open, if there is one; otherwise the last runner chosen
   let nowKey = null; try { if (typeof current !== 'undefined' && current) nowKey = Object.keys(HEROES).find((k) => HEROES[k] === heroOf(current)) || null; } catch (e) { nowKey = null; }
   let heroKey = nowKey && T.heroes[nowKey] ? nowKey : T.heroes[PROG.frunHero] && HEROES[PROG.frunHero] ? PROG.frunHero : heroKeys[0];
@@ -8340,6 +8405,7 @@ function gForestRun(box, win) {
     const best = PROG.frun || 0, bs = PROG.frunStars || {};
     const heroRow = el('div', { class: 'trail-opts', role: 'group', 'aria-label': 'Who is running?' }, heroKeys.map((k) => {
       const b = el('button', { type: 'button', class: 'seg', text: HEROES[k].name, onclick: () => { heroKey = k; PROG.frunHero = k; saveProg(); menu(k); } });
+      b.style.borderRadius = '16px'; b.style.padding = '0.4rem 0.7rem 0.35rem'; b.prepend(runnerPortrait(k));
       b.setAttribute('aria-pressed', String(k === heroKey)); if (k === focusKey) setTimeout(() => b.focus({ preventScroll: true }), 0); return b;
     }));
     box.append(
@@ -8567,77 +8633,31 @@ function gForestRun(box, win) {
         if (sn) { c.strokeStyle = '#FFFFFF'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 6, y - o.h + 3); c.quadraticCurveTo(x + 14, y - o.h - 6, x + 21, y - o.h + 3); c.stroke(); }
       }
     }
-    // The runner is an ink silhouette, like the people in the story pictures. Only the basket has colour.
-    function drawRunner(x, y) {
-      const L = look, ph = st.ph, air = !st.on, up = st.vy < 0, moving = st.v > 14, k = L.size || 1;
-      const sway = moving && !air ? Math.sin(ph) : 0;
-      c.save(); c.translate(x, y + (st.wet ? 5 : 0));
-      c.scale(k * (1 + st.sq * 0.08), k * (1 - st.sq * 0.1));
-      if (st.inv > 0.5) c.rotate(0.3 * Math.sin((1.05 - st.inv) * 13));
-      if (moving && !air) c.translate(0, -Math.abs(Math.sin(ph)) * 1.8);
-      c.lineCap = 'round'; c.lineJoin = 'round';
-      const leg = (p, far) => {
-        let th, kn;
-        if (air) { th = far ? (up ? -0.55 : -0.25) : (up ? 1.05 : 0.55); kn = far ? (up ? 1.0 : 0.5) : (up ? 1.45 : 0.25); }
-        else if (!moving) { th = far ? -0.07 : 0.07; kn = 0.04; }
-        else { th = 0.86 * Math.sin(p); kn = 0.12 + 1.2 * Math.pow(Math.max(0, Math.sin(p - 3.95)), 1.2); }
-        const kx = 12 * Math.sin(th), ky = -24 + 12 * Math.cos(th), fx = kx + 12.5 * Math.sin(th - kn), fy = ky + 12.5 * Math.cos(th - kn);
-        c.strokeStyle = far ? INKF : INK; c.lineWidth = 5.2; c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke();
-        const toe = air ? 0.5 : clamp(kn * 0.7, 0, 0.9);   // the toe drops as the heel lifts
-        c.lineWidth = 4.4; c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx + 5.6 * Math.cos(toe), fy + 5.6 * Math.sin(toe)); c.stroke();
-      };
-      const fl = 2.4 * Math.sin(ph * 0.7) + (air ? 4 : 0) + (moving ? 0 : -3), bob = moving ? Math.sin(ph * 2 + 1) : 0;
-      // far arm, holding the basket out in front
-      const bu = 0.5 + 0.12 * sway, bex = 3.6 + 9 * Math.sin(bu), bey = -41.5 + 9 * Math.cos(bu), bhx = bex + 8 * Math.sin(bu + 0.9), bhy = bey + 8 * Math.cos(bu + 0.9);
-      c.strokeStyle = INKF; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(bex, bey); c.lineTo(bhx, bhy); c.stroke();
-      c.save(); c.translate(bhx, bhy); c.rotate(0.12 * sway - (air ? 0.25 : 0));
+    // The runner is the person in the story pictures, in the same colours and clothes (RUNNER). The basket fills as you gather.
+    const basketInHand = (c) => {
       c.strokeStyle = '#7A5A30'; c.lineWidth = 1.6; c.beginPath(); c.arc(0, 4, 6.5, Math.PI, 0); c.stroke();
       const shown = Math.min(5, Math.ceil(5 * st.got / need)), kk = Object.keys(st.bag).filter((q) => st.bag[q] > 0);
       for (let i = 0; i < shown; i++) { c.fillStyle = ITEMCOL[kk[i % Math.max(1, kk.length)]] || ITEMCOL[kinds[0]]; c.beginPath(); c.arc(-4.6 + i * 2.3, 3.4 - (i % 2) * 1.7, 2.5, 0, 7); c.fill(); }
       c.fillStyle = '#B98A4E'; c.beginPath(); c.moveTo(-7.5, 4); c.lineTo(7.5, 4); c.lineTo(5.5, 12.5); c.lineTo(-5.5, 12.5); c.closePath(); c.fill();
       c.strokeStyle = '#8A6234'; c.lineWidth = 1; c.beginPath(); c.moveTo(-6.8, 7); c.lineTo(6.8, 7); c.moveTo(-6, 10); c.lineTo(6, 10); c.moveTo(-2.5, 4); c.lineTo(-2, 12.5); c.moveTo(2.5, 4); c.lineTo(2, 12.5); c.stroke();
-      c.restore();
-      leg(ph + Math.PI, true);
-      c.fillStyle = INK; c.strokeStyle = INK;
-      // a short cape or shawl, lifting behind
-      if (L.cape) { c.beginPath(); c.moveTo(7, -46); c.quadraticCurveTo(-8 - fl, -44, -13.5 - fl * 1.2, -25 + (air ? -4 : 0)); c.lineTo(-3, -26); c.lineTo(0, -44); c.closePath(); c.fill(); }
-      // body
-      c.lineWidth = L.coat ? 10.8 : 10; c.beginPath(); c.moveTo(0, -25.5); c.lineTo(4.4, -42.5); c.stroke();
-      c.lineWidth = 5; c.beginPath(); c.moveTo(4.6, -43); c.lineTo(6, -47.5); c.stroke();
-      if (L.coat) { c.beginPath(); c.moveTo(-5.4, -31); c.lineTo(6.4, -31); c.lineTo(8, -21.5 - (air ? 1.5 : 0)); c.lineTo(-7 - fl * 0.3, -21.5); c.closePath(); c.fill(); }
-      if (L.skirt) {
-        const hem = { long: -5.5, mid: -10, knee: -14.5, tunic: -15.5 }[L.skirt] || -10, tun = L.skirt === 'tunic';
-        const sw = moving && !air ? 2.4 * Math.sin(ph) : 0, lift = air ? 4.5 : 0, wf = tun ? 8.2 : 11.5, wb = tun ? 7.6 : 10.5;
-        c.beginPath(); c.moveTo(-5.6, -29); c.lineTo(6.2, -29); c.lineTo(wf + sw + lift, hem - lift * 0.5); c.quadraticCurveTo(1, hem + 3.5, -wb + sw - lift - fl * 0.4, hem + 1 - lift); c.closePath(); c.fill();
-      }
-      leg(ph, false);
-      // near arm
-      const u = air ? -1.15 : moving ? -0.95 * Math.sin(ph + Math.PI) : 0.1, e = air ? 1.0 : 1.35;
-      const ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u);
-      c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(ex, ey); c.lineTo(ex + 8.5 * Math.sin(u + e), ey + 8.5 * Math.cos(u + e)); c.stroke();
-      // head: hair that trails goes first, then the head, then a hat
-      const hx = 6.6, hy = -52, hr = 6.4;
-      c.fillStyle = INK;
-      if (L.head === 'long') { c.beginPath(); c.moveTo(hx + 1.5, hy - hr - 0.8); c.quadraticCurveTo(hx - hr - 4.5, hy - hr + 0.5, hx - hr - 3, hy + 5); c.quadraticCurveTo(hx - 12 - fl, hy + 11, hx - 16.5 - fl * 1.6, hy + 19 + bob); c.quadraticCurveTo(hx - 7.5, hy + 16, hx - 1.5, hy + 6.5); c.closePath(); c.fill(); }
-      if (L.head === 'tied') { c.beginPath(); c.ellipse(hx - 1.2, hy - 0.8, hr + 0.9, hr + 0.5, 0, 0, 7); c.fill(); c.lineWidth = 3.6; c.beginPath(); c.moveTo(hx - 5.5, hy + 1.5); c.quadraticCurveTo(hx - 11 - fl, hy + 3 + bob, hx - 12.5 - fl * 1.3, hy + 10.5 + bob * 2); c.stroke(); }
-      if (L.head === 'puffs') { c.beginPath(); c.arc(hx - 6.2, hy - 4.6 + bob * 0.5, 4.1, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 0.8, hy - 7.6, 3.3, 0, 7); c.fill(); }
-      if (L.head === 'bun') { c.beginPath(); c.ellipse(hx - 1, hy - 0.8, hr + 0.8, hr + 0.5, 0, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 6.8, hy - 3.6, 3.8, 0, 7); c.fill(); }
-      if (L.head === 'short') { c.beginPath(); c.ellipse(hx - 0.9, hy - 1, hr + 0.7, hr + 0.4, 0, 0, 7); c.fill(); }
-      c.beginPath(); c.arc(hx, hy, hr, 0, 7); c.fill();
-      c.beginPath(); c.moveTo(hx + hr - 1.2, hy - 1.4); c.lineTo(hx + hr + 1.6, hy + 1); c.lineTo(hx + hr - 1.4, hy + 2.4); c.closePath(); c.fill();
-      if (L.head === 'coif') { c.beginPath(); c.ellipse(hx - 2.3, hy - 1.6, 7.7, 7.2, -0.3, 0, 7); c.fill(); c.beginPath(); c.moveTo(hx - 7, hy + 2.5); c.lineTo(hx - 10.4 - fl * 0.3, hy + 5.4); c.lineTo(hx - 4.5, hy + 5.2); c.closePath(); c.fill(); }
-      else if (L.head === 'flathat') { rr(hx - 5.2, hy - hr - 4.8, 10.6, 6.4, 1.6); c.fill(); c.lineWidth = 2.8; c.beginPath(); c.moveTo(hx - 11, hy - hr + 1.3); c.lineTo(hx + 11.8, hy - hr + 1.3); c.stroke(); }
-      else if (L.head === 'flatcap') { c.beginPath(); c.ellipse(hx - 1.2, hy - 3.2, hr + 1.6, hr - 1.1, -0.12, Math.PI, 0); c.closePath(); c.fill(); c.lineWidth = 2.6; c.beginPath(); c.moveTo(hx + 3, hy - 3.6); c.lineTo(hx + 11.6, hy - 2.2); c.stroke(); }
-      else if (L.head === 'bonnet') { c.beginPath(); c.ellipse(hx - 1.2, hy - hr + 0.2, 10, 3.9, -0.14, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 1.8, hy - hr - 3.6, 1.9, 0, 7); c.fill(); }
+    };
+    function drawRunner(x, y) {
+      const L = look, ph = st.ph, air = !st.on, up = st.vy < 0, moving = st.v > 14, k = L.size || 1;
+      c.save(); c.translate(x, y + (st.wet ? 5 : 0));
+      c.scale(k * (1 + st.sq * 0.08), k * (1 - st.sq * 0.1));
+      if (st.inv > 0.5) c.rotate(0.3 * Math.sin((1.05 - st.inv) * 13));
+      if (moving && !air) c.translate(0, -Math.abs(Math.sin(ph)) * 1.8);
+      RUNNER.draw(c, RUNNER.look(heroKey, { cold: !!S.snow }), { ph, moving, air, up, hold: basketInHand });
       c.restore();
     }
     // Homes are dark shapes with a warm light, like the houses in the story pictures.
     function drawHome(x, y, lit) {
       const sn = S.snow, warm = '#FFD98A';
       if (goalKind === 'camp') {
-        c.strokeStyle = '#2A211B'; c.lineWidth = 2.6; c.lineCap = 'round'; c.beginPath(); c.moveTo(x - 9, y - 96); c.lineTo(x + 6, y - 72); c.moveTo(x + 9, y - 96); c.lineTo(x - 6, y - 72); c.moveTo(x, y - 99); c.lineTo(x, y - 74); c.stroke();
-        c.fillStyle = '#3A2F27'; c.beginPath(); c.moveTo(x - 42, y + 2); c.lineTo(x, y - 82); c.lineTo(x + 42, y + 2); c.closePath(); c.fill();
-        c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x - 30, y - 22); c.quadraticCurveTo(x, y - 15, x + 30, y - 22); c.moveTo(x - 19, y - 44); c.quadraticCurveTo(x, y - 39, x + 19, y - 44); c.moveTo(x - 9, y - 63); c.quadraticCurveTo(x, y - 60, x + 9, y - 63); c.stroke();
+        const dk = clamp((lit - 0.6) / 0.4, 0, 1);   // how dark it has become
+        c.strokeStyle = mix('#5A4330', '#1E1A1C', 0.5 * dk); c.lineWidth = 2.6; c.lineCap = 'round'; c.beginPath(); c.moveTo(x - 9, y - 96); c.lineTo(x + 6, y - 72); c.moveTo(x + 9, y - 96); c.lineTo(x - 6, y - 72); c.moveTo(x, y - 99); c.lineTo(x, y - 74); c.stroke();
+        c.fillStyle = mix('#D6C9A8', '#2E2C3A', 0.62 * dk); c.beginPath(); c.moveTo(x - 42, y + 2); c.lineTo(x, y - 82); c.lineTo(x + 42, y + 2); c.closePath(); c.fill();   // sheets of birchbark
+        c.strokeStyle = mix('#A8997A', '#22202A', 0.6 * dk); c.lineWidth = 1.3; c.beginPath(); c.moveTo(x - 30, y - 22); c.quadraticCurveTo(x, y - 15, x + 30, y - 22); c.moveTo(x - 19, y - 44); c.quadraticCurveTo(x, y - 39, x + 19, y - 44); c.moveTo(x - 9, y - 63); c.quadraticCurveTo(x, y - 60, x + 9, y - 63); c.stroke();
         if (sn) { c.fillStyle = 'rgba(255,255,255,.92)'; c.beginPath(); c.moveTo(x - 42, y + 2); c.lineTo(x - 31, y - 20); c.quadraticCurveTo(x - 24, y - 6, x - 13, y + 2); c.closePath(); c.fill(); c.beginPath(); c.moveTo(x + 42, y + 2); c.lineTo(x + 33, y - 16); c.quadraticCurveTo(x + 26, y - 5, x + 16, y + 2); c.closePath(); c.fill(); }
         c.fillStyle = '#17100C'; c.beginPath(); c.moveTo(x - 10, y + 2); c.lineTo(x - 10, y - 20); c.quadraticCurveTo(x, y - 30, x + 10, y - 20); c.lineTo(x + 10, y + 2); c.closePath(); c.fill();
         c.fillStyle = warm; c.globalAlpha = lit; c.beginPath(); c.moveTo(x - 7, y + 2); c.lineTo(x - 7, y - 18); c.quadraticCurveTo(x, y - 26, x + 7, y - 18); c.lineTo(x + 7, y + 2); c.closePath(); c.fill(); c.globalAlpha = 1;
@@ -8756,7 +8776,7 @@ function gForestRun(box, win) {
         if (dark < 0.12) drawRunner(sx, st.y);
         else if (low) { c.fillStyle = 'rgba(205,225,255,' + (0.2 * dark).toFixed(3) + ')'; c.beginPath(); c.ellipse(sx + 3, st.y - 30, 25, 38, 0, 0, 7); c.fill(); drawRunner(sx, st.y); }
         else {
-          c = rctx; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, 150, 150); drawRunner(75, 118); c = mainCtx;
+          c = rctx; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, 150, 150); drawRunner(75, 118); c.globalCompositeOperation = 'source-atop'; c.fillStyle = 'rgba(16,26,56,' + (0.42 * dark).toFixed(3) + ')'; c.fillRect(0, 0, 150, 150); c.globalCompositeOperation = 'source-over'; c = mainCtx;
           c.save(); c.shadowColor = 'rgba(210,228,255,' + Math.min(1, dark * 1.25).toFixed(3) + ')'; c.shadowBlur = 4 * dpr; c.drawImage(rcv, sx - 75, st.y - 118, 150, 150); c.shadowBlur = 2 * dpr; c.drawImage(rcv, sx - 75, st.y - 118, 150, 150); c.restore();
         }
       }
@@ -9232,17 +9252,23 @@ function gPaddle(box, win) {
     // ---------- drawing ----------
     const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); };
     const hull = (g, L, B) => { g.beginPath(); g.moveTo(L / 2, 0); g.bezierCurveTo(L * 0.3, -B * 0.62, -L * 0.3, -B * 0.62, -L / 2, 0); g.bezierCurveTo(-L * 0.3, B * 0.62, L * 0.3, B * 0.62, L / 2, 0); g.closePath(); };
-    // a person from above: head with long dark hair, shoulders, and a paddle that dips on one side
-    const person = (g, x, k, side, ph, paddling) => {
+    // a person from above: dark hair tied back, a fur robe over the shoulders (it is the end of winter), and hands on a
+    // paddle that dips on one side. Nukumi, in the stern, has white hair.
+    const person = (g, x, k, side, ph, paddling, old) => {
+      const HAIR = old ? '#D6D4CE' : '#1A1410', SKIN = '#C39A74', ROBE = '#5E4634', ROBE2 = '#C6A678';
       g.save(); g.translate(x, 0); g.scale(1.22, 1.22);
       if (paddling) {
-        const sw = Math.sin(ph), bx = -sw * 7 * S, by = side * 15 * S;
-        g.strokeStyle = '#8A6A45'; g.lineWidth = 1.8 * S; g.lineCap = 'round'; g.beginPath(); g.moveTo(1 * S, side * 2 * S); g.lineTo(bx, by); g.stroke();
+        const sw = Math.sin(ph), bx = -sw * 7 * S, by = side * 15 * S, gx = 1 * S + (bx - 1 * S) * 0.45, gy = side * 2 * S + (by - side * 2 * S) * 0.45;
+        g.strokeStyle = ROBE2; g.lineWidth = 2.4 * S * k; g.lineCap = 'round'; g.beginPath(); g.moveTo(-1 * S, side * 4.4 * S * k); g.lineTo(gx, gy); g.stroke();   // the arm that reaches down the shaft
+        g.strokeStyle = '#8A6A45'; g.lineWidth = 1.8 * S; g.beginPath(); g.moveTo(1 * S, side * 2 * S); g.lineTo(bx, by); g.stroke();
         g.fillStyle = '#9A7650'; g.beginPath(); g.ellipse(bx - 2 * S, by + side * 2 * S, 6 * S, 1.9 * S, 0, 0, 7); g.fill();
         if (!RM && sw > 0.2) { g.strokeStyle = 'rgba(235,245,248,.7)'; g.lineWidth = 1; g.beginPath(); g.arc(bx - 6 * S, by + side * 2 * S, 3 * S, 0, 7); g.stroke(); }
+        g.fillStyle = SKIN; g.beginPath(); g.arc(gx, gy, 1.5 * S * k, 0, 7); g.arc(1.4 * S, side * 2.2 * S, 1.5 * S * k, 0, 7); g.fill();   // hands
       }
-      g.fillStyle = INKF; g.beginPath(); g.ellipse(-1 * S, 0, 3.6 * S * k, 6.4 * S * k, 0, 0, 7); g.fill();
-      g.fillStyle = INK; g.beginPath(); g.arc(1.2 * S, 0, 3.3 * S * k, 0, 7); g.fill();
+      g.fillStyle = ROBE; g.beginPath(); g.ellipse(-1 * S, 0, 3.6 * S * k, 6.4 * S * k, 0, 0, 7); g.fill();
+      g.fillStyle = ROBE2; g.beginPath(); g.ellipse(0.2 * S, 0, 2 * S * k, 3.6 * S * k, 0, 0, 7); g.fill();   // the hide robe under the fur, at the neck
+      g.fillStyle = SKIN; g.beginPath(); g.ellipse(1.2 * S + 2.6 * S * k, 0, 1.3 * S * k, 2 * S * k, 0, 0, 7); g.fill();   // a little of the face
+      g.fillStyle = HAIR; g.beginPath(); g.arc(1.2 * S, 0, 3.3 * S * k, 0, 7); g.fill();
       g.beginPath(); g.ellipse(-2.4 * S * k, 0, 3 * S * k, 2.2 * S * k, 0, 0, 7); g.fill();   // long hair, tied back
       g.restore();
     };
@@ -9257,21 +9283,21 @@ function gPaddle(box, win) {
       c.strokeStyle = '#5E4128'; c.lineWidth = 1.6 * S; hull(c, L, B); c.stroke();
       // bundles: rolled birchbark and folded hides
       (o.bundles || []).forEach(([bx, t]) => { if (t === 'bark') { c.fillStyle = '#EFE3C4'; rr(bx * L - 5 * S, -4 * S, 10 * S, 8 * S, 3 * S); c.fill(); c.strokeStyle = '#7A6040'; c.lineWidth = 1; c.beginPath(); c.arc(bx * L - 5 * S, 0, 3.6 * S, 0, 7); c.stroke(); } else { c.fillStyle = '#7A5A3E'; c.beginPath(); c.ellipse(bx * L, 0, 5.5 * S, 4.2 * S, 0.3, 0, 7); c.fill(); } });
-      (o.people || []).forEach(([px, k, side, off, pad]) => person(c, px * L, k, side, st.phase * 5.2 + off, pad && o.moving));
+      (o.people || []).forEach(([px, k, side, off, pad, old]) => person(c, px * L, k, side, st.phase * 5.2 + off, pad && o.moving, old));
       c.restore();
     };
-    const ME = { people: [[0.3, 1, 1, 0, 1], [-0.02, 0.8, 1, 0, 0], [-0.33, 1, -1, 1.6, 1]], bundles: [[0.13, 'bark'], [-0.17, 'hide'], [0.03, 'bark']] };
+    const ME = { people: [[0.3, 1, 1, 0, 1], [-0.02, 0.8, 1, 0, 0], [-0.33, 1, -1, 1.6, 1, 1]], bundles: [[0.13, 'bark'], [-0.17, 'hide'], [0.03, 'bark']] };
     const FAM = [{ people: [[0.28, 1, -1, 0.7, 1], [-0.3, 1, 1, 2.2, 1]], bundles: [[0.0, 'bark'], [0.12, 'hide'], [-0.13, 'bark']] }, { people: [[0.28, 1, 1, 1.1, 1], [-0.3, 1, -1, 2.9, 1]], bundles: [[0.02, 'hide'], [-0.12, 'bark']] }];
     const carried = (x, y, k, ph, feet = true) => { // a canoe carried upside down along the path; feet show at each end
       const L = 72 * S * k, B = 17 * S * k, w = Math.sin(ph * 6);
       c.save(); c.translate(x, y);
-      if (feet) c.fillStyle = INK; if (feet) [[-L * 0.32, 1], [L * 0.3, -1]].forEach(([fx, s]) => { c.beginPath(); c.ellipse(fx + w * 3 * S * s, -4 * S, 3 * S, 1.8 * S, 0, 0, 7); c.ellipse(fx - w * 3 * S * s, 4 * S, 3 * S, 1.8 * S, 0, 0, 7); c.fill(); });
+      if (feet) c.fillStyle = '#8A6A45'; if (feet) [[-L * 0.32, 1], [L * 0.3, -1]].forEach(([fx, s]) => { c.beginPath(); c.ellipse(fx + w * 3 * S * s, -4 * S, 3 * S, 1.8 * S, 0, 0, 7); c.ellipse(fx - w * 3 * S * s, 4 * S, 3 * S, 1.8 * S, 0, 0, 7); c.fill(); });
       c.fillStyle = 'rgba(10,25,35,.25)'; c.save(); c.translate(4 * S, 6 * S); hull(c, L, B); c.fill(); c.restore();
       c.fillStyle = '#A98757'; hull(c, L, B); c.fill(); c.strokeStyle = '#5E4128'; c.lineWidth = 1.6 * S; hull(c, L, B); c.stroke();
       c.strokeStyle = 'rgba(70,45,25,.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-L / 2, 0); c.lineTo(L / 2, 0); for (let i = -2; i <= 2; i++) { c.moveTo(i * L * 0.16, -B * 0.4); c.lineTo(i * L * 0.16 + 4 * S, B * 0.4); } c.stroke();
       c.restore();
     };
-    const walker = (x, y, k, ph, load) => { c.save(); c.translate(x, y); const w = Math.sin(ph * 6); c.fillStyle = INK; c.beginPath(); c.ellipse(w * 3 * S, -3 * S, 2.6 * S, 1.6 * S, 0, 0, 7); c.ellipse(-w * 3 * S, 3 * S, 2.6 * S, 1.6 * S, 0, 0, 7); c.fill(); if (load) { c.fillStyle = load === 'bark' ? '#EFE3C4' : '#7A5A3E'; rr(-9 * S, -5 * S, 7 * S, 10 * S, 3 * S); c.fill(); } person(c, 0, k, 1, 0, false); c.restore(); };
+    const walker = (x, y, k, ph, load) => { c.save(); c.translate(x, y); const w = Math.sin(ph * 6); c.fillStyle = '#8A6A45'; c.beginPath(); c.ellipse(w * 3 * S, -3 * S, 2.6 * S, 1.6 * S, 0, 0, 7); c.ellipse(-w * 3 * S, 3 * S, 2.6 * S, 1.6 * S, 0, 0, 7); c.fill(); if (load) { c.fillStyle = load === 'bark' ? '#EFE3C4' : '#7A5A3E'; rr(-9 * S, -5 * S, 7 * S, 10 * S, 3 * S); c.fill(); } person(c, 0, k, 1, 0, false); c.restore(); };
 
     function draw() {
       const camX = clamp(st.x - W * 0.3, -20, total - W * 0.7), x0 = camX, x1 = camX + W, t = st.t, low = st.low;
