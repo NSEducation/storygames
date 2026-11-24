@@ -1357,7 +1357,7 @@
     };
     const sceneSet = (k) => (SPEC[k] ? SPEC[k][0] : '');
     // how dark the picture is, from its sky, so that people are lit like everything else
-    const TINT = { hold: 0.42, room: 0.34, night: 0.26, fire: 0.22, storm: 0.2, nave: 0.3, hall: 0.3, memory: 0.08, dusk: 0.12, fog: 0.06, winter: 0, grey: 0.03 };
+    const TINT = { ward: 0.1, wardnight: 0.3, hold: 0.42, room: 0.34, night: 0.26, fire: 0.22, storm: 0.2, nave: 0.3, hall: 0.3, memory: 0.08, dusk: 0.12, fog: 0.06, winter: 0, grey: 0.03 };
     const tintOf = (k, sky) => {
       const o = (SPEC[k] && SPEC[k][2]) || {};
       const s = sky || SETSKY[sceneSet(k)] || '';
@@ -1366,7 +1366,7 @@
       if (o.memory && !t) t = 0.08;
       return t;
     };
-    const setScene = (k, sky) => { ctx.key = String(k); ctx.era = eraOf(k); ctx.i = 0; ctx.heads = 0; ctx.sky = sky || ''; ctx.tint = tintOf(k, sky); ctx.set = sceneSet(k); };
+    const setScene = (k, sky) => { ctx.key = String(k); ctx.era = eraOf(k); ctx.i = 0; ctx.heads = 0; ctx.bedN = 0; ctx.sky = sky || ''; ctx.tint = tintOf(k, sky); ctx.set = sceneSet(k); };
 
     // ---------- building a person's look ----------
     const specFor = (key, i) => {
@@ -1467,8 +1467,9 @@
       else if (st === 'grey') s += P(cap(-150, -222, r * 1.08), H) + P(cap(-60, -100, r * 1.04), H);
       else if (st !== 'none') s += P(cap(-52, -210, r * 1.09), H);
       if (L.hat !== 'cap' && st !== 'bob' && st !== 'long') s += EL(cx - r * 0.12, cy + r * 0.14, r * 0.17, r * 0.25, sh(Sk, 0.88));   // ear
-      s += C(cx + r * 0.45, cy - r * 0.1, r * 0.13, L.ink);   // eye
-      s += `<path d="M${fx(cx + r * 0.52)},${fx(cy + r * 0.5)} q${fx(r * 0.2)},${fx(r * 0.12)} ${fx(r * 0.36)},${fx(-r * 0.04)}" stroke="${sh(Sk, 0.55)}" stroke-width="${fx(r * 0.09)}" stroke-linecap="round" fill="none"/>`;   // a small smile
+      s += o.sleep ? `<path d="M${fx(cx + r * 0.28)},${fx(cy - r * 0.1)} q${fx(r * 0.17)},${fx(r * 0.14)} ${fx(r * 0.34)},0" stroke="${L.ink}" stroke-width="${fx(r * 0.1)}" stroke-linecap="round" fill="none"/>` : C(cx + r * 0.45, cy - r * 0.1, r * 0.13, L.ink);   // eye (closed in sleep)
+      if (o.calm) s += `<path d="M${fx(cx + r * 0.56)},${fx(cy + r * 0.54)} l${fx(r * 0.3)},0" stroke="${sh(Sk, 0.55)}" stroke-width="${fx(r * 0.09)}" stroke-linecap="round" fill="none"/>`;   // a quiet mouth
+      else s += `<path d="M${fx(cx + r * 0.52)},${fx(cy + r * 0.5)} q${fx(r * 0.2)},${fx(r * 0.12)} ${fx(r * 0.36)},${fx(-r * 0.04)}" stroke="${sh(Sk, 0.55)}" stroke-width="${fx(r * 0.09)}" stroke-linecap="round" fill="none"/>`;   // a small smile
       if (L.hat === 'veil') s += P(`M${fx(cx + r * 0.5)},${fx(cy - r * 0.95)} Q${fx(cx - r * 1.6)},${fx(cy - r * 1.05)} ${fx(cx - r * 1.45)},${fx(cy + r * 1.9)} L${fx(cx - r * 0.25)},${fx(cy + r * 1.7)} L${fx(cx + r * 0.05)},${fx(cy - r * 0.35)} Z`, '#F7F5EE') + LN([[cx + r * 0.6, cy - r * 0.7], [cx - r * 0.6, cy - r * 0.95]], '#F7F5EE', r * 0.35);
       if (!hatOn) return s;
       const c = L.hatC || '#2B2420', t = cy - r;
@@ -1741,6 +1742,96 @@
       return head(-42, -12, 8.6, Object.assign({}, L, { hat: '' })) + P('M-34,-18 Q0,-28 44,-14 L46,0 L-36,0 Z', blanket) + LN([[-30, -15], [40, -9]], sh(blanket, 1.25), 1.2);
     }
 
+    // ---------- a hospital bed, and the soldier in it ----------
+    // An iron army bed seen from the side: mattress, pillow, a sheet turned back over a grey blanket, and (unless the bed
+    // is empty) a soldier in striped hospital pyjamas, lying down or sitting up against his pillows. x is the head end of
+    // the bed and y is the floor under it. The men in these wards are sick with fever, so nobody is drawn wounded.
+    function bedC(x, y, o) {
+      o = o || {};
+      const LB = 114;
+      const n = ctx.bedN = (ctx.bedN || 0) + 1, role = o.who ? ROLE[o.who] : null, grp = o.g || (role && role.g) || 'G', q = hs(ctx.key + ':bed:' + n);
+      const night = !!o.night, lin = (c) => (night ? mix(c, '#232B38', 0.4) : mix(c, '#1E150F', ctx.tint * 0.25));
+      const L = { sex: 'm', kid: false, hat: '', g: grp, style: o.old ? 'grey' : 'crop',
+        skin: T(o.skin || (role && role.skin) || pick(SKIN[grp], q + n * 3)),
+        hair: T(o.hair || (o.old ? pick(GREY, q) : (role && role.hair) || pick(HAIR[grp], (q >> 3) + n))), ink: T('#17100C') };
+      const iron = lin(o.iron || '#3D3B38'), ironL = sh(iron, 1.5), brass = lin('#B8924A');
+      const sheet = lin('#F4F1E8'), sheetS = lin('#D8D3C4'), pil = lin('#FCFAF4'), pilS = lin('#DDD8CA');
+      const bl = lin(o.bl || '#7C8B95'), blS = sh(bl, 0.8), blL = sh(bl, 1.14);
+      const pj = T(o.pj || '#DCE5EB'), pjS = T(o.pjS || '#7B98B0'), pjD = sh(pj, 0.84);
+      const s = [];
+      const hand = (hx, hy, f) => C(hx, hy, 2.15, f ? sh(L.skin, 0.88) : L.skin);
+      const drape = 'L110.6,-21.4 Q101,-19.6 92,-21.3 Q83,-22.9 74,-21.2 Q65,-19.7 56,-21.4 Q48,-22.8 40,-21.2';
+      // a fever chart pinned to the wall above the bed
+      if (o.chart) s.push(`<rect x="7" y="-97" width="11" height="14" fill="${lin('#EFE9D8')}"/>`, LN([[8.6, -88], [10.6, -91.5], [12.4, -87.6], [14.4, -92.5], [16.4, -89.4]], lin('#B4463A'), 0.7), `<rect x="10.5" y="-98.4" width="4" height="2.2" fill="${iron}"/>`);
+      // a bedside locker with an enamel mug on it
+      if (o.locker) { const w = lin('#8A6C4C');
+        s.push(`<rect x="-25" y="-31" width="20" height="31" fill="${w}"/><rect x="-26" y="-32.6" width="22" height="2.6" fill="${sh(w, 0.8)}"/><rect x="-22.6" y="-27" width="15.2" height="11" fill="${sh(w, 1.12)}"/><rect x="-22.6" y="-13.6" width="15.2" height="10.6" fill="${sh(w, 1.12)}"/>`, C(-9.6, -21.4, 0.9, brass), C(-9.6, -8.2, 0.9, brass));
+        if (o.locker !== 'bare') s.push(`<rect x="-20.5" y="-38.4" width="5.6" height="5.8" rx="0.8" fill="${lin('#F2F0EA')}"/><rect x="-20.5" y="-38.4" width="5.6" height="1.1" fill="${lin('#3E5F8A')}"/><path d="M-14.9,-37 q2.6,0.4 0,3.2" stroke="${lin('#F2F0EA')}" stroke-width="0.9" fill="none"/>`); }
+      // the iron bedstead
+      s.push(`<rect x="0" y="-61" width="3.2" height="61" fill="${iron}"/><rect x="${LB - 3.2}" y="-47" width="3.2" height="47" fill="${iron}"/>`, C(1.6, -62.6, 2.3, brass), C(LB - 1.6, -48.6, 2.3, brass));
+      s.push(`<rect x="0.8" y="-61" width="0.9" height="61" fill="${ironL}" opacity="0.5"/><rect x="${LB - 2.4}" y="-47" width="0.9" height="47" fill="${ironL}" opacity="0.5"/>`);
+      s.push(`<rect x="0" y="-27.4" width="${LB}" height="3.2" fill="${iron}"/><rect x="0" y="-27.4" width="${LB}" height="0.9" fill="${ironL}" opacity="0.5"/>`, EL(1.6, -0.9, 2.6, 1.3, sh(iron, 0.8)), EL(LB - 1.6, -0.9, 2.6, 1.3, sh(iron, 0.8)));
+      // the mattress and the bottom sheet
+      s.push(`<rect x="3" y="-34.4" width="${LB - 6}" height="7.2" rx="1.6" fill="${sheet}"/><rect x="3" y="-29.4" width="${LB - 6}" height="2.2" fill="${sheetS}"/>`);
+      if (o.stripped) {   // a bed that has been stripped: the bare striped mattress, with its blankets and pillow folded at the foot
+        const tk = lin('#D6CDB6');
+        s.push(`<rect x="3" y="-36.4" width="${LB - 6}" height="9.2" rx="1.8" fill="${tk}"/>`, Array.from({ length: 13 }, (_, i) => `<rect x="${8 + i * 8}" y="-36.4" width="1.3" height="9.2" fill="${lin('#8A93A0')}" opacity="0.7"/>`).join(''));
+        s.push(`<rect x="78" y="-41.2" width="27" height="4.8" rx="1" fill="${bl}"/><rect x="79" y="-45.8" width="25" height="4.6" rx="1" fill="${blS}"/><rect x="79.5" y="-50.2" width="24" height="4.4" rx="1" fill="${bl}"/>`, P('M81,-50.2 Q81,-56.4 91.5,-56.4 Q102,-56.4 102,-50.2 Z', pil));
+        return wrap(s.join(''));
+      }
+      if (o.empty) {   // a made bed, waiting for the next man
+        s.push(P('M5.5,-34.2 Q4.6,-41.6 11,-42 L28,-42 Q34.4,-41.6 33.5,-34.2 Z', pil), LN([[8, -35.6], [31, -35.6]], pilS, 0.8));
+        s.push(P('M40,-37.6 L110,-37 ' + drape + ' Z', bl), P('M40,-37.6 L110,-37 L110.2,-34.6 L40,-35.2 Z', blL), P('M34,-37.6 L42.5,-37.6 L42.8,-21.4 L34.4,-21 Z', sheet), LN([[42.6, -37.2], [42.8, -21.6]], sheetS, 0.8));
+        return wrap(s.join(''));
+      }
+      const feet = 'Q93,-42.6 96.6,-46.2 Q100.2,-49 103.4,-45.4 Q107.4,-40 110,-34.6 ';
+      if (o.sit) {
+        const k = o.thin ? -1.6 : 0, hx = 23, hy = -71.6, hr = 6.8;
+        // two pillows propped against the bed head
+        s.push(P('M3.6,-34 L4.4,-58.4 Q8,-63.6 13.2,-59.6 L16.6,-35 Z', pilS), P('M5.6,-33.6 Q4.4,-48 8.6,-51.6 Q15.2,-53 18,-47.2 L20.4,-34 Z', pil));
+        // the far arm, then the pyjama jacket
+        s.push(LN([[25, -59], [32.5 + k, -50.5], [41, -47.6]], pjD, 4.2), hand(42.4, -47.4, 1));
+        s.push(P(`M15.4,-35 L13.6,-58.4 Q14,-63.2 18.4,-63.6 L${26.4 + k},-63.6 Q${30.6 + k},-62.6 ${30.8 + k},-58 L${32.2 + k},-35.6 Z`, pj));
+        s.push(LN([[18.2, -62], [19.4, -37]], pjS, 0.75), LN([[22.6, -63], [24.4 + k * 0.5, -37]], pjS, 0.75), LN([[26.8 + k, -62.6], [29.2 + k, -37]], pjS, 0.75));
+        s.push(PL([[22.4, -63.8], [28.6 + k, -62.6], [26.2 + k * 0.5, -57.4]], sh(pj, 1.06)), C(29.4 + k, -53.4, 0.6, pjS), C(30 + k, -46.6, 0.6, pjS));
+        // his legs under the blanket, and the sheet turned back across his lap
+        s.push(P('M26,-44.6 Q34,-47.8 44,-46.6 Q55,-45.6 63,-47.8 Q71,-48.6 80,-44.6 ' + feet + drape.replace('Q48,-22.8 40,-21.2', 'Q46,-22.8 26,-21.2') + ' Z', bl));
+        s.push(P('M44,-46.6 Q55,-45.6 63,-47.8 Q71,-48.6 80,-44.6 ' + feet + 'L108.6,-33.6 Q104,-41 100.4,-44.4 Q97.6,-44 93,-40 Q80,-41 70,-45 Q58,-43.4 44,-44.4 Z', blL));
+        s.push(P('M25.6,-44.4 Q31,-47.9 37.6,-47.3 L38.2,-21.5 L26.2,-21.1 Z', sheet), LN([[37.8, -46.8], [38.2, -21.8]], sheetS, 0.8));
+        s.push(LN([[52, -30], [56, -22.4]], blS, 0.9), LN([[84, -31], [80, -22.2]], blS, 0.9));
+        // the near arm
+        if (o.arm === 'talk') s.push(LN([[21, -59], [30.6, -51.4], [39.4, -56.6]], pj, 4.4), hand(40.6, -57.4));
+        else if (o.arm === 'paper') s.push(LN([[21, -59], [29.6, -50.4], [38.4, -52]], pj, 4.4), `<rect x="38.6" y="-59.6" width="9.4" height="11.6" fill="${lin('#F1ECDD')}" transform="rotate(14 43 -54)"/>`, LN([[41, -56.6], [46.4, -55.2]], lin('#8A8478'), 0.5), LN([[40.4, -54], [45.8, -52.6]], lin('#8A8478'), 0.5), hand(39.6, -51.6));
+        else s.push(LN([[21, -59], [27.6, -49.6], [37.2, -47]], pj, 4.4), hand(38.6, -46.8));
+        // neck and head
+        s.push(`<rect x="20.6" y="-66.4" width="4.6" height="4.4" fill="${L.skin}"/>`);
+        const hd = head(hx, hy, hr, L, { sleep: o.sleep, calm: o.calm });
+        s.push(o.turn ? `<g transform="translate(${2 * hx} 0) scale(-1 1)">${hd}</g>` : o.tilt ? `<g transform="rotate(${o.tilt} ${hx} ${hy + 4})">${hd}</g>` : hd);
+        return wrap(s.join(''));
+      }
+      // lying down
+      const hx = 19, hy = -45.4, hr = 6.6;
+      s.push(P('M5.5,-34.2 Q4.4,-41.8 11,-42.2 L28.6,-42 Q35,-41.4 34,-34.2 Z', pil));
+      s.push(`<rect x="24.4" y="-47.2" width="4.4" height="4.6" fill="${L.skin}"/>`, `<g transform="rotate(-90 ${hx} ${hy})">${head(hx, hy, hr, L, { sleep: o.sleep, calm: o.calm !== false })}` + (o.cloth ? EL(hx + hr * 0.5, hy - hr * 0.86, hr * 0.56, hr * 0.3, lin('#F6F4EE'), 30) : '') + `</g>`);
+      s.push(P('M9.4,-38.6 Q19,-36.6 28.6,-38.8 L29,-36.8 Q19,-35 9.2,-36.8 Z', pil), LN([[8, -35.4], [32, -35.4]], pilS, 0.8));
+      s.push(P('M27,-35 Q26.6,-47.4 32.6,-48.6 Q37,-49 38.6,-46.6 L38.6,-34.6 Z', pj), LN([[31.4, -48], [31.8, -35.4]], pjS, 0.75), LN([[35.4, -48.4], [35.8, -35.4]], pjS, 0.75), PL([[27.6, -44.6], [31.6, -48.4], [30.4, -42.4]], sh(pj, 1.06)));
+      s.push(P('M40,-46.4 Q48,-48.8 56,-46.8 Q70,-43.8 84,-43.2 ' + feet + drape + ' Z', bl));
+      s.push(P('M56,-46.8 Q70,-43.8 84,-43.2 ' + feet + 'L108.6,-33.6 Q104,-41 100.4,-44.4 Q97.6,-44 93,-40 Q82,-40.6 70,-41.4 Q62,-42.6 56,-44.4 Z', blL));
+      s.push(P('M35.6,-46 Q41,-49.2 47,-48 L47.4,-21.6 L36.2,-21.1 Z', sheet), LN([[47, -47.4], [47.4, -21.8]], sheetS, 0.8), LN([[60, -30], [64, -22.4]], blS, 0.9), LN([[88, -31], [84, -22.2]], blS, 0.9));
+      if (o.pillow) {   // laughing so hard that he has put his pillow over his face
+        s.push(LN([[33, -46.6], [33.6, -57], [27, -60.4]], pjD, 4.2), `<g transform="rotate(-7 18 -53)"><rect x="3.4" y="-59.4" width="29.6" height="12.6" rx="4.6" fill="${pil}"/><path d="M6.4,-49 Q18,-47.4 30,-49" stroke="${pilS}" stroke-width="0.9" fill="none"/><path d="M4.6,-56 q-2.4,-3.6 1.4,-4.4 M31.8,-56 q2.4,-3.6 -1.4,-4.4" stroke="${pil}" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`, hand(26.4, -60.2, 1), LN([[33.4, -46], [36.4, -55], [30.4, -55.6]], pj, 4.2), hand(29.4, -55.4), hand(8.4, -52.6));
+      } else if (o.arm === 'out') s.push(LN([[33.4, -46], [42, -42], [47.6, -34.6]], pj, 4.2), hand(48.2, -33.2));
+      else if (o.arm !== 'none') s.push(LN([[33.4, -46.4], [46, -46.6], [57, -47.6]], pj, 4.2), hand(58.4, -47.6));
+      return wrap(s.join(''));
+      function wrap(inner) { return o.flip ? `<g transform="translate(${fx(x + LB)} ${fx(y)}) scale(-1 1)">${inner}</g>` : `<g transform="translate(${fx(x)} ${fx(y)})">${inner}</g>`; }
+    }
+    // a plain wooden chair for a nursing sister to sit on (drawn under the 'NSIT' figure)
+    function seatC(x, y, h, o) {
+      o = o || {};
+      const w = mix('#7A583C', '#1E150F', ctx.tint), d = sh(w, 0.78);
+      return g(x, y, h / 100, `<rect x="-15.4" y="-54" width="3" height="54" fill="${d}"/><rect x="-15.4" y="-54" width="3" height="4" fill="${w}"/><rect x="9.4" y="-23" width="2.8" height="23" fill="${d}"/><rect x="-15.4" y="-25.4" width="28.4" height="3.2" fill="${w}"/><rect x="-13" y="-12" width="23" height="1.8" fill="${d}"/>`, { flip: o.flip });
+    }
+
     // ---------- the figure function the pictures call ----------
     function figC(kind, x, y, h, o) {
       o = o || {};
@@ -1795,7 +1886,7 @@
       return g(x, y, s, `<path d="M${-BW},0 L${-BW + 4},${TOP} Q0,${TOP - 12} ${BW - 4},${TOP} L${BW},0 Z" fill="${cloth}"/>` + head, {});
     }
 
-    return { fig: figC, heads: headsC, backOf: backOfC, set: setScene, ROLE, CAST };
+    return { fig: figC, heads: headsC, backOf: backOfC, set: setScene, ROLE, CAST, bed: bedC, seat: seatC };
   })();
 
   const fig = (kind, x, y, h, o = {}) => PC.fig(kind, x, y, h, o);   // people are drawn in colour (PC, above)
@@ -2108,8 +2199,8 @@
     return frame(SKY.room, wall + things + light + floor + folk + board + tweed + fists + kids + notes, 'A milling frolic in a log house: neighbours sit along a long board, singing and pounding a length of wet cloth by lamplight, while two children watch');
   };
   const frontRow = (y, xs, ks = 'mwmwmw', s = 1) => xs.map((x, i) => backOf(x, y, ks[i % ks.length], s)).join('');
-  const bedP = (x, y, o = {}) => `<rect x="${x}" y="${y - 22}" width="100" height="22" fill="#ECE6D6"/><rect x="${x}" y="${y}" width="6" height="${236 - y}" fill="#4A3A2E"/><rect x="${x + 94}" y="${y}" width="6" height="${236 - y}" fill="#4A3A2E"/><rect x="${x - 4}" y="${y - 44}" width="6" height="${44 + 236 - y}" fill="#4A3A2E"/>` + (o.empty ? `<ellipse cx="${x + 18}" cy="${y - 26}" rx="14" ry="6" fill="#F8F5EE"/>` : o.sit ? `<ellipse cx="${x + 18}" cy="${y - 30}" rx="14" ry="7" fill="#F8F5EE"/><path d="M${x + 8},${y - 22} L${x + 10},${y - 54} Q${x + 22},${y - 62} ${x + 32},${y - 52} L${x + 34},${y - 22} Z" fill="${o.pj || '#8A96A0'}"/><circle cx="${x + 22}" cy="${y - 66}" r="8" fill="${INK}"/><path d="M${x + 30},${y - 22} Q${x + 60},${y - 34} ${x + 98},${y - 26} L${x + 98},${y - 18} L${x + 30},${y - 18} Z" fill="${o.bl || '#7A8A94'}"/>` : `<ellipse cx="${x + 18}" cy="${y - 26}" rx="14" ry="6" fill="#F8F5EE"/><circle cx="${x + 18}" cy="${y - 32}" r="7.5" fill="${INK}"/><path d="M${x + 26},${y - 22} Q${x + 50},${y - 38} ${x + 98},${y - 28} L${x + 98},${y - 18} L${x + 26},${y - 18} Z" fill="${o.bl || '#7A8A94'}"/>`);
-  const wardRoom = (o = {}) => `<rect width="600" height="250" fill="${o.night ? '#4A4740' : o.hut ? '#C9BBA0' : '#DAD3C2'}"/>` + (o.hut ? T(12, (i) => `<rect x="${i * 50}" y="0" width="3" height="200" fill="#A8987A"/>`) : '') + `<rect y="200" width="600" height="50" fill="${o.night ? '#3A362E' : '#8A7E68'}"/>` + (o.wins || [40, 250, 460]).map((x) => win2(x, 30, 100, 76, o.night ? '#1A2436' : o.dusk ? '#E9C79A' : '#C2CED1')).join('') + (o.night ? `<circle cx="${(o.wins || [40])[0] + 70}" cy="54" r="9" fill="#E8E4D0"/>` : '') + `<g opacity="${o.night ? 0.07 : 0.16}">` + (o.wins || [40, 250, 460]).map((x, i) => `<path class="anim-glow" style="animation-delay:-${i * 1.1}s" d="M${x},106 L${x + 100},106 L${x + 150},200 L${x - 30},200 Z" fill="${o.night ? '#9FB3C4' : '#FFFFFF'}"/>`).join('') + `</g>`;
+  const bedP = (x, y, o = {}) => PC.bed(x, y + 34, o);   // a hospital bed with a soldier in it, drawn in colour (PC, above); y + 34 is the floor
+  const wardRoom = (o = {}) => { const wy = o.wy == null ? 30 : o.wy, ww = o.ww || 100, wh = o.wh || 76, wins = o.wins || [40, 250, 460]; return `<rect width="600" height="250" fill="${o.night ? '#4A4740' : o.hut ? '#C9BBA0' : '#DAD3C2'}"/>` + (o.hut ? T(12, (i) => `<rect x="${i * 50}" y="0" width="3" height="200" fill="${o.night ? '#5C574D' : '#A8987A'}"/>`) : '') + `<rect y="200" width="600" height="50" fill="${o.night ? '#3A362E' : '#8A7E68'}"/><rect y="194" width="600" height="6" fill="${o.night ? '#35322C' : '#9C8C70'}"/>` + T(5, (i) => `<path d="M0,${209 + i * 9} H600" stroke="${o.night ? '#2C2923' : '#7A6E5A'}" stroke-width="1" opacity="0.5"/>`) + wins.map((x) => win2(x, wy, ww, wh, o.night ? '#1A2436' : o.dusk ? '#E9C79A' : '#C2CED1')).join('') + (o.night && wins.length ? `<circle cx="${wins[0] + ww * 0.7}" cy="${wy + wh * 0.32}" r="${ww * 0.09}" fill="#E8E4D0"/>` : '') + `<g opacity="${o.night ? 0.07 : 0.16}">` + wins.map((x, i) => `<path class="anim-glow" style="animation-delay:-${i * 1.1}s" d="M${x},${wy + wh} L${x + ww},${wy + wh} L${x + ww + 50},200 L${x - 30},200 Z" fill="${o.night ? '#9FB3C4' : '#FFFFFF'}"/>`).join('') + `</g>`; };   // wy, ww, wh: where the windows sit, for the pictures that are drawn close up
   const tents = (y, xs, c = '#D2CAB2', bell = false) => xs.map((x, i) => bell ? `<path d="M${x - 38},${y} Q${x - 30},${y - 30} ${x},${y - 56} Q${x + 30},${y - 30} ${x + 38},${y} Z" fill="${c}"/><path d="M${x},${y - 56} L${x},${y - 64}" stroke="${INK}" stroke-width="2"/><path d="M${x - 6},${y} L${x},${y - 20} L${x + 6},${y} Z" fill="#3A3A34"/>` : `<path d="M${x - 46},${y} L${x - 30},${y - 44} L${x + 30},${y - 44} L${x + 46},${y} Z" fill="${c}"/><path d="M${x - 30},${y - 44} L${x - 14},${y} M${x + 30},${y - 44} L${x + 14},${y}" stroke="#9A9078" stroke-width="1.4"/><path d="M${x - 8},${y} L${x},${y - 22} L${x + 8},${y} Z" fill="#3A3A34"/>`).join('');
   const nissen = (y, xs, c = '#5A5E58') => xs.map((x) => `<path d="M${x - 50},${y} L${x - 50},${y - 20} Q${x},${y - 56} ${x + 50},${y - 20} L${x + 50},${y} Z" fill="${c}"/><rect x="${x - 8}" y="${y - 22}" width="16" height="22" fill="#2A2A2A"/>`).join('');
   const rcFlag = (x, y) => `<path d="M${x},${y} L${x},${y - 60}" stroke="${INK}" stroke-width="2.4"/><rect x="${x}" y="${y - 60}" width="30" height="20" fill="#F4F1EA"/><path d="M${x + 12},${y - 57} h6 v5 h5 v6 h-5 v5 h-6 v-5 h-5 v-6 h5 Z" fill="#B23A2E"/>`;
@@ -2238,21 +2329,21 @@
     507: (alt) => (PC.set('507', 'room'), (P(SKY.room, roomBox('#A89A7E', '#5A4636') + `<path d="M0,0 L600,0 L600,30 L0,30 Z" fill="#4A3A2E"/>` + [100, 320, 520].map((x) => table(x, 168, 150)).join('') + T(6, (i) => `<path d="M${40 + i * 20},168 L${44 + i * 20},150 L${54 + i * 20},150 L${58 + i * 20},168 Z" fill="#C9A66B"/>`) + T(4, (i) => `<ellipse cx="${470 + i * 26}" cy="160" rx="10" ry="8" fill="#9A3A2E"/>`) + F('LW', 90, 230, 94) + F('LG', 140, 232, 74) + F('NS', 230, 232, 92, { flip: true }) + crowd16(380, 240, 6, 70, '#4A4A50')))(alt)),
     508: (alt) => (PC.set('508', 'grey'), (P(SKY.grey, water(150, SEA.grey) + steamer(300, 190, 1.2, '#4A5258') + `<path d="M0,150 Q100,144 200,150 T400,150 T600,148" stroke="#C9D0D0" stroke-width="2" fill="none"/>` + F('NS', 230, 152, 30) + F('NS', 250, 152, 30) + F('SOLDIER', 280, 152, 32) + gulls([[90, 60], [520, 50, 0.8]])))(alt)),
     509: (alt) => (PC.set('509', 'morning'), (P(SKY.morning, bricks({ c: '#8A6A54' }) + land(200, '#7A7468', 2) + `<path d="M0,216 L600,216" stroke="#5A564C" stroke-width="3"/>` + F('NS', 260, 236, 90) + F('NS', 300, 236, 88, { flip: true }) + horse(450, 236, 0.9, { c: '#3A2E24' })))(alt)),
-    510: (alt) => (PC.set('510', 'room'), (P(SKY.room, wardRoom({ hut: true }) + stove(300, 220) + bedP(40, 196) + bedP(180, 196, { sit: true }) + bedP(350, 196) + bedP(470, 196, { empty: true }) + F('NS', 160, 236, 92)))(alt)),
-    511: (alt) => (PC.set('511', 'room'), (P(SKY.room, wardRoom({ night: true, hut: true }) + bedP(60, 196) + bedP(240, 196, { bl: '#6E7A84' }) + bedP(420, 196) + lamp(300, 80) + F('NSB', 360, 236, 92, { flip: true })))(alt)),
-    512: (alt) => (PC.set('512', 'room'), (P(SKY.room, wardRoom({ night: true, hut: true, wins: [460] }) + bedP(200, 196, { bl: '#6E7A84' }) + F('NSIT', 140, 236, 90) + lamp(110, 120) + bedP(400, 196)))(alt)),
-    513: (alt) => (PC.set('513', 'room'), (P(SKY.room, wardRoom({ hut: true }) + stove(110, 220) + bedP(220, 196, { sit: true, bl: '#6E7A84' }) + `<rect x="250" y="150" width="14" height="10" fill="${PAPER}"/>` + F('NS', 380, 236, 92, { flip: true }) + bedP(420, 196, { empty: true })))(alt)),
+    510: (alt) => (PC.set('510', 'ward'), (P(SKY.room, zoom(300, 244, 1.18, wardRoom({ hut: true, wy: 46, wins: [70, 250, 430] }) + stove(306, 224) + bedP(52, 196, { chart: 1, sleep: 1 }) + bedP(176, 196, { sit: 1, chart: 1, arm: 'paper' }) + bedP(326, 196, { chart: 1, sleep: 1, cloth: 1, arm: 'none' }) + bedP(466, 196, { chart: 1, calm: 1 }) + F('NS', 452, 238, 92, { flip: true }))))(alt)),
+    511: (alt) => (PC.set('511', 'wardnight'), (P(SKY.room, zoom(285, 244, 1.4, wardRoom({ night: true, hut: true, wy: 84, ww: 80, wh: 54, wins: [106, 388] }) + bedP(30, 196, { night: 1, sleep: 1, arm: 'none' }) + bedP(232, 196, { night: 1, who: 'john', sleep: 1, cloth: 1, arm: 'out', locker: 'bare', chart: 1, bl: '#6E7A84' }) + lamp(217, 187) + bedP(440, 196, { night: 1, sleep: 1 }) + PC.seat(299, 238, 90, { flip: true }) + F('NSIT', 299, 238, 90, { flip: true }))))(alt)),
+    512: (alt) => (PC.set('512', 'wardnight'), (P(SKY.room, zoom(330, 244, 1.5, wardRoom({ night: true, hut: true, wy: 84, ww: 80, wh: 54, wins: [296] }) + bedP(150, 196, { night: 1, who: 'john', sit: 1, arm: 'talk', tilt: -9, locker: 'bare', chart: 1, bl: '#6E7A84' }) + lamp(135, 187) + bedP(336, 196, { night: 1, sleep: 1 }) + PC.seat(240, 238, 90, { flip: true }) + F('NSIT', 240, 238, 90, { flip: true }))))(alt)),
+    513: (alt) => (PC.set('513', 'ward'), (P(SKY.room, zoom(285, 244, 1.4, wardRoom({ hut: true, wy: 84, ww: 80, wh: 54, wins: [274] }) + stove(104, 224) + bedP(140, 196, { sit: 1, chart: 1, skin: '#F2D8C0', hair: '#8A4B1E', bl: '#6E7A84' }) + bedP(372, 196, { sit: 1, turn: 1, chart: 1 }) + PC.seat(232, 238, 90, { flip: true }) + F('NSIT', 232, 238, 90, { flip: true }) + `<rect x="203" y="190" width="12" height="9" fill="${PAPER}" transform="rotate(-14 209 194)"/><path d="M212,190 L216,183" stroke="#5A4636" stroke-width="1.2" stroke-linecap="round"/>`)))(alt)),
     514: (alt) => (PC.set('514', 'morning'), (P(SKY.morning, nissen(200, [80, 220, 360], '#6E6E62') + land(200, '#5E6A44', 2) + tufts(206, 246, 30, '#3E4A2C') + F('NS', 450, 236, 90) + F('NS', 490, 236, 88, { flip: true }) + F('SOLDIER', 540, 236, 92, { flip: true })))(alt)),
     515: (alt) => (PC.set('515', 'room'), (P(SKY.room, deskTop('#6E5236') + `<rect x="130" y="120" width="300" height="120" fill="#E6E0D0" transform="rotate(-3 280 180)"/>` + `<rect x="150" y="128" width="260" height="14" fill="#2A2A2A" transform="rotate(-3 280 180)"/>` + T(4, (c) => T(8, (r) => `<rect x="${152 + c * 66}" y="${152 + r * 10}" width="54" height="4" fill="#5A5A5A" transform="rotate(-3 280 180)"/>`)) + cap(500, 220)))(alt)),
     516: (alt) => (PC.set('516', 'room'), (P(SKY.room, deskTop('#5A4430') + lamp(470, 100) + paperLines(170, 146, 180, 80, 5, -6) + `<path d="M210,170 L300,166 M220,190 L300,186" stroke="#3A2A1A" stroke-width="3"/><rect x="380" y="170" width="16" height="26" fill="#1A1A1A"/><path d="M360,150 L392,186" stroke="#2A2A2A" stroke-width="3"/>`))(alt)),
-    517: (alt) => (PC.set('517', 'room'), (P(SKY.room, wardRoom({ hut: true }) + bedP(40, 196, { empty: true }) + bedP(180, 196, { empty: true }) + chest(420, 236, 1.1) + chest(500, 236, 1) + chest(460, 210, 0.9) + F('NS', 330, 236, 90) + F('NS', 370, 236, 88, { flip: true })))(alt)),
+    517: (alt) => (PC.set('517', 'ward'), (P(SKY.room, zoom(300, 244, 1.25, wardRoom({ hut: true, wy: 60, wh: 66, wins: [80, 250, 420] }) + bedP(70, 196, { stripped: 1 }) + bedP(198, 196, { stripped: 1 }) + chest(432, 236, 1.1) + chest(508, 236, 1) + chest(470, 210, 0.9) + F('NS', 346, 236, 90) + F('NS', 386, 236, 88, { flip: true }))))(alt)),
     518: (alt) => (PC.set('518', 'room'), (P(SKY.room, deskTop('#6E5236') + paperLines(120, 140, 180, 80, 4, 4, '#F2EBD8') + `<rect x="330" y="128" width="200" height="110" fill="#E6E0D0" transform="rotate(-4 430 183)"/><rect x="350" y="140" width="160" height="22" fill="#2A2A2A" transform="rotate(-4 430 183)"/>` + T(6, (r) => `<rect x="350" y="${172 + r * 9}" width="160" height="4" fill="#6A6A6A" transform="rotate(-4 430 183)"/>`)))(alt)),
     519: (alt) => (PC.set('519', 'winter'), (P(SKY.winter, nissen(196, [480], '#5A5E58') + tents(200, [70, 180, 290, 390], '#D8D2BE') + snowCap(198) + rcFlag(560, 196) + F('NS', 230, 236, 86) + F('SOLDIER', 270, 236, 88, { flip: true }) + snowing(20)))(alt)),
     520: (alt) => (PC.set('520', 'grey'), (P(SKY.grey, tents(196, [60, 160, 260], '#C9C2AE') + land(196, '#6E6248', 2) + train(330, 194) + F('NS', 160, 238, 80) + F('SOLDIER', 210, 238, 82) + `<rect x="230" y="208" width="70" height="10" fill="#E8E2D2"/><circle cx="236" cy="206" r="6" fill="${INK}"/>` + F('SOLDIER', 310, 238, 84, { flip: true }) + F('NS', 120, 238, 80)))(alt)),
     521: (alt) => (PC.set('521', 'night'), (P(SKY.night, searchlights() + tents(220, [60, 160, 260, 360, 460, 560], '#3A4250', true) + `<rect y="218" width="600" height="32" fill="#1A1E24"/>` + glow(300, 210, 60, GLOW, 0.3) + stars([[80, 40], [200, 20], [400, 30], [520, 60]])))(alt)),
-    522: (alt) => (PC.set('522', 'room'), (P(SKY.room, wardRoom({ hut: true, wins: [120, 380] }) + `<rect x="540" y="90" width="50" height="110" fill="#E8E2D2"/><rect x="540" y="90" width="50" height="110" fill="none" stroke="#8A7E68" stroke-width="3"/>` + bedP(80, 196, { sit: true }) + bedP(260, 196, { sit: true, pj: '#7A6A5A' }) + bedP(440, 196) + F('NS', 400, 236, 90, { flip: true })))(alt)),
-    523: (alt) => (PC.set('523', 'room'), (P(SKY.room, wardRoom({ hut: true, wins: [40, 460] }) + bedP(140, 196, { sit: true }) + bedP(320, 196, { sit: true, pj: '#7A6A5A' }) + F('NSIT', 290, 236, 86)))(alt)),
-    524: (alt) => (PC.set('524', 'room'), (P(SKY.room, wardRoom({ hut: true, dusk: true }) + bedP(200, 196, { sit: true }) + F('NSIT', 140, 236, 86) + bedP(400, 196, { empty: true })))(alt)),
+    522: (alt) => (PC.set('522', 'ward'), (P(SKY.room, zoom(0, 244, 1.3, wardRoom({ hut: true, wy: 72, ww: 84, wh: 60, wins: [48, 290] }) + bedP(14, 196, { sit: 1, chart: 1, arm: 'talk', g: 'Q', skin: '#9A6644', hair: '#17110D', pj: '#E6DFCE', pjS: '#A99C82' }) + bedP(160, 196, { sit: 1, chart: 1, g: 'Q', skin: '#A9714B', hair: '#1E1612', thin: 1 }) + bedP(384, 196, { chart: 1, sleep: 1 }) + F('NS', 300, 238, 90, { flip: true }))))(alt)),
+    523: (alt) => (PC.set('523', 'ward'), (P(SKY.room, zoom(77, 244, 1.4, wardRoom({ hut: true, wy: 84, ww: 80, wh: 54, wins: [168] }) + bedP(40, 196, { chart: 1, pillow: 1, g: 'Q', skin: '#9A6644', hair: '#17110D', pj: '#E6DFCE', pjS: '#A99C82' }) + bedP(250, 196, { sit: 1, chart: 1, arm: 'talk', g: 'Q', skin: '#A9714B', hair: '#1E1612', thin: 1 }) + PC.seat(340, 238, 88, { flip: true }) + F('NSIT', 340, 238, 88, { flip: true }))))(alt)),
+    524: (alt) => (PC.set('524', 'ward'), (P(SKY.room, zoom(360, 244, 1.5, wardRoom({ hut: true, dusk: true, wy: 84, ww: 80, wh: 54, wins: [268] }) + bedP(150, 196, { sit: 1, chart: 1, calm: 1, tilt: -11, g: 'Q', skin: '#A9714B', hair: '#1E1612', thin: 1 }) + PC.seat(240, 238, 88, { flip: true }) + F('NSIT', 240, 238, 88, { flip: true }) + bedP(366, 196, { empty: 1 }))))(alt)),
     525: (alt) => (PC.set('525', 'grey'), (P(SKY.grey, bricks({ c: '#B8A890' }) + `<rect x="270" y="20" width="60" height="120" fill="#9A8C74"/><path d="M266,20 L300,-10 L334,20 Z" fill="#6E6454"/>` + bunting2(70) + land(200, '#7A7468', 2) + crowd16(300, 240, 20, 62, '#2E3440') + F('NS', 200, 240, 84) + F('NS', 240, 240, 82, { flip: true }) + F('SOLDIER', 380, 240, 86) + F('SOLDIER', 420, 240, 84, { flip: true })))(alt)),
     526: (alt) => (PC.set('526', 'morning'), (P(SKY.morning, tents(200, [60, 160, 260], '#D8D2BE') + `<path d="M330,200 L360,170 L400,200 Z" fill="#B8B09A"/><rect x="420" y="190" width="40" height="10" fill="#B8B09A"/>` + land(198, '#6E7A4A', 2) + tufts(204, 246, 30, '#4E5A34') + F('NS', 250, 236, 86) + F('NS', 290, 236, 84, { flip: true }) + gulls([[420, 60], [450, 70, 0.8]])))(alt)),
     527: (alt) => (PC.set('527', 'morning'), (P(SKY.morning, water(110, SEA.day) + land(130, MOSS, 6) + bigHouse(300, 240, 1.15, true) + F('W16', 300, 240, 92) + F('NS', 230, 242, 96) + F('SOLDIER', 410, 242, 98, { flip: true }) + `<path d="M426,184 L440,242" stroke="${INK}" stroke-width="3"/>`))(alt)),
@@ -2263,7 +2354,7 @@
     540: (alt) => (PC.set('540', 'winter'), (P(SKY.winter, village({ snow: true, hx: [80, 190] }) + `<g transform="translate(330 200)"><rect x="-50" y="-60" width="100" height="60" fill="#F1EDE2"/><path d="M-56,-58 L0,-90 L56,-58 Z" fill="#3A3A3A"/><rect x="10" y="-40" width="20" height="40" fill="#3A2A20"/></g>` + F('NS', 300, 236, 90) + F('HEM', 362, 236, 88, { flip: true }) + `<rect x="306" y="168" width="18" height="24" fill="${PAPER}"/>`))(alt)),
     541: (alt) => (PC.set('541', 'room'), (P(SKY.room, roomBox('#BCA98A', '#6B5038') + blackboard(170, 56, 260, 80, 'fàilte') + windowL(500, 40, '#D8DEDA') + F('NS', 90, 222, 100) + frontRow(250, [180, 290, 400, 510], 'cccc', 1.0) + T(4, (i) => `<rect x="${140 + i * 110}" y="212" width="80" height="8" fill="#5A4636"/>`)))(alt)),
     543: (alt) => (PC.set('543', 'room'), (P(SKY.room, logWalls('#8A6E4E', '#6A5038') + windowL(60, 50, '#C8D2CC') + windowL(470, 50, '#C8D2CC') + `<rect y="196" width="600" height="54" fill="#4A3828"/>` + F('NS', 300, 222, 100) + F('HE', 380, 222, 92, { flip: true }) + frontRow(250, [70, 160, 250, 350, 440, 530], 'mwmwcm', 0.9)))(alt)),
-    542: (alt) => (PC.set('542', 'room'), (P(SKY.room, zoom(300, 180, 1.6, wardRoom({ hut: true, dusk: true, wins: [250] }) + bedP(320, 196, { sit: true, pj: '#7A6A5A' })) + F('NSIT', 190, 248, 140) + glow(360, 60, 140, '#F0B24A', 0.3)))(alt)),
+    542: (alt) => (PC.set('542', 'ward'), (P(SKY.room, zoom(300, 240, 2, wardRoom({ hut: true, dusk: true, wy: 92, ww: 96, wh: 50, wins: [252] }) + bedP(238, 196, { sit: 1, flip: 1, calm: 1, g: 'Q', skin: '#A9714B', hair: '#1E1612', thin: 1 }) + PC.seat(266, 238, 88) + F('NSIT', 266, 238, 88)) + glow(360, 40, 150, '#F0B24A', 0.3)))(alt)),
   };
 
   const SET = {
@@ -2410,7 +2501,7 @@
     510: ["ward", "A long hospital ward with rows of beds, a nurse in a blue dress and white veil walking between them", {"figs": ["NS"], "beds": true}],
     511: ["ward", "A nurse sitting on a chair beside a hospital bed where a feverish soldier lies, by lamplight", {"figs": ["NS"], "beds": true, "night": true, "sitting": true}],
     512: ["ward", "A soldier sitting up in a hospital bed talking with a nurse beside him", {"figs": ["NS"], "beds": true, "sitting": true}],
-    513: ["ward", "A nurse bending to write a letter for a young soldier in a hospital bed", {"figs": ["NS"], "beds": true}],
+    513: ["ward", "A nurse sitting beside a young soldier in a hospital bed, writing a letter for him, while a man in the next bed looks over", {"figs": ["NS"], "beds": true}],
     514: ["englandrain", "Nurses reading a newspaper together outside a long hospital hut under a grey sky", {"figs": ["NS", "NS", "NS"], "sky": "grey"}],
     515: ["letters", "A newspaper with long columns of names lying on a table beside a nurse’s cap", {"paper": true}],
     516: ["letters", "A nurse writing a letter by lamplight, crossing out words and starting again", {"letter": true, "night": true}],
@@ -2420,7 +2511,7 @@
     520: ["tents", "Nurses and orderlies helping wounded soldiers onto a train beside a field of hospital tents", {"figs": ["NS", "M", "M", "NS"], "train": true}],
     521: ["nightraid", "Hospital tents in the dark, with beams of searchlights crossing a night sky above them", {"night": true}],
     522: ["ward", "A nurse laughing with a thin soldier sitting up in a hospital bed", {"figs": ["NS"], "beds": true, "sitting": true}],
-    523: ["ward", "A nurse and a soldier in a hospital bed practising words with each other", {"figs": ["NS"], "beds": true, "sitting": true}],
+    523: ["ward", "A nurse and a soldier in a hospital bed practising words with each other, while the man in the next bed hides his laughing face under his pillow", {"figs": ["NS"], "beds": true, "sitting": true}],
     524: ["ward", "A soldier in a hospital bed looking out of a window while a nurse listens", {"figs": ["NS"], "beds": true, "sitting": true}],
     525: ["armistice", "Nurses and soldiers in the street of a French town ringing bells and waving, under a grey sky", {"figs": ["NS", "NS", "M", "M"], "crowd": true, "sky": "grey"}],
     526: ["tents", "Nurses walking between hospital huts in a sandy field near the sea in spring", {"figs": ["NS", "NS"], "sky": "morning"}],
