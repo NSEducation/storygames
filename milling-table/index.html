@@ -736,6 +736,87 @@
   .gtline.out { color: var(--ink); background: var(--ochre-tint); border: 2px dashed var(--ochre); border-radius: 10px; padding: 0.7rem 1rem; }
   .gtover { text-align: left; }
   .ghcard[disabled] { opacity: 0.5; cursor: not-allowed; }
+  /* ===== games, second edition: shared feel ===== */
+  h1:has(+ .gbox) { font-size: 1.45rem; margin: 0.5rem 0 0.4rem; }
+  .gbox > p.readable:first-child { margin-top: 0.3rem; }
+  .gbox .mapwrap { scroll-margin-top: 4.5rem; margin: 0.6rem -0.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(30,21,15,0.14); }
+  .gbox .mapwrap svg { display: block; width: 100%; height: auto; }
+  .gbox .mapwrap.gtouch, .gbox .mapwrap.gtouch svg { touch-action: none; -webkit-user-select: none; user-select: none; }
+  .gmsg { border-radius: 10px; padding: 0.55rem 0.8rem; border-left: 5px solid transparent; transition: background 0.2s; }
+  .gmsg:empty { padding: 0; min-height: 0; border: 0; }
+  .gmsg[data-k="good"] { background: #E6F2DF; border-left-color: #3F8A3A; color: #1D2A18; }
+  .gmsg[data-k="bad"] { background: #FBEDE6; border-left-color: #B5442E; color: #3A1810; }
+  .gmsg[data-k="info"] { background: #EEF1F6; border-left-color: #2B3F63; color: #1B2529; }
+  .gmsg.pop { animation: gpop 0.36s ease-out; }
+  @keyframes gpop { 0% { transform: scale(0.96); opacity: 0.3; } 60% { transform: scale(1.015); } 100% { transform: none; opacity: 1; } }
+  .gbox.gshake { animation: gshake 0.32s; }
+  @keyframes gshake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  .gopts button, .gnames button { min-height: 48px; }
+  .gopts.gcol { display: grid; grid-template-columns: 1fr; }
+  .gopts.gcol button { text-align: left; }
+  .gwin { position: relative; overflow: hidden; border-radius: 14px; padding: 1rem 1.1rem; background: linear-gradient(#F1F6E9, #FBF8F1); animation: gpop 0.45s ease-out; }
+  .gwin h2 { font-size: 1.2rem; }
+  .gwin .gstars { font-size: 1.5rem; letter-spacing: 0.15em; margin: 0 0 0.3rem; }
+  .gconf { position: absolute; inset: 0; pointer-events: none; }
+  .gconf i { position: absolute; top: -16px; left: calc(var(--i) * 7.2% + 2%); width: 9px; height: 14px; border-radius: 2px; background: hsl(calc(var(--i) * 47), 68%, 52%); opacity: 0; animation: gfall 1.7s calc(var(--i) * 55ms) ease-in forwards; }
+  @keyframes gfall { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(300px) rotate(320deg); opacity: 0; } }
+  .gshiftrow { display: flex; align-items: center; justify-content: center; gap: 0.4rem 1.2rem; flex-wrap: wrap; }
+  .gshiftrow > span { flex-basis: 100%; order: -1; text-align: center; font-weight: 600; }
+  .gshiftrow button { min-width: 3.6rem; min-height: 3.6rem; font-size: 1.6rem; font-weight: 700; border-radius: 50%; }
+  .gshift { font-size: 2.1rem; min-width: 2.4ch; }
+  .mgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 520px) { .mgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .mgrid .mcard { min-width: 0; overflow-wrap: anywhere; padding: 0.3rem; }
+  .mgrid .mcard .mface { font-size: clamp(0.78rem, 3.4vw, 1rem); line-height: 1.25; }
+  .mgrid .mcard:not(.up) .mface { font-size: 1.6rem; }
+  .mgrid .mcard { min-height: 6.4rem; transition: transform 0.15s; box-shadow: 0 2px 6px rgba(30,21,15,0.18); }
+  .mgrid .mcard:not(.up) { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.09) 0 8px, transparent 8px 16px); font-size: 1.5rem; }
+  .mgrid .mcard:not(.up):active { transform: scale(0.96); }
+  .mgrid .mcard.up { animation: gflip 0.34s ease-out; box-shadow: none; }
+  @keyframes gflip { 0% { transform: rotateY(90deg); } 100% { transform: none; } }
+  .gorder li { transition: background 0.2s; }
+  .gorder .gomove button { min-width: 44px; min-height: 44px; }
+  .ghub .ghcard { box-shadow: 0 1px 5px rgba(30,21,15,0.1); transition: transform 0.12s; }
+  .ghub .ghcard:active:not([disabled]) { transform: scale(0.98); }
+  .ghub .ghcard.done { background: rgba(86,105,58,0.08); }
+  .ghub .ghicon { font-size: 2.2rem; }
+  .gbadge { cursor: pointer; }
+  .gbadge.gpulse .gring { animation: gblink 1.1s ease-in-out infinite; }
+  @keyframes gblink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  .gdpad { display: grid; grid-template-columns: repeat(3, 4rem); grid-template-rows: repeat(3, 4rem); gap: 0.3rem; justify-content: center; margin: 0.6rem auto; }
+  .gdpad button { font-size: 1.5rem; border-radius: 14px; min-width: 0; padding: 0; }
+  .gdpad .u { grid-area: 1 / 2; } .gdpad .l { grid-area: 2 / 1; } .gdpad .r { grid-area: 2 / 3; } .gdpad .d { grid-area: 3 / 2; }
+  .gdpad .c { grid-area: 2 / 2; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; opacity: 0.7; }
+  .gbar { scroll-margin-top: 4.5rem; display: grid; grid-template-columns: 1fr; gap: 0.2rem; font-weight: 600; margin: 0.4rem 0; font-variant-numeric: tabular-nums; }
+  .gbar > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gbar .gpips { display: flex; gap: 3px; flex-wrap: nowrap; }
+  .gbar .gpips i { flex: 1 1 0; max-width: 16px; height: 8px; border-radius: 2px; background: #C99A5A; border: 1px solid #8A6A3A; }
+  .gbar .gpips i.off { background: transparent; border-style: dashed; opacity: 0.5; }
+  .gbig { display: block; width: 100%; min-height: 4rem; font-size: 1.15rem; font-weight: 700; margin: 0.5rem 0; }
+  .ggauge { position: relative; display: flex; height: 2.1rem; border-radius: 999px; overflow: hidden; border: 2px solid #3A3A3A; font-size: 0.72rem; line-height: 1; white-space: nowrap; font-weight: 700; margin: 0.5rem 0 1.1rem; }
+  .ggauge .gz { display: flex; align-items: center; justify-content: center; color: #1B2529; }
+  .ggauge .far { flex: 4; background: #E8C66A; } .ggauge .good { flex: 4; background: #8FC27A; } .ggauge .close { flex: 2; background: #E08A6E; }
+  .ggauge .gneedle { position: absolute; top: -2px; bottom: -2px; width: 6px; margin-left: -3px; background: #1B2529; border: 1px solid #fff; border-radius: 3px; transition: left 0.45s ease; }
+  .glift { height: 8px; border-radius: 4px; background: rgba(0,0,0,0.12); overflow: hidden; margin: 0.3rem 0; }
+  .glift i { display: block; height: 100%; width: 100%; background: #B5442E; transform-origin: left; }
+  .glift.run i { animation: glift var(--tick, 3s) linear; }
+  @keyframes glift { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+  .gfield .gmove { transition: transform 0.5s ease; }
+  .gfeet { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin: 0.4rem 0; }
+  .gfeet svg { width: 9.5rem; height: auto; }
+  .gfeet .gdays { display: inline-flex; gap: 4px; }
+  .gfeet .gdays i { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 2px solid #3A3A3A; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-style: normal; font-weight: 700; }
+  .gfeet .gdays i.done { background: #56693A; color: #fff; } .gfeet .gdays i.now { background: #F0D58A; }
+  .gchose { font-style: italic; opacity: 0.85; }
+  :root.still .gconf, :root.still .gmsg.pop, :root.still .gbox.gshake { animation: none; }
+  :root.still .gconf { display: none; }
+  @media (prefers-reduced-motion: reduce) { .gconf { display: none; } .gmsg.pop, .gbox.gshake, .gwin, .mgrid .mcard.up { animation: none; } .gfield .gmove, .ggauge .gneedle { transition: none; } }
+  @media print { .gconf { display: none; } }
+  .gbox .gitems { grid-template-columns: repeat(auto-fill, minmax(7.6rem, 1fr)); }
+  .gbox .gitem { font-size: 0.95rem; min-width: 0; }
+  .gbox .gitem .gicon { font-size: 2rem; }
+  .gsteps svg { display: block; width: 100%; height: auto; }
+  .gopts .gpick { border-color: #3F8A3A; background: #E6F2DF; color: #1D2A18; }
 </style>
 <style id="trailcss">
   .trailwrap { border-radius: 14px; overflow: hidden; border: 2px solid var(--rule); background: #1B2529; line-height: 0; margin: 0.25rem 0 0.75rem; }
@@ -978,7 +1059,7 @@
     const defs = `<defs><pattern id="${pid}c" width="600" height="9" patternUnits="userSpaceOnUse"><path d="M0,5 Q75,2.6 150,5 T300,5 T450,5 T600,5" stroke="${dark ? '#8C96A8' : '#FFFFFF'}" stroke-width="0.9" fill="none"/></pattern><pattern id="${pid}g" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="0.75" fill="#1E2430"/><circle cx="5" cy="4.6" r="0.55" fill="#FFFFFF"/></pattern></defs>`;
     const carve = `<rect width="600" height="150" fill="url(#${pid}c)" opacity="${dark ? 0.18 : 0.5}"/>`;
     const grain = `<rect width="600" height="250" fill="url(#${pid}g)" opacity="0.14" pointer-events="none"/>`;
-    return `<svg class="art" data-sky="${skyName}" viewBox="0 0 600 250" role="img" aria-label="${alt}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">${defs}${bands}${carve}${body}${weather(sky)}${grain}</svg>`;
+    return `<svg class="art" data-sky="${skyName}" viewBox="0 0 600 250" role="img" aria-label="${alt}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">${defs}${bands}${carve}${body}${weather(sky)}<defs><radialGradient id="${pid}v" cx="0.5" cy="0.45" r="0.8"><stop offset="0.6" stop-color="#1E150F" stop-opacity="0"/><stop offset="1" stop-color="#1E150F" stop-opacity="${dark ? 0.3 : 0.18}"/></radialGradient></defs><rect width="600" height="250" fill="url(#${pid}v)" pointer-events="none"/>${grain}</svg>`;
   };
 
   // ---------- primitives ----------
@@ -1989,13 +2070,40 @@
   const boxBed = (x, y) => `<rect x="${x}" y="${y - 120}" width="110" height="120" fill="#3A2A1C"/><rect x="${x + 10}" y="${y - 100}" width="90" height="74" fill="#120E0A"/><path d="M${x + 10},${y - 100} Q${x + 30},${y - 60} ${x + 22},${y - 26} L${x + 10},${y - 26} Z M${x + 100},${y - 100} Q${x + 80},${y - 60} ${x + 88},${y - 26} L${x + 100},${y - 26} Z" fill="#7A3A2A"/><rect x="${x + 16}" y="${y - 44}" width="78" height="16" fill="#6E6A5A"/>`;
   const cowByre = (x, y) => `<rect x="${x - 70}" y="${y - 52}" width="140" height="8" fill="#3A2A1C"/>` + cow(x, y, 0.8, { c: '#2A1E16' });
   const bhIn = (o = {}) => stoneWall('#433D36', o.seed || 2) + thatchIn() + `<rect y="198" width="600" height="52" fill="#2E241C"/>` + (o.bed !== false ? boxBed(o.bedX || 20, 200) : '') + (o.dresser !== false ? plates(o.dresserX || 480, 100) + `<rect x="${o.dresserX || 480}" y="190" width="96" height="10" fill="#3A2A1C"/>` : '') + (o.cow ? cowByre(o.cowX || 520, 206) : '') + peatFire(o.hx || 300, 214, o.fs || 1);
-  const logWalls = (c = '#6B5038', d = '#3E2E20') => `<rect width="600" height="250" fill="${c}"/>` + T(9, (i) => `<rect x="0" y="${i * 24 + 18}" width="600" height="4" fill="${d}"/>`) + T(9, (i) => `<circle cx="6" cy="${i * 24 + 8}" r="8" fill="#8A6A48"/><circle cx="594" cy="${i * 24 + 8}" r="8" fill="#8A6A48"/>`);
+  const logWalls = (c = '#7A5C40', d = '#3E2E20') => `<rect width="600" height="250" fill="${c}"/>` + T(9, (i) => `<rect x="0" y="${i * 24 + 19}" width="600" height="2.6" fill="${d}" opacity="0.55"/><rect x="0" y="${i * 24 + 22}" width="600" height="1.6" fill="#FFFFFF" opacity="0.07"/>`) + T(9, (i) => `<circle cx="6" cy="${i * 24 + 8}" r="8" fill="#8A6A48"/><circle cx="594" cy="${i * 24 + 8}" r="8" fill="#8A6A48"/>`);
   const stoneHearth = (x = 470, lit = true) => `<rect x="${x - 80}" y="70" width="160" height="134" fill="#6E6A60"/>` + T(14, (i) => `<rect x="${x - 76 + (i % 4) * 38 + (Math.floor(i / 4) % 2) * 10}" y="${76 + Math.floor(i / 4) * 30}" width="32" height="24" rx="4" fill="#7E7A70"/>`) + `<path d="M${x - 50},204 L${x - 50},140 Q${x},112 ${x + 50},140 L${x + 50},204 Z" fill="#1E1610"/>` + (lit ? fire(x, 204, 1.1) : '') + `<path d="M${x - 30},120 L${x - 30},108 L${x + 24},108" stroke="#2A2A2A" stroke-width="3" fill="none"/><path d="M${x + 20},108 L${x + 20},150" stroke="#2A2A2A" stroke-width="2"/><path d="M${x + 8},150 Q${x + 8},170 ${x + 20},172 Q${x + 32},170 ${x + 32},150 Z" fill="#1A1A1A"/>`;
   const logIn = (o = {}) => logWalls(o.wall, o.dark) + `<rect y="200" width="600" height="50" fill="#3A2C20"/>` + T(6, (i) => `<path d="M0,${206 + i * 8} L600,${206 + i * 8}" stroke="#2E2218" stroke-width="1.2"/>`) + (o.hearth !== false ? stoneHearth(o.hx || 470, o.lit !== false) : '') + (o.win !== false ? windowL(o.wx || 70, 50, o.night ? '#1E2A3A' : o.snow ? '#E4ECEF' : '#C8D2CC') + `<g opacity="${o.night ? 0.06 : 0.12}"><path class="anim-glow" d="M${o.wx || 70},134 L${(o.wx || 70) + 74},134 L${(o.wx || 70) + 132},200 L${(o.wx || 70) - 22},200 Z" fill="${o.night ? '#9FB3C4' : '#FFF6DC'}"/></g>` : '') + (o.lamp ? lamp(o.lx || 260, 70) : '');
   const bench = (x, y, w = 140) => `<rect x="${x - w / 2}" y="${y - 26}" width="${w}" height="7" fill="#5A4030"/><rect x="${x - w / 2 + 8}" y="${y - 19}" width="6" height="19" fill="#4A3424"/><rect x="${x + w / 2 - 14}" y="${y - 19}" width="6" height="19" fill="#4A3424"/>`;
   const bust = (x, y, k = 'm', s = 1) => PC.backOf(x, y, k, s, false);
   const backOf = (x, y, k = 'm', s = 1) => PC.backOf(x, y, k, s, true);
-  const millBoard = (o = {}) => { const y = o.y || 150, n = o.n || 7, cloth = o.cloth !== false; let s = ''; for (let i = 0; i < n; i++) { const x = 70 + i * (460 / (n - 1)); s += `<g class="anim-nod" style="animation-duration:1.8s;animation-delay:-${((i % 2) * 0.9).toFixed(1)}s">` + bust(x, y, (o.ks || 'mwmwmwmw')[i % 8], 1.05) + `<path d="M${x - 12},${y - 18} L${x - 16 + (i % 2) * 6},${y + 2} M${x + 12},${y - 18} L${x + 16 - (i % 2) * 6},${y + 2}" stroke="${INK}" stroke-width="5" stroke-linecap="round"/></g>`; } return s + `<rect x="30" y="${y}" width="540" height="12" fill="#9A7448"/><rect x="30" y="${y + 12}" width="540" height="5" fill="#6A4E32"/>` + (cloth ? `<path class="anim-wave" d="M50,${y + 1} Q110,${y - 9} 170,${y + 1} T290,${y + 1} T410,${y + 1} T550,${y + 1} L550,${y + 7} L50,${y + 7} Z" fill="${o.cc || RUST}"/>` : '') + `<rect x="60" y="${y + 17}" width="8" height="${230 - y}" fill="#4A3624"/><rect x="532" y="${y + 17}" width="8" height="${230 - y}" fill="#4A3624"/>`; };
+  // ================= PICTURES, SECOND EDITION: the milling board and the title picture =================
+  // The people at the milling board are drawn as people, with faces, sitting behind the board with their hands on the cloth.
+  const millBoard = (o = {}) => { const y = o.y || 150, n = o.n || 7, cl = o.cloth !== false, ks = o.ks || 'mwmwmwmw', big = o.h || 122; let s = '', hands = '';
+    for (let i = 0; i < n; i++) { const x = 70 + i * (460 / (n - 1)), k = ks[i % ks.length];
+      const kind = o.now ? (k === 'w' ? 'W' : k === 'c' ? 'GIRL' : 'M') : (k === 'w' ? (i % 3 === 1 ? 'LE' : 'LW') : k === 'c' ? 'LG' : 'LM'), h = k === 'c' ? big * 0.8 : big;
+      s += `<g class="anim-nod" style="animation-duration:1.8s;animation-delay:-${((i % 2) * 0.9).toFixed(1)}s">` + fig(kind, x, y + h * 0.62, h, { flip: i >= n / 2 }) + `</g>`;
+      hands += `<circle cx="${x - h * 0.105}" cy="${y - 2}" r="${h * 0.04}" fill="#E3B795" stroke="#8A5A3C" stroke-width="0.8"/><circle cx="${x + h * 0.105}" cy="${y - 2}" r="${h * 0.04}" fill="#E3B795" stroke="#8A5A3C" stroke-width="0.8"/>`; }
+    return s + `<rect x="30" y="${y}" width="540" height="12" rx="2" fill="#B98E58"/><rect x="30" y="${y}" width="540" height="2" fill="#D8B27A" opacity="0.7"/><rect x="34" y="${y + 12}" width="532" height="6" fill="#7A5A36"/>` +
+      (cl ? `<path class="anim-wave" d="M50,${y + 1} Q110,${y - 9} 170,${y + 1} T290,${y + 1} T410,${y + 1} T550,${y + 1} L550,${y + 8} L50,${y + 8} Z" fill="${o.cc || RUST}"/><path d="M58,${y + 5} H542" stroke="#FFFFFF" stroke-width="1.4" stroke-dasharray="12 9" opacity="0.28"/>` : '') + hands +
+      `<rect x="60" y="${y + 18}" width="9" height="${230 - y}" fill="#5A4028"/><rect x="531" y="${y + 18}" width="9" height="${230 - y}" fill="#5A4028"/>`; };
+  const coverScene = () => {
+    PC.set('cover', 'room');
+    const wall = `<rect width="600" height="250" fill="#8E6C48"/>` + T(9, (i) => `<rect y="${i * 24}" width="600" height="24" fill="${i % 2 ? '#94714C' : '#8A6945'}"/><rect y="${i * 24}" width="600" height="2" fill="#B38D60" opacity="0.5"/><rect y="${i * 24 + 21.6}" width="600" height="2.4" fill="#6A4E32" opacity="0.6"/>`) + T(14, (i) => `<ellipse cx="${(i * 131 + 40) % 600}" cy="${12 + ((i * 5) % 8) * 24}" rx="5" ry="2.2" fill="#6A4E32" opacity="0.4"/>`);
+    const things = windowL(30, 34, '#2E4468') + `<circle cx="84" cy="60" r="5.5" fill="#F4EED8"/><circle cx="48" cy="52" r="1.2" fill="#F4EED8"/><circle cx="62" cy="82" r="1" fill="#F4EED8"/>` +
+      `<rect x="446" y="64" width="128" height="5" fill="#5A4030"/><path d="M446,69 l6,10 M574,69 l-6,10" stroke="#5A4030" stroke-width="3"/>` + [[462, '#E8DCC0'], [490, '#3E5570'], [516, '#E8DCC0'], [546, '#9A4A2C']].map(([x, c], k) => k % 2 ? `<path d="M${x - 9},64 q0,-18 9,-18 q9,0 9,18 Z" fill="${c}"/><path d="M${x + 8},52 q8,2 2,10" stroke="${c}" stroke-width="2.4" fill="none"/>` : `<path d="M${x - 11},52 h22 q-2,12 -11,12 q-9,0 -11,-12 Z" fill="${c}"/>`).join('') +
+      `<g transform="translate(398 84) rotate(16)"><path d="M0,-44 V-8" stroke="#3A2A1C" stroke-width="3.4"/><ellipse cx="0" cy="-8" rx="8" ry="9" fill="#A85A2A"/><ellipse cx="0" cy="8" rx="10.5" ry="12" fill="#A85A2A"/><path d="M-5,0 h10" stroke="#3A2A1C" stroke-width="1.4"/><path d="M-1.4,-40 V12 M1.4,-40 V12" stroke="#E8DCC0" stroke-width="0.5"/></g><path d="M398,36 v6" stroke="#2A2A2A" stroke-width="1.4"/>` +
+      `<path d="M300,0 V28" stroke="#2A2A2A" stroke-width="1.6"/>` + lamp(300, 36);
+    const light = `<defs><radialGradient id="cv-glow" cx="0.5" cy="0.2" r="0.8"><stop offset="0" stop-color="#FFE9B4" stop-opacity="0.8"/><stop offset="0.5" stop-color="#F6C878" stop-opacity="0.25"/><stop offset="1" stop-color="#F6C878" stop-opacity="0"/></radialGradient></defs><rect width="600" height="250" fill="url(#cv-glow)"/>`;
+    const floor = `<rect y="206" width="600" height="44" fill="#6E5034"/>` + T(5, (i) => `<path d="M0,${213 + i * 9} H600" stroke="#553C26" stroke-width="1.3"/>`);
+    const xs = [96, 198, 300, 402, 504], kinds = ['LW', 'LM', 'LE', 'LM', 'LW'], hs = [152, 160, 148, 160, 152];
+    const folk = xs.map((x, i) => `<g class="anim-nod" style="animation-duration:1.9s;animation-delay:-${((i % 2) * 0.95).toFixed(2)}s">` + fig(kinds[i], x, 276, hs[i], { flip: i >= 3 }) + `</g>`).join('');
+    const board = `<rect x="34" y="178" width="532" height="13" rx="3" fill="#C29A62"/><rect x="34" y="178" width="532" height="2.4" fill="#E0BC86" opacity="0.8"/><rect x="40" y="191" width="520" height="8" fill="#8A6540"/><rect x="62" y="199" width="11" height="46" fill="#6A4E32"/><rect x="527" y="199" width="11" height="46" fill="#6A4E32"/>`;
+    const tweed = `<path class="anim-wave" d="M52,180 Q100,166 150,178 T250,178 T350,178 T450,178 T548,178 L548,187 L52,187 Z" fill="${RUST}"/><path d="M60,183 H540" stroke="#FFFFFF" stroke-width="1.6" stroke-dasharray="13 9" opacity="0.3"/>`;
+    const fists = xs.map((x) => [-17, 17].map((d) => `<circle cx="${x + d}" cy="176" r="6.4" fill="#E3B795" stroke="#8A5A3C" stroke-width="1"/>`).join('')).join('');
+    const kids = fig('LG', 44, 248, 104) + fig('CHILD', 560, 248, 74, { flip: true });
+    const notes = `<g fill="#FFF3D0" opacity="0.9" font-family="Georgia, serif" font-size="22" class="anim-bob"><text x="146" y="104">♪</text><text x="246" y="92">♫</text><text x="346" y="100">♪</text><text x="452" y="108">♫</text></g>`;
+    return frame(SKY.room, wall + things + light + floor + folk + board + tweed + fists + kids + notes, 'A milling frolic in a log house: neighbours sit along a long board, singing and pounding a length of wet cloth by lamplight, while two children watch');
+  };
   const frontRow = (y, xs, ks = 'mwmwmw', s = 1) => xs.map((x, i) => backOf(x, y, ks[i % ks.length], s)).join('');
   const bedP = (x, y, o = {}) => `<rect x="${x}" y="${y - 22}" width="100" height="22" fill="#ECE6D6"/><rect x="${x}" y="${y}" width="6" height="${236 - y}" fill="#4A3A2E"/><rect x="${x + 94}" y="${y}" width="6" height="${236 - y}" fill="#4A3A2E"/><rect x="${x - 4}" y="${y - 44}" width="6" height="${44 + 236 - y}" fill="#4A3A2E"/>` + (o.empty ? `<ellipse cx="${x + 18}" cy="${y - 26}" rx="14" ry="6" fill="#F8F5EE"/>` : o.sit ? `<ellipse cx="${x + 18}" cy="${y - 30}" rx="14" ry="7" fill="#F8F5EE"/><path d="M${x + 8},${y - 22} L${x + 10},${y - 54} Q${x + 22},${y - 62} ${x + 32},${y - 52} L${x + 34},${y - 22} Z" fill="${o.pj || '#8A96A0'}"/><circle cx="${x + 22}" cy="${y - 66}" r="8" fill="${INK}"/><path d="M${x + 30},${y - 22} Q${x + 60},${y - 34} ${x + 98},${y - 26} L${x + 98},${y - 18} L${x + 30},${y - 18} Z" fill="${o.bl || '#7A8A94'}"/>` : `<ellipse cx="${x + 18}" cy="${y - 26}" rx="14" ry="6" fill="#F8F5EE"/><circle cx="${x + 18}" cy="${y - 32}" r="7.5" fill="${INK}"/><path d="M${x + 26},${y - 22} Q${x + 50},${y - 38} ${x + 98},${y - 28} L${x + 98},${y - 18} L${x + 26},${y - 18} Z" fill="${o.bl || '#7A8A94'}"/>`);
   const wardRoom = (o = {}) => `<rect width="600" height="250" fill="${o.night ? '#4A4740' : o.hut ? '#C9BBA0' : '#DAD3C2'}"/>` + (o.hut ? T(12, (i) => `<rect x="${i * 50}" y="0" width="3" height="200" fill="#A8987A"/>`) : '') + `<rect y="200" width="600" height="50" fill="${o.night ? '#3A362E' : '#8A7E68'}"/>` + (o.wins || [40, 250, 460]).map((x) => win2(x, 30, 100, 76, o.night ? '#1A2436' : o.dusk ? '#E9C79A' : '#C2CED1')).join('') + (o.night ? `<circle cx="${(o.wins || [40])[0] + 70}" cy="54" r="9" fill="#E8E4D0"/>` : '') + `<g opacity="${o.night ? 0.07 : 0.16}">` + (o.wins || [40, 250, 460]).map((x, i) => `<path class="anim-glow" style="animation-delay:-${i * 1.1}s" d="M${x},106 L${x + 100},106 L${x + 150},200 L${x - 30},200 Z" fill="${o.night ? '#9FB3C4' : '#FFFFFF'}"/>`).join('') + `</g>`;
@@ -2179,7 +2287,7 @@
     cabinin: (alt, o) => frame(SKY.room, `<rect width="600" height="250" fill="#6B5038"/>` + Array.from({ length: 8 }, (_, i) => `<path d="M0,${20 + i * 24} L600,${20 + i * 24}" stroke="#4A3624" stroke-width="3"/>`).join('') + `<rect y="200" width="600" height="50" fill="#3A2C20"/>` + hearth() + (o.night ? lamp(220, 110) : windowL(70, 50, '#C8D2D4')) + (o.wheel ? wheel(260, 214, 1) : table(250, 170, 160)) + figsAt(o.figs, [170, 320, 120, 220, 350], 222, 94), alt),
     backland: (alt, o) => frame(skyOf(o, SKY.morning), `<path d="M0,120 L200,70 L420,90 L600,60 L600,250 L0,250 Z" fill="#4A5A36"/>` + forest(104, 70, 20, '#2A3A24', 0) + `<path d="M0,250 L0,170 Q250,140 600,150 L600,250 Z" fill="#7A6E4E"/>` + stumps(196, [80, 140, 520]) + stones(214, [220, 400, 470]) + logHut(330, 186, 0.75) + stk('M560,250 Q520,200 560,160', 5, '#6E8C99') + figsAt(o.figs, [210, 250, 150, 420, 460], 234, 74), alt),
     mikcamp: (alt, o) => frame(skyOf(o, SKY.morning), forest(130, 80, 22, '#2E3E2A', 0) + water(150, SEA.loch) + `<path d="M0,250 L0,190 Q300,176 600,196 L600,250 Z" fill="#7A7458"/>` + wikuom(110, 200, 1, { c: '#3A3026' }) + wikuom(190, 196, 0.85, { c: '#4A3E30' }) + canoe(400, 192, 1, { c: '#2E241C' }) + figsAt(o.figs, [270, 330, 380, 480], 236, 76), alt),
-    frolic: (alt, o) => frame(o.night ? SKY.room : SKY.room, `<rect width="600" height="250" fill="#5A4430"/>` + Array.from({ length: 7 }, (_, i) => `<path d="M0,${24 + i * 24} L600,${24 + i * 24}" stroke="#3E2E20" stroke-width="3"/>`).join('') + `<rect y="206" width="600" height="44" fill="#2E2218"/>` + lamp(300, 60) + (o.fiddle ? fig('FIDDLE', 480, 222, 92) + fig('STEP', 300, 222, 96) + figsAt(o.figs, [120, 180, 400], 222, 92) : heads(150, 7, '#1E1812', 100, 66) + tableLong(170) + cloth(166) + figsAt(o.figs, [110, 190, 270, 350, 430, 500], 222, 88)), alt),
+    frolic: (alt, o) => frame(o.night ? SKY.room : SKY.room, logWalls('#7A5E40') + `<rect y="206" width="600" height="44" fill="#3A2C20"/>` + lamp(300, 60) + (o.fiddle ? fig('FIDDLE', 480, 222, 92) + fig('STEP', 300, 222, 96) + figsAt(o.figs, [120, 180, 400], 222, 92) : millBoard({ y: 160, n: 6, h: 112 }) + figsAt(o.figs, [110, 190, 270, 350, 430, 500], 222, 88)), alt),
     blight: (alt, o) => frame(SKY.grey, farHills(130, '#8A9080', '#6E7466') + logHut(500, 170, 0.6) + gr(176, '#5A4A34', 4) + potatoes(200, 16, true) + potatoes(226, 14, true) + figsAt(o.figs, [140, 190], 240, 74), alt),
     road: (alt, o) => frame(skyOf(o, SKY.grey), forest(150, 110, 24, '#2A3A28', 0) + (o.night ? '' : `<rect x="0" y="120" width="600" height="20" fill="#9AA6AA" opacity="0.5"/>`) + gr(186, '#6E6248', 4) + `<path d="M0,250 Q300,190 600,206" stroke="#4A3E2E" stroke-width="40" fill="none"/>` + figsAt(o.figs, [140, 200, 260, 320, 380], 222, 80), alt),
     meeting: (alt, o) => frame(SKY.room, `<rect width="600" height="250" fill="#7A6044"/>` + Array.from({ length: 8 }, (_, i) => `<path d="M0,${20 + i * 24} L600,${20 + i * 24}" stroke="#5A4430" stroke-width="3"/>`).join('') + windowL(40, 50, '#26303A') + lamp(300, 50) + heads(176, 9, '#1E1812', 120, 42) + `<rect y="200" width="600" height="50" fill="#3E2E20"/>` + paper(432, 118, 1.2) + figsAt(o.figs, [470, 180, 250, 330, 540], 214, 92), alt),
@@ -2199,8 +2307,8 @@
     kitchen26: (alt, o) => frame(SKY.room, roomBox('#C9B89A', '#7A5A3C') + windowL(450, 50, '#C8D8E0') + tableLong(168, '#8A6A48') + cloth(164) + figsAt(o.figs || ['HE', 'MOD', 'GIRL', 'W', 'MOD', 'CHILD'], [100, 180, 260, 340, 420, 500], 222, 88), alt),
   };
   Object.assign(S, {
-    cover: () => frame(SKY.room, logIn({ hearth: false, win: false, lamp: true, lx: 300 }) + millBoard({ y: 150, n: 7, ks: 'wmwmwmw' }) + frontRow(250, [110, 230, 370, 490], 'wmwm', 1.05), 'A long wooden milling board in a log house, with neighbours sitting along both sides pounding red cloth in rhythm'),
-    epilogue: () => frame(SKY.room, roomBox('#C9B89A', '#7A5A3C') + windowL(470, 40, '#C8D8E0') + millBoard({ y: 152, n: 6, ks: 'wmcwmw', cc: '#3E6A8A' }) + F('HESIT', 50, 236, 88) + frontRow(250, [160, 300, 440], 'cwm', 1), 'A milling frolic in a kitchen today, with an old woman, teenagers and neighbours pounding cloth on a long worn board'),
+    cover0: () => frame(SKY.room, logIn({ hearth: false, win: false, lamp: true, lx: 300 }) + millBoard({ y: 150, n: 7, ks: 'wmwmwmw' }) + frontRow(250, [110, 230, 370, 490], 'wmwm', 1.05), 'A long wooden milling board in a log house, with neighbours sitting along both sides pounding red cloth in rhythm'),
+    epilogue: () => frame(SKY.room, roomBox('#C9B89A', '#7A5A3C') + windowL(470, 40, '#C8D8E0') + millBoard({ y: 152, n: 6, ks: 'wmcwmw', cc: '#3E6A8A', now: true }) + F('HESIT', 50, 236, 88) + frontRow(250, [160, 300, 440], 'cwm', 1), 'A milling frolic in a kitchen today, with an old woman, teenagers and neighbours pounding cloth on a long worn board'),
     sK1: () => frame(SKY.morning, highlands(108, '#8E9AA4', '#717F88') + water(140, SEA.loch) + `<path d="M0,250 L0,170 Q120,160 260,166 Q420,170 520,182 Q570,190 600,200 L600,250 Z" fill="#9A9A84"/><path d="M0,172 Q130,162 260,168 Q420,172 520,184 Q570,192 600,202" stroke="#C9C3AE" stroke-width="3" fill="none"/>` + land(206, '#6F7458', 8) + church(230, 192, 1, { c: '#B9B3A3' }) + T(9, (i) => `<rect x="${330 + i * 20}" y="${186 + (i % 3) * 5}" width="8" height="16" rx="4" fill="#5E5D56"/>`) + tufts(200, 245, 34, '#4F5440'), 'The small old church at Clachan on the shore of Loch Broom, with gravestones beside it'),
     sK2: () => frame(SKY.morning, woods(110, 70, '#2E3E2A', 40) + water(120, SEA.day) + T(14, (i) => `<circle cx="${250 + (i * 37) % 120}" cy="${150 + (i * 23) % 60}" r="${2 + (i % 3)}" fill="none" stroke="#E8F0F2" stroke-width="1.4"/>`) + land(218, '#A89C82', 6) + pebbles(222, 246, 30, '#7A7062'), 'A place near the shore of Pictou Harbour where bubbles rise through the water'),
     sA1: () => frame(SKY.grey, highlands(150, '#7E8A94', '#5E6A74') + water(176, SEA.grey) + land(196, MOSS, 10) + ruin(160, 214, 1) + ruin(290, 210, 0.8) + ruin(400, 216, 0.9) + sheep(240, 236, 0.9) + sheep(350, 240, 0.8) + sheep(480, 238, 0.9), 'An empty township on Rum, with roofless stone houses and sheep grazing between them'),
@@ -2323,6 +2431,7 @@
     542: ["ward", "A nurse and a soldier in a hospital bed talking quietly while the soldier listens closely", {"figs": ["NS"], "beds": true, "sitting": true}],
     543: ["meeting", "A crowded hall where a nurse stands up to speak, with people on benches turned to listen", {"figs": ["NS"]}],
   };
+  S.cover = coverScene; delete S.cover0;
   Object.keys(S).forEach((k) => { const f = S[k]; S[k] = (...a) => { PC.set(k); return f(...a); }; });
   const MAP = {};
   Object.entries(SPEC).forEach(([n, [set, alt, o]]) => { if (PIC[n]) { MAP[Number(n)] = () => PIC[n](alt); return; } if (!SET[set]) throw new Error("No picture set " + set + " for scene " + n); MAP[Number(n)] = () => (PC.set(n), 1) && SET[set](alt, o || {}); });
@@ -6504,7 +6613,7 @@ const aiEl = (key) => { const d = el('div', { class: 'aicon', 'aria-hidden': 'tr
 let RELAXED = false;
 const shuffle = (a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 const gbtn = (text, onclick, cls = 'gamebtn') => el('button', { class: cls, type: 'button', text, onclick });
-const gmsg = () => el('p', { class: 'gmsg readable', role: 'status' });
+const gmsg = () => { const p = el('p', { class: 'gmsg readable', role: 'status' }); try { new MutationObserver(() => gFeel(p)).observe(p, { childList: true, characterData: true, subtree: true }); } catch (e) { /* older browsers: plain messages */ } return p; };
 // a key listener that removes itself once the game is no longer on screen
 function gameKeys(box, handler) {
   const fn = (e) => { if (!box.isConnected) { document.removeEventListener('keydown', fn); return; } handler(e); };
@@ -6514,7 +6623,7 @@ const relaxedToggle = (box, restart) => el('label', { class: 'grelax' }, [
   el('input', { type: 'checkbox', checked: RELAXED ? 'checked' : null, onchange: (e) => { RELAXED = e.target.checked; restart(); } }),
   document.createTextNode(' Relaxed mode (slower, easier)'),
 ]);
-const winBox = (title, paras) => el('section', { class: 'grow gwin' }, [el('h2', { class: 'readable', text: title }), ...paras.map((t) => el('p', { class: 'readable', text: t }))]);
+const winBox = (title, paras) => { const now = GAME_NOW; const sec = el('section', { class: 'grow gwin' }, [el('div', { class: 'gconf', 'aria-hidden': 'true' }, Array.from({ length: 14 }, (_, i) => el('i', { style: `--i:${i}` }))), el('h2', { class: 'readable', text: title }), ...paras.map((t) => el('p', { class: 'readable', text: t })), ...(now ? [el('div', { class: 'row tight noprint' }, [gbtn('🔁 Play again', () => playGame(...now), 'secondary'), gbtn('🎮 More games', () => gamesHub(), 'secondary')])] : [])]); gSfx('win'); setTimeout(() => { try { if (sec.isConnected) sec.scrollIntoView({ behavior: motionOff() ? 'auto' : 'smooth', block: 'nearest' }); } catch (e) { /* fine */ } }, 80); return sec; };
 
 // ---------- 1. Work the aboiteau ----------
 // ---------- 1. Keep the pit house warm ----------
@@ -6957,24 +7066,51 @@ function gMap(box, win) {
   const order = shuffle(PLACES.map((p, i) => i));
   let sel = null; const placed = new Set();
   const holder = el('div', { class: 'mapwrap' }); const names = el('div', { class: 'gopts gnames' }); const msg = gmsg();
+  // Big numbered badges, pushed apart so a thumb can hit them, each tied by a line to its exact spot on the map.
+  const BADGE = (() => {
+    const pts = PLACES.map(([n, la, lo]) => P(la, lo)), R = 34, AX = 0.5, MIN = R * 2 + 8;
+    const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+    const b = pts.map(([x, y], i) => { const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy) || 1, a = i * 2.4; return [x + (dx / d) * 60 + Math.cos(a) * 3, y + (dy / d) * 60 + Math.sin(a) * 3]; });
+    for (let it = 0; it < 400; it++) for (let i = 0; i < b.length; i++) {
+      for (let j = 0; j < b.length; j++) { if (j === i) continue;
+        let dx = (b[i][0] - b[j][0]) * AX, dy = b[i][1] - b[j][1], d = Math.hypot(dx, dy) || 0.01; if (d < MIN) { const f = (MIN - d) / 2 / d; b[i][0] += dx * f / AX; b[i][1] += dy * f; }
+        dx = b[i][0] - pts[j][0]; dy = b[i][1] - pts[j][1]; d = Math.hypot(dx, dy) || 0.01; if (d < R + 12) { b[i][0] += (dx / d) * (R + 12 - d); b[i][1] += (dy / d) * (R + 12 - d); } }
+      const dx = b[i][0] - pts[i][0], dy = b[i][1] - pts[i][1], d = Math.hypot(dx, dy) || 0.01;
+      if (d > 150) { b[i][0] = pts[i][0] + (dx / d) * 150; b[i][1] = pts[i][1] + (dy / d) * 150; } else if (d < R + 14) { b[i][0] = pts[i][0] + (dx / d) * (R + 14); b[i][1] = pts[i][1] + (dy / d) * (R + 14); }
+      b[i][0] = Math.max(R + 40, Math.min(W - R - 40, b[i][0])); b[i][1] = Math.max(R + 4, Math.min(H - R - 4, b[i][1]));
+    }
+    return b; })();
   const drawMap = () => {
-    holder.innerHTML = `<svg class="amap" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of Nova Scotia, New Brunswick, Maine and Boston with numbered dots"><rect width="${W}" height="${H}" fill="#A9C3CF"/><path d="${land}" fill="#ECE5D0" stroke="#ECE5D0" stroke-width="0.8"/>
-      ${PLACES.map(([n, la, lo], i) => { const [x, y] = P(la, lo); const done = placed.has(i); const left = x > W - 150; return `<g class="mdot" data-i="${i}" role="button" tabindex="0" aria-label="Dot ${order.indexOf(i) + 1}"><circle cx="${x}" cy="${y}" r="13" fill="transparent"/><circle cx="${x}" cy="${y}" r="7" fill="${done ? '#56693A' : '#B5442E'}" stroke="#fff" stroke-width="2"/>${done ? `<text x="${left ? x - 11 : x + 11}" y="${y + 4}" font-size="12" font-weight="700" font-family="sans-serif" fill="#1B2529" text-anchor="${left ? 'end' : 'start'}" stroke="#ECE5D0" stroke-width="3" paint-order="stroke">${n}</text>` : `<text x="${x}" y="${y + 3.5}" font-size="9" font-weight="700" text-anchor="middle" font-family="sans-serif" fill="#fff">${order.indexOf(i) + 1}</text>`}</g>`; }).join('')}</svg>`;
+    const R = 34;
+    let s = `<defs><linearGradient id="gm-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9DBBCB"/><stop offset="1" stop-color="#BBD1D9"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#gm-sea)"/>`;
+    for (let k = 1; k < 6; k++) s += `<path d="M0,${(H * k / 6).toFixed(0)} H${W} M${W * k / 6},0 V${H}" stroke="#FFFFFF" stroke-width="1" opacity="0.28"/>`;
+    s += `<path d="${land}" fill="#EFE7D0" stroke="#C9BE9E" stroke-width="1.2" stroke-linejoin="round"/>`;
+    let lines = '', dots = '', tags = '';
+    PLACES.forEach(([n, la, lo], i) => {
+      const [x, y] = P(la, lo), [bx, by] = BADGE[i], done = placed.has(i);
+      lines += `<path d="M${x.toFixed(1)},${y.toFixed(1)} L${bx.toFixed(1)},${by.toFixed(1)}" stroke="${done ? '#3F8A3A' : '#7A2E22'}" stroke-width="2.5"/>`;
+      dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${done ? 8 : 6}" fill="${done ? '#3F8A3A' : '#B5442E'}" stroke="#fff" stroke-width="2.4"/>`;
+      if (done) {
+        const m = n.match(/^(.*?)\s*(\(.*\))$/), rows = m ? [m[1], m[2]] : [n], w = Math.max(...rows.map((r) => r.length)) * 9.6 + 20, h = rows.length * 21 + 10, px = Math.max(w / 2 + 2, Math.min(W - w / 2 - 2, bx));
+        tags += `<g pointer-events="none"><rect x="${(px - w / 2).toFixed(1)}" y="${(by - h / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="8" fill="#F4F8EE" stroke="#3F8A3A" stroke-width="3"/>${rows.map((r, k) => `<text x="${px.toFixed(1)}" y="${(by - h / 2 + 22 + k * 21).toFixed(1)}" font-size="${k ? 15 : 17}" font-weight="${k ? 400 : 700}" text-anchor="middle" font-family="sans-serif" fill="#1B2529">${r}</text>`).join('')}</g>`;
+      } else tags += `<g class="mdot gbadge${sel !== null ? ' gpulse' : ''}" data-i="${i}" role="button" tabindex="0" aria-label="Dot ${order.indexOf(i) + 1}"><circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="${R + 8}" fill="transparent"/><circle class="gring" cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="${R}" fill="#FFFFFF" stroke="#B5442E" stroke-width="5"/><text x="${bx.toFixed(1)}" y="${(by + 11).toFixed(1)}" font-size="32" font-weight="700" text-anchor="middle" font-family="sans-serif" fill="#8A2E22" pointer-events="none">${order.indexOf(i) + 1}</text></g>`;
+    });
+    holder.innerHTML = `<svg class="amap" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A map with numbered badges, each joined by a line to its place">${s}${lines}${dots}${tags}</svg>`;
   };
   const drawNames = () => {
     names.innerHTML = '';
-    PLACES.forEach(([n], i) => { if (!placed.has(i)) names.append(gbtn(n, () => { sel = i; drawNames(); msg.textContent = `Now tap the dot where ${n} is.`; }, sel === i ? 'gamebtn' : 'secondary')); });
+    PLACES.forEach(([n], i) => { if (!placed.has(i)) names.append(gbtn(n, () => { sel = i; drawNames(); drawMap(); msg.textContent = `Now tap the badge that points to where ${n} is.`; }, sel === i ? 'gamebtn' : 'secondary')); });
   };
   const tap = (i) => {
-    if (sel === null) { msg.textContent = 'First choose a name, then tap its dot.'; return; }
+    if (sel === null) { msg.textContent = 'First choose a name, then tap its numbered badge.'; return; }
     if (i === sel) { placed.add(i); msg.textContent = `✅ Yes! ${PLACES[i][0]}.`; sel = null; }
-    else { msg.textContent = `Not quite. That isn’t ${PLACES[sel][0]}. Try another dot.`; return; }
+    else { msg.textContent = `Not quite. That isn’t ${PLACES[sel][0]}. Try another badge.`; return; }
     drawMap(); drawNames();
     if (placed.size === PLACES.length) { box.append(winBox('🗺️ All eight places found!', ['Every place on this map in Nova Scotia is in Mi’kma’ki. Piktuk is where the Hector landed in 1773. From there, Gaelic families spread east to Antigonish and across the Strait of Canso into Cape Breton, to places like Port Hood, beside the Mi’kmaw community of We’koqma’q. When times were hard, many young Gaels went to Halifax, and to Boston.'])); win(); }
   };
   holder.addEventListener('click', (e) => { const g = e.target.closest('.mdot'); if (g) tap(Number(g.dataset.i)); });
   holder.addEventListener('keydown', (e) => { const g = e.target.closest('.mdot'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); tap(Number(g.dataset.i)); } });
-  box.append(el('p', { class: 'readable', text: 'These places are part of the history in this game. Choose a name, then tap its dot on the map.' }), names, holder, msg);
+  box.append(el('p', { class: 'readable', text: 'These places are part of the history in this game. Choose a name, then tap the numbered badge that points to it on the map.' }), names, holder, msg);
   drawMap(); drawNames();
 }
 // ---------- 10. Word memory ----------
@@ -8151,6 +8287,144 @@ function gPatients(box, win) {
   }
   play();
 }
+// ================= GAMES, SECOND EDITION: shared feel =================
+// One place for what every mini-game shares: a small sound and a nudge when an answer is right or wrong,
+// a finish box with a "Play again" button, and the game that is being played now.
+var GAME_NOW = null;
+function gSfx(kind) {
+  try {
+    if (kind === 'bad' && navigator.vibrate) navigator.vibrate(35);
+    const a = SND._audio && SND._audio(); if (!a || !a.ctx || a.ctx.state !== 'running') return;
+    const ctx = a.ctx, out = a.master || ctx.destination, t = ctx.currentTime;
+    const notes = kind === 'win' ? [523, 659, 784, 1047] : kind === 'good' ? [659, 880] : kind === 'step' ? [392] : [208, 174];
+    notes.forEach((f, i) => { const o = ctx.createOscillator(), g = ctx.createGain(), s = t + i * 0.09; o.type = kind === 'bad' ? 'triangle' : 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, s); g.gain.linearRampToValueAtTime(kind === 'step' ? 0.05 : 0.14, s + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, s + 0.24); o.connect(g); g.connect(out); o.start(s); o.stop(s + 0.26); });
+  } catch (e) { /* sound is a nicety */ }
+}
+const gFeel = (p) => {
+  const t = (p.textContent || '').trim();
+  const k = !t ? '' : /^(✅|🔓)/.test(t) ? 'good' : /^(Not |⚠️|🛑|That is |You are out|A dead end|This part|Each )/.test(t) ? 'bad' : 'info';
+  if (k) p.dataset.k = k; else delete p.dataset.k;
+  if (!t) return;
+  p.classList.remove('pop'); void p.offsetWidth; p.classList.add('pop');
+  if (k === 'good') gSfx('good');
+  if (k === 'bad') { gSfx('bad'); const b = p.closest('.gbox'); if (b && !motionOff()) { b.classList.remove('gshake'); void b.offsetWidth; b.classList.add('gshake'); } }
+};
+{ const play0 = playGame; playGame = function (key, back, arg) { GAME_NOW = [key, back, arg]; return play0(key, back, arg); }; }
+
+// ================= GAMES, SECOND EDITION (The Milling Table) =================
+const GF2 = 'font-family="Atkinson Hyperlegible, Verdana, sans-serif"';
+const gTag2 = (x, y, t, o = {}) => `<text x="${x}" y="${y}" ${GF2} font-size="${o.size || 20}" font-weight="700" text-anchor="${o.a || 'middle'}" fill="${o.c || '#1B2529'}" stroke="${o.halo || '#F4EEE2'}" stroke-width="4" paint-order="stroke" stroke-linejoin="round" pointer-events="none">${t}</text>`;
+
+// ---------- From fleece to cloth: a row of pictures shows how far the wool has come ----------
+const gFleecePic = (lit) => {
+  const fluff = (x, y, c, c2, burrs) => [[-22, 4, 17], [-6, -8, 19], [14, -4, 18], [24, 8, 14], [2, 10, 20], [-14, 12, 14]].map(([a, b, r]) => `<circle cx="${x + a}" cy="${y + b}" r="${r}" fill="${c}"/>`).join('') + [[-10, -4, 9], [10, 2, 8]].map(([a, b, r]) => `<circle cx="${x + a}" cy="${y + b}" r="${r}" fill="${c2}"/>`).join('') + (burrs ? [[-18, 0], [4, -12], [16, 10], [-4, 14], [22, -2]].map(([a, b]) => `<path d="M${x + a - 3},${y + b} h6 M${x + a},${y + b - 3} v6" stroke="#4A3524" stroke-width="2"/>`).join('') : '');
+  const items = [
+    ['Fleece', (x) => fluff(x, 70, '#B8AC98', '#A2957E', true)],
+    ['Washed', (x) => `<path d="M${x - 38},66 h76 l-7,34 h-62 Z" fill="#8A6A44"/><path d="M${x - 38},66 h76" stroke="#5A4636" stroke-width="4"/><ellipse cx="${x}" cy="66" rx="34" ry="7" fill="#A9CBD8"/>` + [[-16, 0, 11], [0, -6, 13], [16, 0, 11]].map(([a, b, r]) => `<circle cx="${x + a}" cy="${58 + b}" r="${r}" fill="#F6F3EA"/>`).join('')],
+    ['Carded', (x) => `<g transform="rotate(-14 ${x} 70)"><rect x="${x - 34}" y="48" width="44" height="26" rx="3" fill="#9A7548" stroke="#5A4636" stroke-width="2"/><path d="M${x + 10},61 h24" stroke="#6B4E32" stroke-width="7" stroke-linecap="round"/>${Array.from({ length: 6 }, (_, k) => `<path d="M${x - 30 + k * 7},52 v18" stroke="#D8D2C0" stroke-width="1.6"/>`).join('')}</g>` + [0, 1, 2].map((k) => `<rect x="${x - 30}" y="${84 + k * 9}" width="60" height="7" rx="3.5" fill="#F6F3EA" stroke="#D8D0BC"/>`).join('')],
+    ['Spun', (x) => `<path d="M${x},30 V104" stroke="#6B4E32" stroke-width="4" stroke-linecap="round"/><path d="M${x - 6},34 q6,-8 12,0" stroke="#6B4E32" stroke-width="3" fill="none"/><ellipse cx="${x}" cy="96" rx="20" ry="6" fill="#8A6A44" stroke="#5A4636" stroke-width="2"/><path d="M${x - 9},52 L${x + 9},56 L${x - 9},62 L${x + 9},68 L${x - 9},74 L${x + 9},80 L${x - 8},86" stroke="#F0E8D6" stroke-width="5" fill="none" stroke-linejoin="round"/><path d="M${x},30 Q${x + 26},12 ${x + 34},26" stroke="#F0E8D6" stroke-width="2.4" fill="none"/>`],
+    ['Woven', (x) => `<rect x="${x - 34}" y="44" width="68" height="56" fill="#D9C8A2" stroke="#8A7A5A" stroke-width="2"/>` + Array.from({ length: 8 }, (_, k) => `<path d="M${x - 30 + k * 8.6},46 v52" stroke="#B8A47A" stroke-width="1.4"/>`).join('') + Array.from({ length: 6 }, (_, k) => `<path d="M${x - 32},${52 + k * 8.4} h64" stroke="#8A3B2E" stroke-width="${k % 3 ? 1.2 : 2.6}" opacity="0.8"/>`).join('') + Array.from({ length: 9 }, (_, k) => `<path d="M${x - 32 + k * 8},100 v8" stroke="#D9C8A2" stroke-width="2"/>`).join('')],
+    ['Milled', (x) => `<path d="M${x - 36},92 Q${x},104 ${x + 36},92 V62 Q${x},74 ${x - 36},62 Z" fill="#8A3B2E"/><path d="M${x - 36},62 Q${x},74 ${x + 36},62 V50 Q${x},62 ${x - 36},50 Z" fill="#A24A38"/><path d="M${x - 36},50 Q${x},62 ${x + 36},50 Q${x},38 ${x - 36},50 Z" fill="#B75A48"/><path d="M${x - 28},70 Q${x},80 ${x + 28},70 M${x - 28},82 Q${x},92 ${x + 28},82" stroke="#5A241C" stroke-width="2" fill="none"/>`],
+  ];
+  let s = `<rect width="600" height="140" rx="10" fill="#F2EBDA"/>`;
+  items.forEach(([name, fn], k) => { const x = 52 + k * 99.2, on = k < lit;
+    if (k) s += `<path d="M${x - 58},74 h14 m-6,-6 l6,6 l-6,6" stroke="${on ? '#56693A' : '#B8AE98'}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    s += `<g opacity="${on ? 1 : 0.22}">${fn(x)}</g>` + `<text x="${x}" y="130" ${GF2} font-size="17" font-weight="${k === lit - 1 ? 700 : 400}" text-anchor="middle" fill="${on ? '#1B2529' : '#8E8674'}">${name}</text>` + (k === lit - 1 ? `<rect x="${x - 46}" y="24" width="92" height="112" rx="10" fill="none" stroke="#56693A" stroke-width="3"/>` : ''); });
+  const d = el('div', { class: 'mapwrap gsteps' }); d.innerHTML = `<svg viewBox="0 0 600 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six small pictures in a row: a dirty fleece, washed wool, carded wool, spun thread, woven cloth and thick milled cloth. ${lit} of 6 are done.">${s}</svg>`;
+  return d; };
+gRoute = function (box, win) {
+  const STEPS = [
+    { text: 'The sheep have been sheared. The fleece is full of dirt, burrs and grease. What do you do first?', opts: [['Start spinning it right away', false, 'Dirty wool tangles and breaks, and the thread would smell like a sheep forever.'], ['Wash it and pick out the burrs and dirt', true, 'Yes! Clean wool is soft and easy to work.']] },
+    { text: 'The clean wool is a tangled mess. How do you get it ready to spin?', opts: [['Card it: brush it between two carders until the fibres all lie the same way', true, 'Yes! Carding turns a tangle into soft, fluffy rolls that are ready to spin.'], ['Pull it straight with your fingers, one strand at a time', false, 'You would still be at it next winter.']] },
+    { text: 'Now you have soft rolls of wool. How do you turn them into thread?', opts: [['Braid them together', false, 'A braid is thick and lumpy. You need fine, even thread to weave.'], ['Spin them: let the spindle twist the fibres into a long, strong thread', true, 'Yes! The twist is what makes the thread strong. Kirsty can spin thread fine enough to make her grandmother proud.']] },
+    { text: 'The thread is woven into a long piece of cloth. It is thin and loose, and the wind blows right through it. What now?', opts: [['Cut it out and sew it into a coat', false, 'A coat this thin would keep out nothing. It needs one more step.'], ['Mill it: soak it, and pound it on a board until it shrinks and thickens', true, 'Yes! Milling shrinks the cloth and makes it thick, tight and warm. Gaelic neighbours did this together at a milling frolic, singing as they worked.']] },
+  ];
+  const LIT = [1, 2, 3, 5];
+  let i = 0;
+  const draw = () => {
+    box.innerHTML = '';
+    box.append(el('div', { class: 'inkprog', 'aria-hidden': 'true' }, STEPS.map((_, k) => el('span', { class: k < i ? 'on' : '', text: k < i ? '✓' : String(k + 1) }))), gFleecePic(i >= STEPS.length ? 6 : LIT[i]));
+    if (i >= STEPS.length) { box.append(winBox('🧶 From fleece to cloth!', ['In Gaelic homes in Scotland and in Nova Scotia, families did every one of these steps by hand: washing, carding, spinning, weaving and milling. A family’s warm clothes and blankets could take a whole winter of work.', 'This is only the outline. Spinning, weaving and milling are real skills that take years to learn well. You can see a milling frolic at the Highland Village Museum in Iona, Cape Breton.'])); win(); return; }
+    const st = STEPS[i]; const msg = gmsg(); const opts = el('div', { class: 'gopts gcol' });
+    st.opts.forEach(([t, ok, why]) => { const b = gbtn(t, () => {
+      if (opts.dataset.done) return;
+      if (ok) { opts.dataset.done = '1'; b.classList.add('gpick'); msg.textContent = '✅ ' + why; box.append(gbtn(i === STEPS.length - 1 ? 'See the finished cloth →' : 'Next step →', () => { i++; draw(); }, 'gamebtn gnext')); }
+      else { b.disabled = true; msg.textContent = 'Not quite. ' + why; }
+    }, 'secondary'); opts.append(b); });
+    box.append(el('p', { class: 'readable gscene', text: st.text }), opts, msg);
+  };
+  draw();
+};
+
+// ---------- The milling frolic: everyone pounds together, on the beat ----------
+gMilling = function (box, win) {
+  box.innerHTML = '';
+  const W = 600, H = 350, GOAL = 16, SEATS = 8, ME = 5, COUNT_IN = 4;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'gsvg'); svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'A long wooden milling board seen from above, with eight people sitting around it, pounding a long loop of wet cloth in time. Your seat is marked.');
+  const seatX = (k) => 96 + Math.floor(k / 2) * 136, top = (k) => k % 2 === 0;
+  const P = [['#8A3F32', '#E8DCC0'], ['#3E4A5E', '#2E3E5E'], ['#4F5F3A', '#F2EDE0'], ['#6B5340', '#4A4438'], ['#6E4A5E', '#E8DCC0'], ['#9A4A2C', '#E8DCC0'], ['#3E5570', '#F2EDE0'], ['#5A4A38', '#2E3E5E']];
+  const SKIN = ['#F0D2B6', '#E3B795', '#EFCDAE', '#DDAE8C', '#F2D8C0', '#E8C09E', '#E9C5A4', '#F4DCC6'], HAIR = ['#3A2A1E', '#6B4A2E', '#8A4B1E', '#1E1612', '#5A3E2A', '#A8603A', '#C9A45C', '#3A2A1E'];
+  const LOOP = 'M96,146 H504 A30,30 0 0 1 504,206 H96 A30,30 0 0 1 96,146 Z';
+  svg.innerHTML = `<defs><radialGradient id="ml-light" cx="0.5" cy="0.5" r="0.7"><stop offset="0" stop-color="#F6D9A0" stop-opacity="0.55"/><stop offset="1" stop-color="#F6D9A0" stop-opacity="0"/></radialGradient></defs>
+    <rect width="${W}" height="${H}" fill="#6B5038"/>${Array.from({ length: 9 }, (_, i) => `<path d="M0,${i * 44 + 6} H${W}" stroke="#5A422E" stroke-width="2"/>`).join('')}<rect width="${W}" height="${H}" fill="url(#ml-light)"/>
+    <rect x="34" y="112" width="532" height="128" rx="10" fill="#C29A62" stroke="#7A5A36" stroke-width="4"/>${Array.from({ length: 9 }, (_, i) => `<path d="M40,${124 + i * 13} H560" stroke="#A9834E" stroke-width="1.4" opacity="0.7"/>`).join('')}
+    <path d="${LOOP}" fill="none" stroke="#5A241C" stroke-width="34" stroke-linejoin="round"/><path d="${LOOP}" fill="none" stroke="#8A3B2E" stroke-width="28" stroke-linejoin="round"/><path id="ml-weave" d="${LOOP}" fill="none" stroke="#B75A48" stroke-width="28" stroke-dasharray="10 24" opacity="0.75"/>
+    ${Array.from({ length: SEATS }, (_, k) => { const t = top(k), dir = t ? 1 : -1, y = t ? 52 : 298;
+      return `<g transform="translate(${seatX(k)} ${y})"><path d="M-30,${dir * -22} Q0,${dir * -36} 30,${dir * -22} L25,${dir * 10} L-25,${dir * 10} Z" fill="${P[k][0]}"/><g class="ml-arms" data-dir="${dir}"><path d="M-21,${dir * 2} L-13,${dir * 72}" stroke="${P[k][0]}" stroke-width="11" stroke-linecap="round"/><path d="M21,${dir * 2} L13,${dir * 72}" stroke="${P[k][0]}" stroke-width="11" stroke-linecap="round"/><circle cx="-13" cy="${dir * 80}" r="9" fill="${SKIN[k]}"/><circle cx="13" cy="${dir * 80}" r="9" fill="${SKIN[k]}"/></g><circle r="19" cy="${dir * 6}" fill="${HAIR[k]}"/><path d="M-19,${dir * 6} A19,19 0 0 ${t ? 1 : 0} 19,${dir * 6} Z" fill="${P[k][1]}"/>${k === ME ? `<circle r="30" cy="${dir * 4}" fill="none" stroke="#F6D36B" stroke-width="4"/>` : ''}</g>`; }).join('')}
+    ${gTag2(seatX(ME) + 62, 318, 'You', { size: 24, c: '#FFF6DA', halo: '#3A2C22' })}
+    <circle id="ml-ring" cx="${seatX(ME)}" cy="206" r="60" fill="none" stroke="#F6D36B" stroke-width="5" opacity="0"/><circle cx="${seatX(ME)}" cy="206" r="24" fill="none" stroke="#FFF6DA" stroke-width="3" stroke-dasharray="5 5" opacity="0.9"/>
+    <circle id="ml-flash" cx="${seatX(ME)}" cy="206" r="30" fill="#F6D36B" opacity="0"/>`;
+  const ring = svg.querySelector('#ml-ring'), flash = svg.querySelector('#ml-flash'), weave = svg.querySelector('#ml-weave'), arms = [...svg.querySelectorAll('.ml-arms')];
+  const stat = el('p', { class: 'readable gstat', role: 'status' }), msg = gmsg(), part = el('p', { class: 'readable gstat' });
+  let hits = 0, misses = 0, beat = -1, t0 = 0, period = RELAXED ? 1100 : 850, over = false, started = false, lastBeatHit = -1;
+  const WINDOW = () => (RELAXED ? 0.34 : 0.26);
+  const update = () => { stat.textContent = `Good pounds: ${hits} of ${GOAL}`; };
+  const pound = () => {
+    if (over) return;
+    if (!started) { start(); return; }
+    const f = (performance.now() - t0) / period, near = Math.round(f), off = f - near;
+    if (near < COUNT_IN) { msg.textContent = 'Listen first: wait for the count of four.'; return; }
+    if (Math.abs(off) < WINDOW() && lastBeatHit !== near) {
+      lastBeatHit = near; hits++; msg.textContent = hits % 4 === 0 ? '👏 Everyone thunders out the chorus!' : '✅ Thump! Right on the beat.';
+      flash.setAttribute('opacity', '0.8'); setTimeout(() => flash.setAttribute('opacity', '0'), 150);
+      if (hits >= GOAL) finish(); update();
+    } else if (lastBeatHit !== near || Math.abs(off) >= WINDOW()) {
+      misses++; msg.textContent = off < 0 ? 'A little early. Wait for the ring to close on your hands.' : 'A little late. Pound just as the ring closes on your hands.';
+      if (misses >= (RELAXED ? 14 : 10)) { over = true; msg.textContent = '😅 The cloth slipped out of your hands and everyone laughed. Try again!'; go.hidden = true; box.append(gbtn('Try again', () => gMilling(box, win), 'gamebtn gbig')); }
+    }
+  };
+  const finish = () => {
+    over = true; go.hidden = true;
+    box.append(winBox('🧶 The cloth is milled!', ['At a real milling frolic, the wet cloth goes around the board from hand to hand, and everyone pounds it in time. One person sings the verse, and everyone sings the chorus. The songs are called òrain luadhaidh (AW-rin LOO-uh-ee), milling songs.', 'The rhythm in this game is made up. To hear real milling songs sung by Nova Scotia Gaelic singers, visit the Highland Village Museum in Iona, or Gaelstream (Sruth nan Gàidheal) from St. Francis Xavier University.']));
+    win();
+  };
+  svg.addEventListener('pointerdown', (e) => { e.preventDefault(); pound(); });
+  gameKeys(box, (e) => { if (e.code === 'Space' && !e.target.closest('input,textarea,button')) { e.preventDefault(); pound(); } });
+  const frame = (now) => {
+    if (!box.isConnected || over) return;
+    const f = (now - t0) / period, k = Math.floor(f), frac = f - k;
+    if (k !== beat) { beat = k; gSfx('step');
+      if (k < COUNT_IN) msg.textContent = `Listen… ${k + 1}`; else if (k === COUNT_IN) msg.textContent = 'Now! Pound on every beat.';
+      if (k > COUNT_IN && (k - COUNT_IN) % SEATS === 0 && period > (RELAXED ? 750 : 560)) { const keep = f; period *= 0.94; t0 = now - keep * period; } }
+    // everyone's hands come down together on the beat, then lift
+    const lift = Math.sin(Math.min(1, frac) * Math.PI) * 18;
+    arms.forEach((a) => a.setAttribute('transform', `translate(0 ${(-Number(a.dataset.dir) * lift).toFixed(1)})`));
+    weave.setAttribute('stroke-dashoffset', (-(k + (frac < 0.25 ? frac / 0.25 : 1)) * 34).toFixed(1));
+    ring.setAttribute('r', (24 + 46 * (1 - frac)).toFixed(1)); ring.setAttribute('opacity', (0.25 + 0.75 * frac).toFixed(2));
+    part.textContent = k < COUNT_IN ? '🎵 The song begins…' : (Math.floor((k - COUNT_IN) / SEATS) % 2) ? '🎶 Chorus: everyone sings!' : '🎵 Verse: one voice sings';
+    requestAnimationFrame(frame);
+  };
+  const start = () => { if (started) return; started = true; go.textContent = '✊ Pound!'; msg.textContent = 'Listen… 1'; try { svg.scrollIntoView({ behavior: motionOff() ? 'auto' : 'smooth', block: 'start' }); } catch (e) { /* fine */ } requestAnimationFrame((n) => { t0 = n; beat = -1; requestAnimationFrame(frame); }); };
+  const go = gbtn('▶ Start the song', pound, 'primary gbig');
+  box.append(relaxedToggle(box, () => gMilling(box, win)),
+    el('p', { class: 'readable', text: `Everyone at the board pounds the wet cloth together, in time with the song. Watch the gold ring: when it closes on your hands, tap the board, tap the button or press Space. Get ${GOAL} good pounds. It gets faster and faster, just like a real milling song.` }),
+    svg, part, stat, go, msg);
+  update(); part.textContent = '🎵 Eight people at the milling board';
+};
+
 const GAMES = {
   chest: { icon: '🧳', name: 'Pack the sea chest', blurb: 'Tomorrow you sail on the Hector. What goes in the chest?', where: 'Kirsty at Loch Broom', run: (b, w) => gCoffre(b, w, 'chest') },
   fleece: { icon: '🧶', name: 'From fleece to cloth', blurb: 'Make the right choice at each step, from a sheep’s back to warm cloth.', where: 'Kirsty and her grandmother', run: gRoute },
