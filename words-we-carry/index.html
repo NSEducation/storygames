@@ -1224,7 +1224,8 @@ const ART = (() => {
       muin: { g: 'MK', sex: 'm', age: 'girl', skin: '#C39A74', hair: '#1A1410', era: 'y2026', outfit: 'hoodie', top: '#2E4A7A', bottom: '#3D5A80', shoes: '#F4F1E8' },   // age 'girl' is only the body shape of an older child
       // the cover only: the five people you can play, side by side at the ages their stories begin (8, 12, 22, 7 and 13)
       theresa7: { like: 'theresa', age: 'kid' },
-      kaylee: { g: 'MK', sex: 'f', age: 'girl', skin: '#CBA37E', hair: '#221912', style: 'pony', ribbon: '#3A3A40', era: 'y2026', outfit: 'jacket26', top: '#7A3E5A', bottom: '#2A2A30', shoes: '#F4F1E8' },
+      kaylee: { g: 'MK', sex: 'f', age: 'adult', skin: '#CBA37E', hair: '#221912', style: 'pony', ribbon: '#3A3A40', era: 'y2026', outfit: 'jacket26', top: '#7A3E5A', bottom: '#2A2A30', shoes: '#F4F1E8' },
+      amira: { g: 'EU', sex: 'f', age: 'girl', skin: '#D8AE88', hair: '#1E1612', style: 'long', era: 'y2026', outfit: 'hoodie', top: '#8E949C', bottom: '#2E4468', shoes: '#2A2A30' },
       gTheresa: { g: 'MK', sex: 'f', age: 'elder', skin: '#CBA37E', hair: '#C9C7C1', style: 'bob', era: 'y2026', top: '#E6EEF2', cardigan: '#7A3E4A', bottom: '#3E4E5E' },
       ruthOld: { g: 'AF', sex: 'f', age: 'elder', skin: '#7A4E32', hair: '#C9C7C1', style: 'crop', era: 'y2026', top: '#F2E2D0', cardigan: '#2E6E6A', bottom: '#4A4A52' },
       marylouOld: { g: 'MK', sex: 'f', age: 'elder', skin: '#B58861', hair: '#D6D4CE', style: 'bun', era: 'y2026', top: '#DCE9DC', cardigan: '#5A4A6A', bottom: '#2E2E36' },
@@ -1241,9 +1242,9 @@ const ART = (() => {
       cover: { LW: ['chickAdult'], GIRL: ['lizzie', 'theresa'], TC: ['frank'], CHILD: ['muin'] },
       3: { M: { 9: 'joe', '*': 'recruit' } }, 6: { W: ['mama', 'ward'] }, 7: { M: ['townMan'] }, 10: { M: ['lonecloud'] }, 14: { W: ['teacher16'] }, 15: { M: ['cousin'] },
       18: { M: ['townMan', 'townMan'] }, 20: { W: ['churchWoman'] }, 21: { M: ['lonecloud'] }, 46: { M: ['townMan'] },
-      100: { W: ['lizzieAdult'], CHILD: ['-', '-'] }, 101: { W: ['lizzieAdult'], M: ['driver'] }, 102: { W: ['lizzieAdult'] }, 103: { W: ['lizzieAdult'] }, 104: { W: ['lizzieOld', 'wardD'] },
+      100: { W: ['lizzieAdult'], CHILD: ['-', '-'] }, 101: { W: ['lizzieAdult'], M: ['driver'] }, 102: { W: ['lizzieAdult'], EM: ['joe'] }, 103: { W: ['lizzieAdult'] }, 104: { W: ['lizzieOld', 'wardD'] },
       105: { W: ['lizzieOld'], CHILD: ['-', '-'] }, 106: { W: ['lizzieOld'] }, 107: { PM: ['judge'] }, 110: { W: ['lizzieBoston'] }, 112: { W: ['lizzieOld'] },
-      201: { GIRL: ['theresa', 'marylou0'] }, 203: { GIRL: ['theresa'] }, 206: { GIRL: ['theresa', 'marylouShort'] }, 207: { GIRL: ['theresa', 'marylouShort'] },
+      201: { GIRL: ['theresa', 'marylou0'] }, 203: { GIRL: ['theresa'] }, 206: { GIRL: ['theresa', 'marylouShort'] }, 207: { GIRL: ['theresa', 'marylouShort'] }, 230: { GIRL: ['theresa', 'marylouShort'] }, 231: { GIRL: ['theresa', 'marylouShort'] },
       211: { PW: ['tmom'] }, 215: { PW: ['tmom'] }, 217: { PW: ['tmom'] }, 216: { M: ['clerk59'] }, 234: { M: ['clerk59'] }, 235: { M: ['clerk59'] },
       218: { W: ['teacher64'] }, 220: { W: ['teacher64'] }, 236: { W: ['teacher64'] }, 238: { W: ['gLizzieCoat'] },
       219: { GIRL: ['theresa', 'ruth'] }, 241: { GIRL: ['theresa', 'ruth'] }, 303: { GIRL: ['theresa', 'ruth'] }, 221: { GIRL: ['theresa', 'ruth'] },
@@ -1251,10 +1252,11 @@ const ART = (() => {
       300: { PW: ['theresaAdult', 'marylouAdult'] }, 301: { PW: ['gTheresa', 'marylouOld'] }, 302: { PW: ['tmomOld', 'theresa60'] }, 305: { PW: ['theresaAdult'] },
       306: { PW: ['theresaAdult', '-'], CHILD: ['-'] }, 307: { PW: ['theresaAdult'], CHILD: ['-'], GIRL: ['-'] }, 308: { W: ['theresaTeacher'] }, 310: { PW: ['theresaAdult'], CHILD: ['-', '-'] },
       311: { PW: ['theresaAdult'] }, 312: { PW: ['gTheresa'], CHILD: ['-'] }, 313: { PW: ['-'] },
-      502: { W: ['teacher26'] }, 513: { W: ['teacher26'] }, 532: { W: ['teacher26'] }, 533: { W: ['teacher26'] }, 503: { PW: ['gTheresa', 'marylouOld'] },
+      502: { W: ['teacher26'] }, 513: { W: ['teacher26'] }, 532: { W: ['teacher26'] }, 533: { W: ['teacher26'] }, 503: { PW: ['gTheresa', 'marylouOld'] }, 505: { PW: ['gTheresa', 'marylouOld'] }, 607: { PW: ['gTheresa', 'marylouOld'] },
       509: { CHILD: ['muin', 'acadianBoy'] }, 603: { CHILD: ['muin', 'acadianBoy'] }, 512: { PW: ['elder26'] }, 541: { PW: ['elder26'] }, 606: { PW: ['elder26'] }, 538: { PW: ['elder26'] },
-      515: { PW: ['mmom', 'gTheresa'] }, 614: { PW: ['mmom'] }, 534: { PW: ['worker'] }, 539: { GIRL: ['-'] }, 611: { GIRL: ['-'] }, 610: { GIRL: ['-'], PW: ['elder26'] },
-      743: { LE: ['celderMan'] }, 731: { LE: ['-'], LW: ['chickAdult'] },
+      515: { PW: ['mmom', 'gTheresa'] }, 614: { PW: ['mmom'] }, 534: { PW: ['worker'] }, 539: { GIRL: ['amira'] }, 611: { GIRL: ['amira'] }, 610: { GIRL: ['-'], PW: ['elder26'] },
+      743: { LE: ['celderMan'], CHILD: ['chick8'] }, 709: { LE: ['celderMan'] }, 731: { LE: ['-'], LW: ['chickAdult'] }, 735: { LE: ['cnukumi'] },
+      744: { LG: ['chick14'], LW: ['cmother'] }, 801: { LM: ['cfather'] }, 812: { LE: ['-'] }, 813: { LW: ['-'] }, 903: { SEAT: ['frankCiv'] }, sC1: { CHILD: ['chick8'] },
       723: { RUN: ['chickAdult'] }, 24: { PAD: ['nukumi', 'lizzie'] },
       927: { TC: { 1: 'king', '*': 'officer' }, ME: '-' }, 944: { PM: ['frankBlues'] }, 961: { W: ['shopW'] }, 963: { M: ['agent'] }, 1001: { M: ['agent'] }, 1010: { M: ['agent'] }, 1009: { M: ['clerk19'] },
       900: { M: ['frankCiv'] }, 901: { M: ['frankCiv'] }, 902: { TC: ['sergeant'], TB: ['frankCiv'], M: { '*': 'recruit15' } }, 904: { TC: ['sergeant'], TB: ['frankCiv'], M: { '*': 'recruit15' } },
@@ -1834,13 +1836,14 @@ const ART = (() => {
     // ---------- the figure function the pictures call ----------
     // The old ink figures had one small child shape for every young person. In colour that made a twelve-year-old look six.
     // So the older children stand taller: Lizzie is 12, Muin and Kaylee are 13, and Theresa, Mary-Lou and Ruth are 12 by 1964.
-    const GROW = { lizzie: 1.18, muin: 1.18, kaylee: 1.18, acadianBoy: 1.18, ruth: 1.18 };
+    const GROW = { lizzie: 1.18, muin: 1.18, acadianBoy: 1.18, amira: 1.18, ruth: 1.18, kaylee: 1.16 };   // Kaylee is Muin's older sister, nearly grown
     function growOf(L, h, o) {
       if (o.grow) return o.grow;
-      if (L.pose !== 'stand' || !L.kid || o.bg) return 1;
+      if (L.pose !== 'stand' || o.bg) return 1;
       const k = Number(ctx.key); let gr = GROW[L.role] || 1;
-      if (/^(theresa|marylou)/.test(L.role)) gr = k >= 207 && k <= 210 ? 1.09 : (k >= 211 || ctx.key === 'sT2') ? 1.18 : 1;   // seven in 1959, twelve in 1964
-      if (!L.role && ctx.story === 'muin' && L.era === 'y2026') gr = 1.18;   // Muin's classmates are thirteen too
+      // Theresa and Mary-Lou are seven in 1959 and twelve in 1964. Pictures 230 to 232 belong to the summer of 1960.
+      if (/^(theresa|marylou)/.test(L.role) && L.kid) gr = k >= 207 && k <= 210 ? 1.09 : ((k >= 211 && !(k >= 230 && k <= 232)) || ctx.key === 'sT2') ? 1.18 : 1;
+      if (!L.role && L.kid && ctx.story === 'muin' && L.era === 'y2026') gr = 1.18;   // Muin's classmates are thirteen too
       return 1 + (gr - 1) * Math.max(0, Math.min(1, (100 - h) / 22));   // a figure the picture already draws large is left alone
     }
     function fig(kind, x, y, h, o) {
