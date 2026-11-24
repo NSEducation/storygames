@@ -717,6 +717,9 @@
   .sheet .ffbox { border-color: #2F6B4A; background: #EDF5F0; } .sheet .ffbox > h2 { background: #2F6B4A; color: #fff; }
   .sheet .runsum { border-color: #5A5A3A; background: #F2F1E6; } .sheet .runsum > h2 { background: #5A5A3A; color: #fff; }
   .sheet .source { border-color: #6B4A2E; background: #F8F3EC; } .sheet .source > h2 { background: #6B4A2E; color: #fff; }
+  .sheet .photo { margin: 1.6rem 0; padding: 0 1.1rem 1rem; border: 2px solid #3A3A3A; border-radius: 12px; background: #F3F3F1; overflow: hidden; }
+  .sheet .photo > h2 { margin: 0 -1.1rem 0.8rem; padding: 0.55rem 1.1rem; font-size: 1.02rem; background: #3A3A3A; color: #fff; }
+  .sheet .photo .photobtn { display: inline-block; text-decoration: none; margin-top: 0.3rem; }
   /* pop-up chips and panels */
   .pop-note .popchip { background: #FAEFE9; border-color: #9A4A2C; color: #9A4A2C; } .pop-note .poppanel { background: #FAEFE9; border-color: #9A4A2C; color: var(--ink); }
   .pop-riddle .popchip { background: #F2F1E6; border-color: #5A5A3A; color: #5A5A3A; } .pop-riddle .poppanel { background: #F2F1E6; border-color: #5A5A3A; color: var(--ink); }
@@ -3968,6 +3971,17 @@ function runSummary() {
     ...(chicks ? [el('p', { class: 'readable', text: `🐦 Chickadees you spotted in the pictures: ${chicks}` })] : []),
   ]);
 }
+// Real photographs from the time: a button on these scenes opens the photo in a new tab.
+const PHOTOS = {"9": ["https://commons.wikimedia.org/wiki/File:Staff_officers_and_officers,_Nova_Scotia_Highland_Brigade,_Aldershot_Camp,_Nova_Scotia.W.G_(HS85-10-32003).jpg", "Officers of the Nova Scotia Highland Brigade at Camp Aldershot, Nova Scotia, 1916. It is a wide panorama photo, so scroll or zoom to see everyone.", "Picturing Canada collection, British Library, on Wikimedia Commons. Public domain."], "24": ["https://commons.wikimedia.org/wiki/File:Mule_team_drawing_ammunition_on_light_railway_track_near_Petit_Vimy_-_April_1917_-_MIKAN_3628733.jpg", "A mule team pulls ammunition along a light railway near Petit Vimy, April 1917. When there was no engine, mules did the pulling.", "Library and Archives Canada (PA-001135), on Wikimedia Commons. Public domain."], "44": ["https://commons.wikimedia.org/wiki/File:Vimy_Ridge_-_Canadian_machine_gun_crews.jpeg", "Canadian machine gunners dig themselves into shell holes on top of Vimy Ridge, April 1917.", "Library and Archives Canada (PA-001017), on Wikimedia Commons. Public domain."], "47": ["https://commons.wikimedia.org/wiki/File:Stretcher_bearers_%26_German_POWs_bringing_in_wounded_during_Battle_of_Vimy_Ridge.jpg", "Stretcher-bearers and German prisoners carry wounded men in from the battlefield at Vimy Ridge, April 1917.", "Library and Archives Canada, on Wikimedia Commons. Public domain."], "54": ["https://commons.wikimedia.org/wiki/File:Second_Battle_of_Passchendaele_-_Canadian_Pioneers_and_German_prisoners.jpg", "Passchendaele, November 1917. Canadians carry duckboards (trench mats) forward through the mud, while German prisoners help carry wounded Canadians back.", "Canadian official war photograph, on Wikimedia Commons. Public domain."], "59": ["https://commons.wikimedia.org/wiki/File:HM_King_Edward_VIII_unveiling_the_figure_of_Canada_on_the_Vimy_Ridge_Memorial.jpg", "King Edward VIII unveils the figure of Canada on the Vimy Memorial, July 26, 1936.", "On Wikimedia Commons."], "216": ["https://digital.nls.uk/first-world-war-official-photographs/archive/74546436", "A Canadian battalion is inspected while wearing gas helmets, like the one in this scene.", "British official First World War photograph (C.1240), National Library of Scotland."], "232": ["https://commons.wikimedia.org/wiki/File:Tank_preparing_to_advance_at_Flers-Courcelette_15-09-1916_IWM_Q_5574.jpg", "A Mark I tank, one of the very first tanks, gets ready to advance at Flers-Courcelette on September 15, 1916.", "Photo by John Warwick Brooke. Imperial War Museums (Q 5574), on Wikimedia Commons."], "242": ["https://en.wikipedia.org/wiki/File:Dressing_wounded_in_trench_during_the_battle_of_Courcelette._Sept._15,_1916.jpg", "Wounded soldiers have their wounds dressed in a trench during the Battle of Courcelette, September 15, 1916.", "Canadian official war photograph, on Wikimedia Commons. Public domain."], "246": ["https://commons.wikimedia.org/wiki/File:The_Battle_of_the_Somme,_July-november_1916_Q1498.jpg", "Canadian soldiers, probably from the 25th Battalion (Nova Scotia Rifles), eat their rations outside a shelter near Pozières, October 1916.", "Imperial War Museums (Q 1498), on Wikimedia Commons."]};
+function photoBox(id) {
+  const ph = PHOTOS[id]; if (!ph) return null;
+  return el('section', { class: 'photo noprint' }, [
+    el('h2', { class: 'readable', text: '📷 A real photograph' }),
+    el('p', { class: 'readable', text: ph[1] }),
+    el('p', { class: 'kind', text: ph[2] }),
+    el('a', { class: 'gamebtn secret photobtn', href: ph[0], target: '_blank', rel: 'noopener', text: '📷 See the real photo (opens a new tab)' }),
+  ]);
+}
 function render(id) {
   undoBtn.hidden = trail.length === 0;
   const s = STORY[id];
@@ -3998,6 +4012,7 @@ function render(id) {
   nodes.push(story);
   if (s.fact) nodes.push(el('section', { class: 'fact' }, [el('h2', { class: 'readable', text: '💡 Did you know?' }), rich('p', { class: 'readable' }, s.fact)]));
   if (s.hnote) { nodes.push(el('section', { class: 'note' }, [el('h2', { class: 'readable', text: '📘 History Note' }), el('p', { class: 'kind', text: '🖊️ Written today to explain what really happened. Tick “History Note” in your booklet.' }), rich('p', { class: 'readable' }, s.hnote)])); const wf = ffBox('Why did it happen?'); if (wf) nodes.push(wf); }
+  const pb = photoBox(id); if (pb) nodes.push(pb);
   const srcs = sourcesAt(id);
   if (srcs.length) {
     const holder = el('div');
