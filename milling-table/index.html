@@ -2650,7 +2650,6 @@ const GAME = {
 };
 const LEARN = {
   ff: {
-    'Why did it happen?': ['Most of the families on the Hector were forced off their land to make way for sheep.', false, 'Historians say most Hector families were tenant farmers leaving high rents and poor harvests. The great forced clearances, like the one on Rum in 1826, came mostly later.'],
     'The First Winter': ['The Hector passengers found farms and houses waiting for them at Pictou.', false, 'They found thick forest. The food and shelter they had been promised were not there, and Mi’kmaw families helped them through the first winter.'],
     'Loch Broom Again': ['Gaelic settlers named some places in Nova Scotia after places in Scotland.', true, 'Loch Broom, Arisaig, Keppoch and Eigg Mountain are a few. Every one of those places also has an older Mi’kmaw history.'],
     'Truro and Back': ['Every Hector family stayed at Pictou through the first hard years.', false, 'Many went to Truro, Londonderry, Windsor or Cornwallis. Most of them came back to Pictou later.'],
@@ -2670,6 +2669,7 @@ const LEARN = {
     'Port Hood': ['There was a medicine that could cure the flu of 1918.', false, 'There was no cure. Rest, warmth, food and careful nursing were the most important care there was. About 50,000 Canadians died.'],
     'The Petition of 1920': ['After 1921, Gaelic was taught in every school in Nova Scotia.', false, 'Gaelic became an optional subject, but there were almost no trained teachers or books, so for many years it was rarely taught.'],
     'Who Helped': ['Gaelic speakers and First Nations people were treated the same way by the government.', false, 'Gaelic was pushed out of the schools. First Nations lived under the Indian Act, which controlled their land, their families and their lives. These are not the same.'],
+    sK1: ['Most of the families on the Hector were forced off their land to make way for sheep.', false, 'Historians say most Hector families were tenant farmers leaving high rents and poor harvests. The great forced clearances, like the one on Rum in 1826, came mostly later.'],
     sK2: ['Piktuk, the Mi’kmaw name for Pictou, describes something about the place.', true, 'It means something like “the explosive place,” because of gas that bubbles up from the ground.'],
     sA1: ['After the clearances, the Isle of Rum was full of new farming families.', false, 'Afterward, almost the only people left were a few shepherds and one family of islanders. The land was used for 8,000 sheep.'],
     sM2: ['Songs printed for the Cape Breton Highlanders in 1916 were all in English.', false, 'The songbook of the 185th Battalion had songs in English and Gaelic.'],
@@ -4329,7 +4329,7 @@ function render(id) {
   withFirsts(id, s.p).forEach((t) => story.appendChild(rich('p', { class: 'readable' }, t)));
   nodes.push(story);
   if (s.fact) nodes.push(el('section', { class: 'fact' }, [el('h2', { class: 'readable', text: '💡 Did you know?' }), rich('p', { class: 'readable' }, s.fact)]));
-  if (s.hnote) { nodes.push(el('section', { class: 'note' }, [el('h2', { class: 'readable', text: '📘 History Note' }), el('p', { class: 'kind', text: '🖊️ Written today to explain what really happened. Tick “History Note” in your booklet.' }), rich('p', { class: 'readable' }, s.hnote)])); const wf = ffBox('Why did it happen?'); if (wf) nodes.push(wf); }
+  if (s.hnote) { nodes.push(el('section', { class: 'note' }, [el('h2', { class: 'readable', text: '📘 History Note' }), el('p', { class: 'kind', text: '🖊️ Written today to explain what really happened. Tick “History Note” in your booklet.' }), rich('p', { class: 'readable' }, s.hnote)])); }
   const srcs = sourcesAt(id);
   if (srcs.length) {
     const holder = el('div');
