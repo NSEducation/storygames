@@ -458,6 +458,7 @@
   #looktip { position: fixed; z-index: 80; max-width: 250px; background: #1E2430; color: #FFFFFF; border-radius: 10px; padding: 0.45rem 0.7rem; font: 600 0.92rem/1.3 system-ui, -apple-system, 'Segoe UI', sans-serif; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); pointer-events: none; }
   #looktip span { display: block; font-weight: 400; font-size: 0.84rem; margin-top: 0.15rem; }
   @media print { #looktip { display: none; } }
+  .art .chick:focus { outline: none; }
   .art .chick:focus-visible { outline: 2px solid #FFF3C4; }
   .art .chick.found .chickbody { filter: drop-shadow(0 0 2px #FFF3C4); }
   .inkcard { border: 1px solid var(--rule); border-radius: 12px; padding: 0.7rem 1rem; margin: 0.7rem 0; }
@@ -5096,6 +5097,8 @@ function gamePicture(svg, where) {
   };
   wrap.addEventListener('click', hit);
   wrap.addEventListener('keydown', hit);
+  // a mouse click or a tap must not move the keyboard focus onto a bird or an animal (it drew a box round it, and in one game moved the bird)
+  wrap.addEventListener('mousedown', (e) => { if (e.target.closest && e.target.closest('.chick, .critter, [data-tip]')) e.preventDefault(); });
   return wrap;
 }
 function onGlint(key, where) {
@@ -10243,12 +10246,32 @@ function lookFlyStart(el) {
   const dir = Number(el.dataset.fly || 1), left = -(bb.x + bb.width) - 26, right = 626 - bb.x;
   const lo = Number(el.dataset.min || 14) - bb.y, hi = Math.max(lo + 12, Number(el.dataset.max || (flock ? 96 : 110)) - bb.y - bb.height);
   if (LOOK_RM) { el.style.transform = `translate(${Number(el.dataset.x || 300) - bb.x}px, ${(lo + hi) / 2}px)`; return; }
+  // A bird waits where it is while the pointer is on it, while it is tabbed to, and for a moment after a click or a tap.
+  // It is never moved by a click (23-25 Nov 2026: a click used to send it to another place, or out of the picture).
+  let cur = null, over = false, keyed = false, until = 0, timer = 0;
+  const still = () => over || keyed || Date.now() < until;
+  const sync = () => { if (!cur) return; try { if (still()) { if (cur.playState === 'running') cur.pause(); } else if (cur.playState === 'paused') cur.play(); } catch (e) { /* leave it flying */ } };
+  const wait = (ms) => { until = Math.max(until, Date.now() + ms); clearTimeout(timer); timer = setTimeout(sync, until - Date.now() + 40); sync(); };
+  const hook = () => {
+    el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'touch') return; over = true; sync(); });
+    el.addEventListener('pointerleave', () => { over = false; sync(); });
+    el.addEventListener('pointerdown', () => wait(1800));
+    el.addEventListener('click', () => wait(2600));
+    // Tab to it: it waits, and if it is out of the picture it comes to the middle of its crossing so it can be seen
+    el.addEventListener('focusin', (e) => { let kb = true; try { kb = e.target.matches(':focus-visible'); } catch (err) { /* older browsers */ } if (!kb) return; keyed = true;
+      try { const t = cur.effect.getComputedTiming(), now = Number(cur.currentTime) || 0, p = (now - t.delay) / t.duration; if (p < 0.15 || p > 0.85) cur.currentTime = t.delay + t.duration * 0.5; } catch (err) { /* stays where it is */ }
+      sync(); });
+    el.addEventListener('focusout', () => { keyed = false; sync(); });
+  };
   const pass = (first) => { if (!el.isConnected) return;
     const y0 = lo + Math.random() * (hi - lo), y1 = Math.max(lo, Math.min(hi, y0 + (Math.random() - 0.5) * 34));
-    const x0 = dir > 0 ? left : right, x1 = dir > 0 ? right : left;
-    const a = el.animate([{ transform: `translate(${x0}px, ${y0}px)` }, { transform: `translate(${(x0 + x1) / 2}px, ${(y0 + y1) / 2 - 7}px)` }, { transform: `translate(${x1}px, ${y1}px)` }],
+    const x0 = dir > 0 ? left : right, x1 = dir > 0 ? right : left, old = cur;
+    cur = el.animate([{ transform: `translate(${x0}px, ${y0}px)` }, { transform: `translate(${(x0 + x1) / 2}px, ${(y0 + y1) / 2 - 7}px)` }, { transform: `translate(${x1}px, ${y1}px)` }],
       { duration: (flock ? 30000 : Number(el.dataset.dur || 14000)) * (0.85 + Math.random() * 0.4), easing: 'linear', fill: 'both', delay: first ? 300 + Math.random() * 2400 : 2500 + Math.random() * 7000 });
-    a.onfinish = () => pass(false); };
+    cur.onfinish = () => pass(false);
+    if (old) { try { old.onfinish = null; old.cancel(); } catch (e) { /* already gone */ } }
+    sync(); };
+  if (!flock) hook();   // a bird you can point at waits for you; the far-off flocks fly on
   pass(true);
 }
 try { new MutationObserver(() => document.querySelectorAll('.art .anim-fly, .art .lookfly').forEach(lookFlyStart)).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) { /* older browsers: the birds stay where they are */ }

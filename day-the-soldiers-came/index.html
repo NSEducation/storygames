@@ -133,8 +133,6 @@
   @keyframes croti-slide{0%{opacity:0}14%{opacity:0}14.3%{opacity:1}30%{opacity:1}30.3%{opacity:0}64%{opacity:0}64.3%{opacity:1}80%{opacity:1}80.3%{opacity:0}100%{opacity:0}}
   /* hold still to be clicked: hover holds an animal or a bird; a bird that is tabbed to waits at its place */
   .art .critter:hover *, .art .critter:focus-visible * { animation-play-state: paused; }
-  .art .fx-cross:hover { animation-play-state: paused; }
-  .art .fx-cross:focus-within { animation: none; }
 </style>
 <style id="quizcss">
   .quizbox .quizcount { font-size: 0.9rem; opacity: 0.85; margin: 0.2rem 0; }
@@ -606,6 +604,7 @@
   .gsearch { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
   .gsearch a { border: 1px solid var(--rule); border-radius: 999px; padding: 0.3rem 0.75rem; text-decoration: none; }
   .art .chick { cursor: pointer; }
+  .art .chick:focus { outline: none; }
   .art .chick:focus-visible { outline: 2px solid #FFF3C4; }
   .art .chick.found .chickbody { filter: drop-shadow(0 0 2px #FFF3C4); }
   .inkcard { border: 1px solid var(--rule); border-radius: 12px; padding: 0.7rem 1rem; margin: 0.7rem 0; }
@@ -5403,20 +5402,34 @@ function fxFlyStart(el) {
   const W = Number(el.dataset.w) || 600, dir = Number(el.dataset.dir) || 1, speed = Number(el.dataset.speed) || 48, home = Number(el.dataset.y) || 90;
   const x0 = dir > 0 ? -(bb.x + bb.width) - 30 : W + 30 - bb.x, x1 = dir > 0 ? W + 30 - bb.x : -(bb.x + bb.width) - 30;
   const lo = Math.max(18, Math.min(home, 100) - 55), hi = Math.min(110, home + 15), mid = bb.y + bb.height / 2;   // keeps to the sky
-  let cur = null, held = false;
+  // A bird waits where it is while the pointer is on it, while it is tabbed to, and for a moment after a click or a tap.
+  // It is never moved by a click (23-25 Nov 2026: a click used to send it to another place, or out of the picture).
+  let cur = null, over = false, keyed = false, until = 0, timer = 0;
+  const still = () => over || keyed || Date.now() < until;
+  const sync = () => { if (!cur) return; try { if (still()) { if (cur.playState === 'running') cur.pause(); } else if (cur.playState === 'paused') cur.play(); } catch (e) { /* leave it flying */ } };
+  const wait = (ms) => { until = Math.max(until, Date.now() + ms); clearTimeout(timer); timer = setTimeout(sync, until - Date.now() + 40); sync(); };
+  const hook = () => {
+    el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'touch') return; over = true; sync(); });
+    el.addEventListener('pointerleave', () => { over = false; sync(); });
+    el.addEventListener('pointerdown', () => wait(1800));
+    el.addEventListener('click', () => wait(2600));
+    // Tab to it: it waits, and if it is out of the picture it comes to the middle of its crossing so it can be seen
+    el.addEventListener('focusin', (e) => { let kb = true; try { kb = e.target.matches(':focus-visible'); } catch (err) { /* older browsers */ } if (!kb) return; keyed = true;
+      try { const t = cur.effect.getComputedTiming(), now = Number(cur.currentTime) || 0, p = (now - t.delay) / t.duration; if (p < 0.15 || p > 0.85) cur.currentTime = t.delay + t.duration * 0.5; } catch (err) { /* stays where it is */ }
+      sync(); });
+    el.addEventListener('focusout', () => { keyed = false; sync(); });
+  };
   const pass = (first) => {
     if (!el.isConnected) return;
     const a = lo + Math.random() * (hi - lo), b = Math.max(lo, Math.min(hi, a + (Math.random() - 0.5) * 30));   // a new height each time
+    const old = cur;
     cur = el.animate([{ transform: `translate(${x0}px, ${a - mid}px)` }, { transform: `translate(${(x0 + x1) / 2}px, ${(a + b) / 2 - mid - 6}px)` }, { transform: `translate(${x1}px, ${b - mid}px)` }],
       { duration: (Math.abs(x1 - x0) / speed) * 1000, easing: 'linear', fill: 'both', delay: first ? 400 + Math.random() * 1400 : 2500 + Math.random() * 6000 });
-    if (held) cur.pause();
     cur.onfinish = () => pass(false);
+    if (old) { try { old.onfinish = null; old.cancel(); } catch (e) { /* already gone */ } }   // no finished crossing is left behind under the new one
+    sync();
   };
-  const hold = (v) => { held = v; if (cur) { if (v) cur.pause(); else cur.play(); } };
-  el.addEventListener('pointerenter', () => hold(true)); el.addEventListener('pointerleave', () => hold(false));
-  // Tab to it and it waits at its own place, where it can be seen; Tab away and it sets off again
-  el.addEventListener('focusin', () => { held = false; if (cur) { cur.onfinish = null; cur.cancel(); cur = null; } });
-  el.addEventListener('focusout', () => { if (!cur) pass(true); });
+  hook();
   pass(true);
 }
 try { new MutationObserver(() => document.querySelectorAll('.art .fx-cross').forEach(fxFlyStart)).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) { /* older browsers: the bird stays at its place */ }
@@ -5644,6 +5657,8 @@ function gamePicture(svg, where) {
   };
   wrap.addEventListener('click', hit);
   wrap.addEventListener('keydown', hit);
+  // a mouse click or a tap must not move the keyboard focus onto a bird or an animal (it drew a box round it, and in one game moved the bird)
+  wrap.addEventListener('mousedown', (e) => { if (e.target.closest && e.target.closest('.chick, .critter, [data-tip]')) e.preventDefault(); });
   return wrap;
 }
 function onGlint(key, where) {

@@ -453,6 +453,7 @@
   .gsearch { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
   .gsearch a { border: 1px solid var(--rule); border-radius: 999px; padding: 0.3rem 0.75rem; text-decoration: none; }
   .art .chick { cursor: pointer; }
+  .art .chick:focus { outline: none; }
   .art .chick:focus-visible { outline: 2px solid #FFF3C4; }
   .art .chick.found .chickbody { filter: drop-shadow(0 0 2px #FFF3C4); }
   .inkcard { border: 1px solid var(--rule); border-radius: 12px; padding: 0.7rem 1rem; margin: 0.7rem 0; }
@@ -4249,6 +4250,8 @@ function gamePicture(svg, where) {
   };
   wrap.addEventListener('click', hit);
   wrap.addEventListener('keydown', hit);
+  // a mouse click or a tap must not move the keyboard focus onto a bird or an animal (it drew a box round it, and in one game moved the bird)
+  wrap.addEventListener('mousedown', (e) => { if (e.target.closest && e.target.closest('.chick, .critter, [data-tip]')) e.preventDefault(); });
   return wrap;
 }
 function onGlint(key, where) {
