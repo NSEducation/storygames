@@ -3680,7 +3680,7 @@ const GAME = {
     pathfinder: { icon: '🔓', name: 'Pathfinder', text: 'Open all 9 hidden paths with what you learned.' },
     wordcarrier: { icon: '🗣️', name: 'Word Carrier', text: 'Learn all 16 Mi’kmaw and Acadian French words to carry.' },
     inkkeeper: { icon: '🔦', name: 'Keeper of Hidden History', text: 'Find all eight Hidden Ink words around the school.' },
-    chickspotter: { icon: '🐦', name: 'Chickadee Spotter', text: 'Spot 12 chickadees hiding in the pictures.' },
+    chickspotter: { icon: '🐦', name: 'Chickadee Spotter', text: 'Spot 8 chickadees hiding in the pictures.' },
     woodwatcher: { icon: '🦊', name: 'Woodland Watcher', text: 'Spot all 6 kinds of woodland animals in the pictures: a beaver, a red fox, a snowshoe hare, a porcupine, a red squirrel and a river otter.' },
     forestwise: { icon: '🌲', name: 'Forest Knowledge', text: 'Learn all 12 pieces of Mi’kmaw forest knowledge by searching forest scenes.' },
     first: { icon: '📖', name: 'First Ending', text: 'Reach any ending.' },
@@ -5253,7 +5253,7 @@ function checkBadges() {
   if (Object.keys(GAME.glints).every((k) => PROG.glints.includes(k))) award('eyes');
   if (Object.keys(GAME.secrets).every((k) => PROG.visited.includes(k))) award('explorer');
   if (Object.keys(GAME.items).every((k) => PROG.items.includes(k))) award('collector');
-  if ((PROG.chicks || []).length >= 12) award('chickspotter');
+  if ((PROG.chicks || []).length >= 8) award('chickspotter');
   if (typeof CRITTERS !== 'undefined' && new Set((PROG.critters || []).map((x) => x.split(':')[0])).size >= Object.keys(CRITTERS).length) award('woodwatcher');
   if (typeof DOORS !== 'undefined' && Object.keys(DOORS).every((k) => (PROG.doors || []).includes(k))) award('pathfinder');
   if (typeof THREAD_ALL !== 'undefined' && THREAD_ALL.every((k) => PROG.words.includes(k))) award('wordcarrier');
@@ -5373,9 +5373,9 @@ function birdFor(where, svg) {   // which bird flies on this page: one that belo
   if (/\b(ships?|troopships?|warships?|deck|sails?|sailing|sailboat|schooner|harbour|wharf|piers?|anchor\w*|ocean|atlantic)\b/.test(a)) k = pick(['gull', 'gull', 'gull', 'osprey']);   // harbours and ships
   else if (/\b(shore|coast|beach|bay|cliffs?|island|tide|marsh|dykes?|mud|mudflats|rowboat|boats?|aboiteau|fish\w*|strait|basin|sea)\b/.test(a)) k = pick(['heron', 'osprey', 'goose', 'gull', 'eagle']);   // salt marsh and shore
   else if (/\b(rivers?|riverbank|canoes?|lakes?|falls|brook|stream|creek|pond|swamp|eels?|weir|portage)\b/.test(a)) k = pick(['heron', 'osprey', 'goose', 'eagle']);   // rivers and lakes
-  else if (/\b(forest|woods|trees?|treeline|birch\w*|camp|trail|clearing|lean-to|spruce|bushes)\b/.test(a)) k = pick(['chickadee', 'chickadee', 'bluejay', 'raven']);   // the woods
-  else k = pick(['chickadee', 'chickadee', 'bluejay', 'raven', 'goose']);   // farms, orchards and villages
-  if (sky === 'winter' && ['osprey', 'goose', 'heron'].includes(k)) k = /\b(shore|coast|harbour|wharf|bay|ships?|sea)\b/.test(a) ? 'gull' : 'chickadee';   // these three fly south for the winter
+  else if (/\b(forest|woods|trees?|treeline|birch\w*|camp|trail|clearing|lean-to|spruce|bushes)\b/.test(a)) k = pick(['chickadee', 'bluejay', 'raven']);   // the woods
+  else k = pick(['chickadee', 'bluejay', 'raven', 'goose']);   // farms, orchards and villages
+  if (sky === 'winter' && ['osprey', 'goose', 'heron'].includes(k)) k = /\b(shore|coast|harbour|wharf|bay|ships?|sea)\b/.test(a) ? 'gull' : pick(['chickadee', 'bluejay', 'raven']);   // these three fly south for the winter; jays and ravens stay
   return k;
 }
 // ================= BIRDS FLY ACROSS THE PICTURE =================
