@@ -5147,7 +5147,7 @@ function cover() {
         el('p', { text: 'Names: Like most Mi’kmaq in the 1700s, the Mi’kmaw characters have French baptismal names as well as Mi’kmaw names. Their Mi’kmaw names (Kitpu means eagle, Kloqoej means star and Muin means bear) were chosen by the authors.' }),
         el('p', { text: 'Invented words: The sayings of the Mi’kmaw characters in this story, like Nukumi’s and Paul’s, were written for this story. They are not documented Mi’kmaw sayings or teachings.' }),
         el('p', { text: 'Émile’s story: Émile, his family, Fabien, Lucien, Sergeant MacLeod, Frank and Lizzie are made up. The battalions, battles, places and dates are real, and real people such as Georges Vanier and John Frederic Herbin appear only in ways the sources support. Isaac Ward comes from What the Box Remembers, and Frank and Lizzie from the Mi’kmaw story game in this series.' }),
-        el('p', { text: 'The pictures: In November 2026, the people in the pictures were redrawn in colour, in clothes for their own time. The Acadians of 1755 wear home-made wool and linen: shirts, knee breeches and stockings, long skirts, caps, felt hats, moccasins and wooden shoes. The Mi’kmaw people are drawn plainly, in wool cloth and hide, with long hair. They have no beadwork and no peaked caps, because we could not check those details for 1755. The colours are our best guess. No Mi’kmaw reviewer has seen these drawings yet. If something is wrong, we want to know.' }),
+        el('p', { text: 'The pictures: In November 2026, the people in the pictures were redrawn in colour, in clothes for their own time. The Acadians of 1755 wear home-made wool and linen: shirts, knee breeches and stockings, long skirts, caps, felt hats, moccasins and wooden shoes. The Mi’kmaw people are drawn plainly, in wool cloth and hide, with long hair. They have no beadwork and no peaked caps, because we could not check those details for 1755. The colours are our best guess. The people in the mini-games wear the same colours. No Mi’kmaw reviewer has seen these drawings yet. If something is wrong, we want to know.' }),
       ]),
       el('details', {}, [
         el('summary', { text: 'Who’s who' }),
@@ -6190,6 +6190,7 @@ function startForest(id) {
   const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join(''); };
   const hsh = (i, s) => { let t = Math.imul((i | 0) * 374761393 + s * 668265263, 1274126177); t ^= t >>> 13; t = Math.imul(t, 1274126177); return ((t ^ (t >>> 16)) >>> 0) / 4294967296; };
   const INK = '#1B2529', INKF = '#3B4B54';   // the same ink as the story pictures
+  const SHADE = (h, f = 0.8) => { const n = parseInt(h.slice(1), 16); return 'rgb(' + [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.round(v * f)).join(',') + ')'; };   // people are drawn in colour: the far arm and leg are a shade darker
   let R = mulberry(cfg.seed * 7919 + 17);
   const pick = (a) => a[Math.floor(R() * a.length)];
   let dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -6339,6 +6340,8 @@ function startForest(id) {
   }
   function drawPerson(c, a) {
     const L = FIGL, ph = a.ph, moving = a.moving, sway = moving ? Math.sin(ph) : 0;
+    const RC = L.col ? (k, far) => { const v = L.col[k] || L.col.top || INK; return far ? SHADE(v) : v; } : null;
+    const ARM = (far, sx, sy, ex, ey, hx, hy) => { c.lineWidth = 4.2; if (!RC) { c.strokeStyle = far ? INKF : INK; c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.lineTo(hx, hy); c.stroke(); return; } c.strokeStyle = RC('sleeve', far); c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.stroke(); c.strokeStyle = RC('fore', far); c.lineWidth = 3.7; c.beginPath(); c.moveTo(ex, ey); c.lineTo(hx, hy); c.stroke(); c.fillStyle = RC('skin', far); c.beginPath(); c.arc(hx, hy, 1.9, 0, 7); c.fill(); };
     c.lineCap = 'round'; c.lineJoin = 'round';
     if (moving) c.translate(0, -Math.abs(Math.sin(ph)) * 1.8);
     const leg = (p, far) => {
@@ -6346,7 +6349,7 @@ function startForest(id) {
       if (!moving) { th = far ? -0.07 : 0.07; kn = 0.04; }
       else { th = 0.86 * Math.sin(p); kn = 0.12 + 1.2 * Math.pow(Math.max(0, Math.sin(p - 3.95)), 1.2); }
       const kx = 12 * Math.sin(th), ky = -24 + 12 * Math.cos(th), fx = kx + 12.5 * Math.sin(th - kn), fy = ky + 12.5 * Math.cos(th - kn);
-      c.strokeStyle = far ? INKF : INK; c.lineWidth = 5.2; c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke();
+      if (RC) { c.lineWidth = 5.2; c.strokeStyle = RC('thigh', far); c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.stroke(); c.lineWidth = 4.8; c.strokeStyle = RC('shin', far); c.beginPath(); c.moveTo(kx, ky); c.lineTo(fx, fy); c.stroke(); if (L.col.sock) { c.strokeStyle = RC('sock', far); c.beginPath(); c.moveTo(kx + (fx - kx) * 0.62, ky + (fy - ky) * 0.62); c.lineTo(fx, fy); c.stroke(); } c.strokeStyle = RC('shoe', far); } else { c.strokeStyle = far ? INKF : INK; c.lineWidth = 5.2; c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke(); }
       const toe = clamp(kn * 0.7, 0, 0.9);
       c.lineWidth = 4.4; c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx + 5.6 * Math.cos(toe), fy + 5.6 * Math.sin(toe)); c.stroke();
       if (FEET === 'snowshoes') { c.save(); c.translate(fx + 1.5, fy + 1.6); c.rotate(toe * 0.5); c.strokeStyle = far ? '#8A7350' : '#6B5434'; c.lineWidth = 1.7; c.beginPath(); c.ellipse(0, 0, 10.5, 3.3, 0, 0, 7); c.stroke(); c.lineWidth = 0.9; c.beginPath(); c.moveTo(-5.5, -2.6); c.lineTo(-5.5, 2.6); c.moveTo(0, -3.2); c.lineTo(0, 3.2); c.moveTo(5.5, -2.6); c.lineTo(5.5, 2.6); c.stroke(); c.restore(); }
@@ -6355,11 +6358,11 @@ function startForest(id) {
     // far arm: it holds what the runner is carrying, or it swings
     if (FRONT) {
       const bu = 0.5 + 0.12 * sway, bex = 3.6 + 9 * Math.sin(bu), bey = -41.5 + 9 * Math.cos(bu), bhx = bex + 8 * Math.sin(bu + 0.9), bhy = bey + 8 * Math.cos(bu + 0.9);
-      c.strokeStyle = INKF; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(bex, bey); c.lineTo(bhx, bhy); c.stroke();
+      ARM(true, 3.6, -41.5, bex, bey, bhx, bhy);
       c.save(); c.translate(bhx, bhy); c.rotate(0.12 * sway); drawCarry(c, sway); c.restore();
     } else {
       const u = moving ? 0.95 * Math.sin(ph + Math.PI) : -0.1, ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u);
-      c.strokeStyle = INKF; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(ex, ey); c.lineTo(ex + 8.5 * Math.sin(u + 1.2), ey + 8.5 * Math.cos(u + 1.2)); c.stroke();
+      ARM(true, 3.6, -41.5, ex, ey, ex + 8.5 * Math.sin(u + 1.2), ey + 8.5 * Math.cos(u + 1.2));
     }
     if (CARRY === 'skates') {   // hockey skates, tied by the laces and slung over the shoulder
       c.strokeStyle = '#E9E2D0'; c.lineWidth = 1; c.beginPath(); c.moveTo(6, -45); c.quadraticCurveTo(-2, -47, -5.5, -39 + bob); c.stroke();
@@ -6370,32 +6373,34 @@ function startForest(id) {
       c.fillStyle = '#8D979C'; c.beginPath(); c.moveTo(-11, -55.5 + bob * 0.6); c.lineTo(-17.5, -57.5 + bob * 0.6); c.lineTo(-19.5, -48.5 + bob * 0.6); c.lineTo(-13.6, -49.5 + bob * 0.6); c.closePath(); c.fill();
     }
     leg(ph + Math.PI, true);
-    c.fillStyle = INK; c.strokeStyle = INK;
-    if (L.cape) { c.beginPath(); c.moveTo(7, -46); c.quadraticCurveTo(-8 - fl, -44, -13.5 - fl * 1.2, -25); c.lineTo(-3, -26); c.lineTo(0, -44); c.closePath(); c.fill(); }
+    c.fillStyle = c.strokeStyle = RC ? RC('top') : INK;
+    if (L.cape) { if (RC) c.fillStyle = RC('cape'); c.beginPath(); c.moveTo(7, -46); c.quadraticCurveTo(-8 - fl, -44, -13.5 - fl * 1.2, -25); c.lineTo(-3, -26); c.lineTo(0, -44); c.closePath(); c.fill(); }
     c.lineWidth = L.coat ? 10.8 : 10; c.beginPath(); c.moveTo(0, -25.5); c.lineTo(4.4, -42.5); c.stroke();
-    c.lineWidth = 5; c.beginPath(); c.moveTo(4.6, -43); c.lineTo(6, -47.5); c.stroke();
-    if (L.coat) { c.beginPath(); c.moveTo(-5.4, -31); c.lineTo(6.4, -31); c.lineTo(8, -21.5); c.lineTo(-7 - fl * 0.3, -21.5); c.closePath(); c.fill(); }
-    if (L.skirt) {
+    if (RC) c.strokeStyle = RC('skin'); c.lineWidth = 5; c.beginPath(); c.moveTo(4.6, -43); c.lineTo(6, -47.5); c.stroke(); if (RC) c.strokeStyle = RC('top');
+    if (RC) c.fillStyle = RC('coat'); if (L.coat) { c.beginPath(); c.moveTo(-5.4, -31); c.lineTo(6.4, -31); c.lineTo(8, -21.5); c.lineTo(-7 - fl * 0.3, -21.5); c.closePath(); c.fill(); }
+    if (L.skirt) { if (RC) c.fillStyle = RC('skirt');
       const hem = { long: -5.5, mid: -10, knee: -14.5, tunic: -15.5 }[L.skirt] || -10, tun = L.skirt === 'tunic';
       const sw = moving ? 2.4 * Math.sin(ph) : 0, wf = tun ? 8.2 : 11.5, wb = tun ? 7.6 : 10.5;
       c.beginPath(); c.moveTo(-5.6, -29); c.lineTo(6.2, -29); c.lineTo(wf + sw, hem); c.quadraticCurveTo(1, hem + 3.5, -wb + sw - fl * 0.4, hem + 1); c.closePath(); c.fill();
     }
     leg(ph, false);
     // near arm
-    if (SHOULDER) { c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(10.5, -34.5); c.lineTo(CARRY === 'tools' ? 12 : 7, CARRY === 'tools' ? -38 : -44.5); c.stroke(); }
-    else if (CARRY === 'wood' || CARRY === 'boughs') { c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(8.5, -33.5); c.lineTo(15, -36); c.stroke(); }
-    else { const u = moving ? -0.95 * Math.sin(ph + Math.PI) : 0.1, ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u); c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(ex, ey); c.lineTo(ex + 8.5 * Math.sin(u + 1.35), ey + 8.5 * Math.cos(u + 1.35)); c.stroke(); }
+    if (SHOULDER) { ARM(false, 3.6, -41.5, 10.5, -34.5, CARRY === 'tools' ? 12 : 7, CARRY === 'tools' ? -38 : -44.5); }
+    else if (CARRY === 'wood' || CARRY === 'boughs') { ARM(false, 3.6, -41.5, 8.5, -33.5, 15, -36); }
+    else { const u = moving ? -0.95 * Math.sin(ph + Math.PI) : 0.1, ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u); ARM(false, 3.6, -41.5, ex, ey, ex + 8.5 * Math.sin(u + 1.35), ey + 8.5 * Math.cos(u + 1.35)); }
     // head: hair that trails goes first, then the head, then a hat
     const hx = 6.6, hy = -52, hr = 6.4;
-    c.fillStyle = INK; c.strokeStyle = INK;
+    c.fillStyle = c.strokeStyle = RC ? RC('hair') : INK;
     if (L.head === 'long') { c.beginPath(); c.moveTo(hx + 1.5, hy - hr - 0.8); c.quadraticCurveTo(hx - hr - 4.5, hy - hr + 0.5, hx - hr - 3, hy + 5); c.quadraticCurveTo(hx - 12 - fl, hy + 11, hx - 16.5 - fl * 1.6, hy + 19 + bob); c.quadraticCurveTo(hx - 7.5, hy + 16, hx - 1.5, hy + 6.5); c.closePath(); c.fill(); }
     if (L.head === 'tied') { c.beginPath(); c.ellipse(hx - 1.2, hy - 0.8, hr + 0.9, hr + 0.5, 0, 0, 7); c.fill(); c.lineWidth = 3.6; c.beginPath(); c.moveTo(hx - 5.5, hy + 1.5); c.quadraticCurveTo(hx - 11 - fl, hy + 3 + bob, hx - 12.5 - fl * 1.3, hy + 10.5 + bob * 2); c.stroke(); }
     if (L.head === 'puffs') { c.beginPath(); c.arc(hx - 6.2, hy - 4.6 + bob * 0.5, 4.1, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 0.8, hy - 7.6, 3.3, 0, 7); c.fill(); }
     if (L.head === 'bun') { c.beginPath(); c.ellipse(hx - 1, hy - 0.8, hr + 0.8, hr + 0.5, 0, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 6.8, hy - 3.6, 3.8, 0, 7); c.fill(); }
     if (L.head === 'short') { c.beginPath(); c.ellipse(hx - 0.9, hy - 1, hr + 0.7, hr + 0.4, 0, 0, 7); c.fill(); }
-    c.beginPath(); c.arc(hx, hy, hr, 0, 7); c.fill();
+    if (RC) c.fillStyle = RC('skin'); c.beginPath(); c.arc(hx, hy, hr, 0, 7); c.fill();
     c.beginPath(); c.moveTo(hx + hr - 1.2, hy - 1.4); c.lineTo(hx + hr + 1.6, hy + 1); c.lineTo(hx + hr - 1.4, hy + 2.4); c.closePath(); c.fill();
-    if (L.head === 'coif') { c.beginPath(); c.ellipse(hx - 2.3, hy - 1.6, 7.7, 7.2, -0.3, 0, 7); c.fill(); c.beginPath(); c.moveTo(hx - 7, hy + 2.5); c.lineTo(hx - 10.4 - fl * 0.3, hy + 5.4); c.lineTo(hx - 4.5, hy + 5.2); c.closePath(); c.fill(); }
+    if (RC) { c.fillStyle = L.col.hair; c.beginPath(); c.arc(hx, hy, hr + 0.4, Math.PI * 0.82, Math.PI * 1.72); c.closePath(); c.fill(); }
+    if (RC) { c.fillStyle = '#17100C'; c.beginPath(); c.arc(hx + 2.9, hy - 0.7, 0.85, 0, 7); c.fill(); c.strokeStyle = SHADE(L.col.skin, 0.55); c.lineWidth = 0.6; c.beginPath(); c.moveTo(hx + 3.2, hy + 3); c.quadraticCurveTo(hx + 4.4, hy + 3.7, hx + 5.4, hy + 2.8); c.stroke(); if (L.head === 'puffs' && L.col.ribbon) { c.fillStyle = L.col.ribbon; c.beginPath(); c.arc(hx - 4.5, hy - 2.6, 1.3, 0, 7); c.arc(hx - 0.4, hy - 5.4, 1.2, 0, 7); c.fill(); } c.fillStyle = c.strokeStyle = RC('hat'); }
+      if (L.head === 'coif') { c.beginPath(); if (RC) { c.arc(hx - 0.6, hy - 0.4, hr + 1.5, Math.PI * 0.62, Math.PI * 1.78); c.closePath(); } else c.ellipse(hx - 2.3, hy - 1.6, 7.7, 7.2, -0.3, 0, 7); c.fill(); c.beginPath(); c.moveTo(hx - 7, hy + 2.5); c.lineTo(hx - 10.4 - fl * 0.3, hy + 5.4); c.lineTo(hx - 4.5, hy + 5.2); c.closePath(); c.fill(); }
     else if (L.head === 'flathat') { rrp(c, hx - 5.2, hy - hr - 4.8, 10.6, 6.4, 1.6); c.fill(); c.lineWidth = 2.8; c.beginPath(); c.moveTo(hx - 11, hy - hr + 1.3); c.lineTo(hx + 11.8, hy - hr + 1.3); c.stroke(); }
     else if (L.head === 'flatcap') { c.beginPath(); c.ellipse(hx - 1.2, hy - 3.2, hr + 1.6, hr - 1.1, -0.12, Math.PI, 0); c.closePath(); c.fill(); c.lineWidth = 2.6; c.beginPath(); c.moveTo(hx + 3, hy - 3.6); c.lineTo(hx + 11.6, hy - 2.2); c.stroke(); }
     else if (L.head === 'bonnet') { c.beginPath(); c.ellipse(hx - 1.2, hy - hr + 0.2, 10, 3.9, -0.14, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 1.8, hy - hr - 3.6, 1.9, 0, 7); c.fill(); }
@@ -8517,6 +8522,41 @@ const relaxedToggle = (box, restart) => el('label', { class: 'grelax' }, [
 const winBox = (title, paras) => el('section', { class: 'grow gwin' }, [el('h2', { class: 'readable', text: title }), ...paras.map((t) => el('p', { class: 'readable', text: t }))]);
 
 // ---------- 1. Work the aboiteau ----------
+// ---------- people in the mini-games, in the colours they wear in the story pictures ----------
+// A person seen from the front: feet at 0, about 104 tall. kind 'W' = a woman in a gown and cap, 'M' = a man in a hat.
+const MGLOOK = {
+  anne: { skin: '#EFCDAE', hair: '#6B4A2E', cap: '#F4EFE4', gown: '#3E5570', apron: '#EFE7D3', kerchief: '#E8DCC0', sleeve: '#3E5570', shoe: '#5A4630' },
+  pierre: { skin: '#EFCDAE', hair: '#5A3E2A', hat: '#3A2E24', vest: '#4F5F3A', shirt: '#E9E0CC', breeches: '#6B5A42', stock: '#E0D8C4', sleeve: '#E9E0CC', shoe: '#5A4630' },
+  boy: { skin: '#F2D8C0', hair: '#A8603A', hat: '#2B2420', vest: '#55565C', shirt: '#E9E0CC', breeches: '#4A4438', stock: '#C4BCA8', sleeve: '#55565C', shoe: '#2A211C' },
+};
+function MGFIG(g, kind, who, sw) {
+  const L = MGLOOK[who] || MGLOOK.pierre; sw = sw || 0;
+  const poly = (pts, col) => { g.fillStyle = col; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); };
+  const hy = kind === 'W' ? -89 : -90;
+  if (kind === 'W') {
+    g.fillStyle = L.shoe; g.fillRect(-9 + sw * 2, -3, 7, 3.4); g.fillRect(2 + sw * 2, -3, 7, 3.4);
+    poly([[-12, -80], [12, -80], [11, -62], [20, 0], [-20, 0], [-11, -62]], L.gown);
+    poly([[-8, -61], [8, -61], [11.5, -7], [-11.5, -7]], L.apron);
+    g.fillStyle = 'rgba(0,0,0,.14)'; g.fillRect(-11, -63, 22, 2);
+    poly([[-12, -80], [12, -80], [5, -70], [0, -64], [-5, -70]], L.kerchief);
+  } else {
+    const a = sw * 5, l1 = Math.max(0, a), l2 = Math.max(0, -a);
+    g.fillStyle = L.breeches; g.fillRect(-8, -40, 6, 19); g.fillRect(2, -40, 6, 19);
+    g.fillStyle = L.stock; g.fillRect(-8, -21, 6, 19 - l1); g.fillRect(2, -21, 6, 19 - l2);
+    g.fillStyle = L.shoe; g.fillRect(-9, -3 - l1, 8, 3); g.fillRect(1, -3 - l2, 8, 3);
+    poly([[-10, -81], [10, -81], [13, -38], [-13, -38]], L.vest);
+    poly([[-2.6, -80], [2.6, -80], [3, -52], [0, -48], [-3, -52]], L.shirt);
+    g.fillStyle = 'rgba(0,0,0,.2)'; [-70, -62, -55].forEach((y) => { g.beginPath(); g.arc(0, y, 0.8, 0, 7); g.fill(); });
+  }
+  g.fillStyle = L.skin; g.fillRect(-3, hy + 5, 6, 6);
+  g.fillStyle = L.hair; g.beginPath(); g.arc(0, hy, 8.6, Math.PI * 0.92, Math.PI * 2.08); g.closePath(); g.fill();
+  g.fillStyle = L.skin; g.beginPath(); g.arc(0, hy + 0.6, 7.7, 0, 7); g.fill();
+  g.fillStyle = L.hair; g.beginPath(); g.arc(0, hy, 8.2, Math.PI * 1.08, Math.PI * 1.92); g.closePath(); g.fill();
+  g.fillStyle = '#17100C'; g.beginPath(); g.arc(-2.9, hy + 0.6, 0.95, 0, 7); g.arc(2.9, hy + 0.6, 0.95, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(90,50,30,.75)'; g.lineWidth = 0.8; g.lineCap = 'round'; g.beginPath(); g.arc(0, hy + 2.6, 2.6, Math.PI * 0.2, Math.PI * 0.8); g.stroke();
+  if (kind === 'W') { poly([[-9, -93], [-6.5, -98.5], [0, -100.5], [6.5, -98.5], [9, -93], [10, -88.6], [-10, -88.6]], L.cap); g.fillStyle = 'rgba(0,0,0,.1)'; g.fillRect(-10, -90, 20, 1.4); }
+  else { g.fillStyle = L.hat; g.fillRect(-13, -95.5, 26, 3.4); poly([[-8, -95], [-7, -104], [7, -104], [8, -95]], L.hat); g.fillStyle = 'rgba(255,255,255,.14)'; g.fillRect(-7.6, -97.6, 15.2, 1.4); }
+}
 const GATE = {"theme": "dyke", "key": "aboiteau", "intro": "Rain keeps filling the field, and the tide rises and falls. Open the gate to let water drain out, but only when the sea is LOWER than the field water (compare the two dashed lines). Keep the salt out for three tides.", "open": "🚪 Open the gate (Space)", "close": "🚪 Close the gate (Space)", "aria": "The sea on the left, a dyke with a gate in the middle, and a farm field on the right", "winTitle": "🌾 The harvest is safe!", "win": ["You kept the salt water out and drained the rain away for three full tides.", "Here is the clever part: a real aboiteau didn’t need anyone to open and close it. Its wooden flap gate, called a clapet, was pushed shut by the rising tide and pushed open by fresh water when the tide went out. Acadian families built dykes and aboiteaux to turn salt marsh into rich farmland, and some of their dykes still protect fields in the Annapolis Valley today."], "loseHarm": "🌊 The salt water reached the crops. Salt ruins farmland for years! Try again: open the gate only when the tide is low.", "loseFull": "🌧️ The field flooded with rain water. Try again: open the gate at low tide to drain it.", "outName": "Tide", "outHigh": "HIGH", "outLow": "low", "outMid": "turning", "insName": "Field water", "harmName": "Salt in field", "cycName": "Tides survived", "ready": "Open the gate only while the sea is lower than the water in the field.", "hintOpen": "The sea is lower now: open the gate", "hintShut": "The tide is coming up: close it", "harmNow": "Salt water is coming in! Close the gate.", "star3": "Three stars: hardly a drop of salt got in.", "starMore": "For three stars, let in almost no salt water."};
 // ================= OPEN AND CLOSE: the aboiteau, the wikuom, the pit house =================
 // One timing game, drawn as three different places. The rule is the one this game has always had:
@@ -8562,6 +8602,7 @@ function gAboiteau(box, win) {
   };
   const drawFig = (g, kind, x, y, k, flip, col) => {
     const F = FIGS[kind]; g.save(); g.translate(x, y); g.scale(flip ? -k : k, k); g.fillStyle = col || INK; g.strokeStyle = col || INK;
+    if (!col && (kind === 'W' || kind === 'M')) { MGFIG(g, kind, kind === 'W' ? 'anne' : 'pierre'); g.restore(); return; }
     g.beginPath(); g.arc(F[0][0], F[0][1], F[0][2], 0, 7); g.fill();
     try { g.fill(new Path2D(F[1])); if (F[2]) { g.lineWidth = 3; g.stroke(new Path2D(F[2])); } } catch (e) { g.fillRect(-10, -80, 20, 80); }
     g.restore();
@@ -9763,7 +9804,7 @@ function gMorse(box, win) {
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') check(); });
 }
 
-const TRAIL = {"season": "fall", "seed": 3, "items": [["apple", "apples"], ["wood", "sticks of firewood"]], "facts": ["netukulimk", "seasons", "birchbark", "snowshoes", "tea", "sprucegum"], "heroes": {"anne": {"head": "coif", "skirt": "long", "cape": 1, "goal": "house", "season": "fall", "items": [["apple", "apples"], ["wood", "sticks of firewood"]]}, "pierre": {"head": "flathat", "coat": 1, "goal": "house", "season": "fall", "items": [["apple", "apples"], ["wood", "sticks of firewood"]]}, "qalipu": {"head": "long", "skirt": "tunic", "goal": "camp", "season": "fall", "items": [["berryR", "cranberries"], ["wood", "sticks of firewood"]]}, "emile": {"head": "flatcap", "coat": 1, "goal": "house", "season": "summer", "items": [["berryB", "blueberries"], ["wood", "sticks of firewood"]]}}};
+const TRAIL = {"season": "fall", "seed": 3, "items": [["apple", "apples"], ["wood", "sticks of firewood"]], "facts": ["netukulimk", "seasons", "birchbark", "snowshoes", "tea", "sprucegum"], "heroes": {"anne": {"head": "coif", "skirt": "long", "cape": 1, "goal": "house", "season": "fall", "items": [["apple", "apples"], ["wood", "sticks of firewood"]], "col": {"skin": "#EFCDAE", "hair": "#6B4A2E", "hat": "#F4EFE4", "top": "#3E5570", "skirt": "#3E5570", "cape": "#2C4058", "sleeve": "#3E5570", "fore": "#EFCDAE", "thigh": "#E0D8C4", "shin": "#E0D8C4", "shoe": "#5A4630"}}, "pierre": {"head": "flathat", "coat": 1, "goal": "house", "season": "fall", "items": [["apple", "apples"], ["wood", "sticks of firewood"]], "col": {"skin": "#EFCDAE", "hair": "#5A3E2A", "hat": "#3A2E24", "top": "#4F5F3A", "coat": "#4F5F3A", "sleeve": "#E9E0CC", "fore": "#E9E0CC", "thigh": "#6B5A42", "shin": "#E0D8C4", "shoe": "#5A4630"}}, "qalipu": {"head": "long", "skirt": "tunic", "goal": "camp", "season": "fall", "items": [["berryR", "cranberries"], ["wood", "sticks of firewood"]], "col": {"skin": "#A9714B", "hair": "#17110D", "top": "#2E4A6E", "skirt": "#2E4A6E", "sleeve": "#2E4A6E", "fore": "#2E4A6E", "thigh": "#6B4A2E", "shin": "#6B4A2E", "shoe": "#6B4A2E"}}, "emile": {"head": "flatcap", "coat": 1, "goal": "house", "season": "summer", "items": [["berryB", "blueberries"], ["wood", "sticks of firewood"]], "col": {"skin": "#EFCDAE", "hair": "#3A2A1E", "hat": "#5E5A4E", "top": "#3E4E5E", "coat": "#3E4E5E", "sleeve": "#3E4E5E", "fore": "#3E4E5E", "thigh": "#4A4038", "shin": "#4A4038", "shoe": "#2A211C"}}}};
 // ================= THE TRAIL HOME =================
 // A side-scrolling run through the woods. Nobody is chasing you: the only clock is the daylight.
 // There is no way to lose. A stumble or a splash costs a little time and a little of what you carry.
@@ -9777,6 +9818,7 @@ function gForestRun(box, win) {
   const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
   const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join(''); };
   const INK = '#1B2529', INKF = '#3B4B54';   // the same ink as the story pictures; the far arm and leg are a little lighter
+  const SHADE = (h, f = 0.8) => { const n = parseInt(h.slice(1), 16); return 'rgb(' + [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.round(v * f)).join(',') + ')'; };   // people are drawn in colour: the far arm and leg are a shade darker
 
   const SEASONS = {
     summer: { sky: [['#9FD3E8', '#E6F3E2'], ['#F3CF8A', '#FAEBCB'], ['#E0875E', '#F2C39A'], ['#17233F', '#39406A']], hill: '#A8C9BC', far: '#7DAA98', near: '#295241', canopy: ['#5C9A55', '#6FAE62', '#4F8A5A'], ground: '#6C8A47', path: '#B39A6B', soil: ['#6E563B', '#3B2D21'], tuft: '#3E6B38', water: '#4F8FA6', foam: '#CFE8EE', fleck: ['#F4E7A1', '#FFFFFF', '#E9A7B8'] },
@@ -10091,6 +10133,8 @@ function gForestRun(box, win) {
     // The runner is an ink silhouette, like the people in the story pictures. Only the basket has colour.
     function drawRunner(x, y) {
       const L = look, ph = st.ph, air = !st.on, up = st.vy < 0, moving = st.v > 14, k = L.size || 1;
+      const RC = L.col ? (k, far) => { const v = L.col[k] || L.col.top || INK; return far ? SHADE(v) : v; } : null;
+      const ARM = (far, sx, sy, ex, ey, hx, hy) => { c.lineWidth = 4.2; if (!RC) { c.strokeStyle = far ? INKF : INK; c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.lineTo(hx, hy); c.stroke(); return; } c.strokeStyle = RC('sleeve', far); c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.stroke(); c.strokeStyle = RC('fore', far); c.lineWidth = 3.7; c.beginPath(); c.moveTo(ex, ey); c.lineTo(hx, hy); c.stroke(); c.fillStyle = RC('skin', far); c.beginPath(); c.arc(hx, hy, 1.9, 0, 7); c.fill(); };
       const sway = moving && !air ? Math.sin(ph) : 0;
       c.save(); c.translate(x, y + (st.wet ? 5 : 0));
       c.scale(k * (1 + st.sq * 0.08), k * (1 - st.sq * 0.1));
@@ -10103,14 +10147,14 @@ function gForestRun(box, win) {
         else if (!moving) { th = far ? -0.07 : 0.07; kn = 0.04; }
         else { th = 0.86 * Math.sin(p); kn = 0.12 + 1.2 * Math.pow(Math.max(0, Math.sin(p - 3.95)), 1.2); }
         const kx = 12 * Math.sin(th), ky = -24 + 12 * Math.cos(th), fx = kx + 12.5 * Math.sin(th - kn), fy = ky + 12.5 * Math.cos(th - kn);
-        c.strokeStyle = far ? INKF : INK; c.lineWidth = 5.2; c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke();
+        if (RC) { c.lineWidth = 5.2; c.strokeStyle = RC('thigh', far); c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.stroke(); c.lineWidth = 4.8; c.strokeStyle = RC('shin', far); c.beginPath(); c.moveTo(kx, ky); c.lineTo(fx, fy); c.stroke(); if (L.col.sock) { c.strokeStyle = RC('sock', far); c.beginPath(); c.moveTo(kx + (fx - kx) * 0.62, ky + (fy - ky) * 0.62); c.lineTo(fx, fy); c.stroke(); } c.strokeStyle = RC('shoe', far); } else { c.strokeStyle = far ? INKF : INK; c.lineWidth = 5.2; c.beginPath(); c.moveTo(0, -24); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke(); }
         const toe = air ? 0.5 : clamp(kn * 0.7, 0, 0.9);   // the toe drops as the heel lifts
         c.lineWidth = 4.4; c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx + 5.6 * Math.cos(toe), fy + 5.6 * Math.sin(toe)); c.stroke();
       };
       const fl = 2.4 * Math.sin(ph * 0.7) + (air ? 4 : 0) + (moving ? 0 : -3), bob = moving ? Math.sin(ph * 2 + 1) : 0;
       // far arm, holding the basket out in front
       const bu = 0.5 + 0.12 * sway, bex = 3.6 + 9 * Math.sin(bu), bey = -41.5 + 9 * Math.cos(bu), bhx = bex + 8 * Math.sin(bu + 0.9), bhy = bey + 8 * Math.cos(bu + 0.9);
-      c.strokeStyle = INKF; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(bex, bey); c.lineTo(bhx, bhy); c.stroke();
+      ARM(true, 3.6, -41.5, bex, bey, bhx, bhy);
       c.save(); c.translate(bhx, bhy); c.rotate(0.12 * sway - (air ? 0.25 : 0));
       c.strokeStyle = '#7A5A30'; c.lineWidth = 1.6; c.beginPath(); c.arc(0, 4, 6.5, Math.PI, 0); c.stroke();
       const shown = Math.min(5, Math.ceil(5 * st.got / need)), kk = Object.keys(st.bag).filter((q) => st.bag[q] > 0);
@@ -10119,14 +10163,14 @@ function gForestRun(box, win) {
       c.strokeStyle = '#8A6234'; c.lineWidth = 1; c.beginPath(); c.moveTo(-6.8, 7); c.lineTo(6.8, 7); c.moveTo(-6, 10); c.lineTo(6, 10); c.moveTo(-2.5, 4); c.lineTo(-2, 12.5); c.moveTo(2.5, 4); c.lineTo(2, 12.5); c.stroke();
       c.restore();
       leg(ph + Math.PI, true);
-      c.fillStyle = INK; c.strokeStyle = INK;
+      c.fillStyle = c.strokeStyle = RC ? RC('top') : INK;
       // a short cape or shawl, lifting behind
-      if (L.cape) { c.beginPath(); c.moveTo(7, -46); c.quadraticCurveTo(-8 - fl, -44, -13.5 - fl * 1.2, -25 + (air ? -4 : 0)); c.lineTo(-3, -26); c.lineTo(0, -44); c.closePath(); c.fill(); }
+      if (L.cape) { if (RC) c.fillStyle = RC('cape'); c.beginPath(); c.moveTo(7, -46); c.quadraticCurveTo(-8 - fl, -44, -13.5 - fl * 1.2, -25 + (air ? -4 : 0)); c.lineTo(-3, -26); c.lineTo(0, -44); c.closePath(); c.fill(); }
       // body
       c.lineWidth = L.coat ? 10.8 : 10; c.beginPath(); c.moveTo(0, -25.5); c.lineTo(4.4, -42.5); c.stroke();
-      c.lineWidth = 5; c.beginPath(); c.moveTo(4.6, -43); c.lineTo(6, -47.5); c.stroke();
-      if (L.coat) { c.beginPath(); c.moveTo(-5.4, -31); c.lineTo(6.4, -31); c.lineTo(8, -21.5 - (air ? 1.5 : 0)); c.lineTo(-7 - fl * 0.3, -21.5); c.closePath(); c.fill(); }
-      if (L.skirt) {
+      if (RC) c.strokeStyle = RC('skin'); c.lineWidth = 5; c.beginPath(); c.moveTo(4.6, -43); c.lineTo(6, -47.5); c.stroke(); if (RC) c.strokeStyle = RC('top');
+      if (RC) c.fillStyle = RC('coat'); if (L.coat) { c.beginPath(); c.moveTo(-5.4, -31); c.lineTo(6.4, -31); c.lineTo(8, -21.5 - (air ? 1.5 : 0)); c.lineTo(-7 - fl * 0.3, -21.5); c.closePath(); c.fill(); }
+      if (L.skirt) { if (RC) c.fillStyle = RC('skirt');
         const hem = { long: -5.5, mid: -10, knee: -14.5, tunic: -15.5 }[L.skirt] || -10, tun = L.skirt === 'tunic';
         const sw = moving && !air ? 2.4 * Math.sin(ph) : 0, lift = air ? 4.5 : 0, wf = tun ? 8.2 : 11.5, wb = tun ? 7.6 : 10.5;
         c.beginPath(); c.moveTo(-5.6, -29); c.lineTo(6.2, -29); c.lineTo(wf + sw + lift, hem - lift * 0.5); c.quadraticCurveTo(1, hem + 3.5, -wb + sw - lift - fl * 0.4, hem + 1 - lift); c.closePath(); c.fill();
@@ -10135,18 +10179,20 @@ function gForestRun(box, win) {
       // near arm
       const u = air ? -1.15 : moving ? -0.95 * Math.sin(ph + Math.PI) : 0.1, e = air ? 1.0 : 1.35;
       const ex = 3.6 + 9 * Math.sin(u), ey = -41.5 + 9 * Math.cos(u);
-      c.strokeStyle = INK; c.lineWidth = 4.2; c.beginPath(); c.moveTo(3.6, -41.5); c.lineTo(ex, ey); c.lineTo(ex + 8.5 * Math.sin(u + e), ey + 8.5 * Math.cos(u + e)); c.stroke();
+      ARM(false, 3.6, -41.5, ex, ey, ex + 8.5 * Math.sin(u + e), ey + 8.5 * Math.cos(u + e));
       // head: hair that trails goes first, then the head, then a hat
       const hx = 6.6, hy = -52, hr = 6.4;
-      c.fillStyle = INK;
+      c.fillStyle = c.strokeStyle = RC ? RC('hair') : INK;
       if (L.head === 'long') { c.beginPath(); c.moveTo(hx + 1.5, hy - hr - 0.8); c.quadraticCurveTo(hx - hr - 4.5, hy - hr + 0.5, hx - hr - 3, hy + 5); c.quadraticCurveTo(hx - 12 - fl, hy + 11, hx - 16.5 - fl * 1.6, hy + 19 + bob); c.quadraticCurveTo(hx - 7.5, hy + 16, hx - 1.5, hy + 6.5); c.closePath(); c.fill(); }
       if (L.head === 'tied') { c.beginPath(); c.ellipse(hx - 1.2, hy - 0.8, hr + 0.9, hr + 0.5, 0, 0, 7); c.fill(); c.lineWidth = 3.6; c.beginPath(); c.moveTo(hx - 5.5, hy + 1.5); c.quadraticCurveTo(hx - 11 - fl, hy + 3 + bob, hx - 12.5 - fl * 1.3, hy + 10.5 + bob * 2); c.stroke(); }
       if (L.head === 'puffs') { c.beginPath(); c.arc(hx - 6.2, hy - 4.6 + bob * 0.5, 4.1, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 0.8, hy - 7.6, 3.3, 0, 7); c.fill(); }
       if (L.head === 'bun') { c.beginPath(); c.ellipse(hx - 1, hy - 0.8, hr + 0.8, hr + 0.5, 0, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 6.8, hy - 3.6, 3.8, 0, 7); c.fill(); }
       if (L.head === 'short') { c.beginPath(); c.ellipse(hx - 0.9, hy - 1, hr + 0.7, hr + 0.4, 0, 0, 7); c.fill(); }
-      c.beginPath(); c.arc(hx, hy, hr, 0, 7); c.fill();
+      if (RC) c.fillStyle = RC('skin'); c.beginPath(); c.arc(hx, hy, hr, 0, 7); c.fill();
       c.beginPath(); c.moveTo(hx + hr - 1.2, hy - 1.4); c.lineTo(hx + hr + 1.6, hy + 1); c.lineTo(hx + hr - 1.4, hy + 2.4); c.closePath(); c.fill();
-      if (L.head === 'coif') { c.beginPath(); c.ellipse(hx - 2.3, hy - 1.6, 7.7, 7.2, -0.3, 0, 7); c.fill(); c.beginPath(); c.moveTo(hx - 7, hy + 2.5); c.lineTo(hx - 10.4 - fl * 0.3, hy + 5.4); c.lineTo(hx - 4.5, hy + 5.2); c.closePath(); c.fill(); }
+      if (RC) { c.fillStyle = L.col.hair; c.beginPath(); c.arc(hx, hy, hr + 0.4, Math.PI * 0.82, Math.PI * 1.72); c.closePath(); c.fill(); }
+      if (RC) { c.fillStyle = '#17100C'; c.beginPath(); c.arc(hx + 2.9, hy - 0.7, 0.85, 0, 7); c.fill(); c.strokeStyle = SHADE(L.col.skin, 0.55); c.lineWidth = 0.6; c.beginPath(); c.moveTo(hx + 3.2, hy + 3); c.quadraticCurveTo(hx + 4.4, hy + 3.7, hx + 5.4, hy + 2.8); c.stroke(); if (L.head === 'puffs' && L.col.ribbon) { c.fillStyle = L.col.ribbon; c.beginPath(); c.arc(hx - 4.5, hy - 2.6, 1.3, 0, 7); c.arc(hx - 0.4, hy - 5.4, 1.2, 0, 7); c.fill(); } c.fillStyle = c.strokeStyle = RC('hat'); }
+      if (L.head === 'coif') { c.beginPath(); if (RC) { c.arc(hx - 0.6, hy - 0.4, hr + 1.5, Math.PI * 0.62, Math.PI * 1.78); c.closePath(); } else c.ellipse(hx - 2.3, hy - 1.6, 7.7, 7.2, -0.3, 0, 7); c.fill(); c.beginPath(); c.moveTo(hx - 7, hy + 2.5); c.lineTo(hx - 10.4 - fl * 0.3, hy + 5.4); c.lineTo(hx - 4.5, hy + 5.2); c.closePath(); c.fill(); }
       else if (L.head === 'flathat') { rr(hx - 5.2, hy - hr - 4.8, 10.6, 6.4, 1.6); c.fill(); c.lineWidth = 2.8; c.beginPath(); c.moveTo(hx - 11, hy - hr + 1.3); c.lineTo(hx + 11.8, hy - hr + 1.3); c.stroke(); }
       else if (L.head === 'flatcap') { c.beginPath(); c.ellipse(hx - 1.2, hy - 3.2, hr + 1.6, hr - 1.1, -0.12, Math.PI, 0); c.closePath(); c.fill(); c.lineWidth = 2.6; c.beginPath(); c.moveTo(hx + 3, hy - 3.6); c.lineTo(hx + 11.6, hy - 2.2); c.stroke(); }
       else if (L.head === 'bonnet') { c.beginPath(); c.ellipse(hx - 1.2, hy - hr + 0.2, 10, 3.9, -0.14, 0, 7); c.fill(); c.beginPath(); c.arc(hx - 1.8, hy - hr - 3.6, 1.9, 0, 7); c.fill(); }
@@ -10640,15 +10686,14 @@ function gApples(box, win) {
       const moving = Math.abs(st.vx) > 24, sw = moving ? Math.sin(st.step) : 0, bobY = st.bob * 3;
       c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(st.x, GY + 2, 20, 4.5, 0, 0, 7); c.fill();
       c.save(); c.translate(st.x, GY); c.transform(1, 0, -st.lean * 0.14, 1, 0, 0);
-      c.save(); c.scale(K, K); c.translate(0, moving ? -Math.abs(sw) * 1.6 : 0); c.fillStyle = INK;
-      if (F.legs) { const a = sw * 5; c.fillRect(-8, -40, 6, 40 - Math.max(0, a)); c.fillRect(2, -40, 6, 40 - Math.max(0, -a)); }
-      else { c.fillRect(-9 + sw * 2, -3, 7, 3.4); c.fillRect(2 + sw * 2, -3, 7, 3.4); }
-      if (P2) { c.fill(P2.body); c.fill(P2.cap); } else c.fillRect(-11, -80, 22, F.legs ? 42 : 80);
-      c.beginPath(); c.arc(0, F.head, 8, 0, 7); c.fill();
+      c.save(); c.scale(K, K); c.translate(0, moving ? -Math.abs(sw) * 1.6 : 0);
+      MGFIG(c, look.fig === 'M' ? 'M' : 'W', heroKey === 'pierre' ? 'pierre' : 'anne', sw);
       c.restore();
       // arms and the basket, held in front
       const ry = RIM - GY + bobY, shy = F.sh * K + (moving ? -Math.abs(sw) * 1.6 * K : 0);
-      c.strokeStyle = INK; c.lineWidth = 4.4; c.lineCap = 'round'; c.beginPath(); c.moveTo(-10 * K, shy); c.lineTo(-22, ry + 9); c.moveTo(10 * K, shy); c.lineTo(22, ry + 9); c.stroke();
+      const ML = MGLOOK[heroKey === 'pierre' ? 'pierre' : 'anne'];
+      c.strokeStyle = ML.sleeve; c.lineWidth = 4.4; c.lineCap = 'round'; c.beginPath(); c.moveTo(-10 * K, shy); c.lineTo(-22, ry + 9); c.moveTo(10 * K, shy); c.lineTo(22, ry + 9); c.stroke();
+      c.fillStyle = ML.skin; c.beginPath(); c.arc(-22, ry + 9, 2.6, 0, 7); c.arc(22, ry + 9, 2.6, 0, 7); c.fill();
       const fill = clamp(st.got / need, 0, 1), heap = Math.ceil(fill * 7);
       for (let i = 0; i < heap; i++) { c.fillStyle = i % 3 === 1 ? '#A8322A' : P.red; c.beginPath(); c.arc(-15 + i * 5, ry - 1 - (i % 2) * 3 - (i > 1 && i < 5 ? 2.5 : 0), 4.6, 0, 7); c.fill(); }
       c.fillStyle = '#B98A4E'; c.beginPath(); c.moveTo(-24, ry); c.lineTo(24, ry); c.lineTo(17.5, ry + 21); c.lineTo(-17.5, ry + 21); c.closePath(); c.fill();
@@ -10997,10 +11042,7 @@ function gDyke(box, win) {
     };
     const man = (g, x, y, k, o) => {   // o: { sw, legs }
       const sw = (o && o.sw) || 0;
-      g.save(); g.translate(x, y); g.scale(k, k); g.fillStyle = INK;
-      const a = sw * 5; g.fillRect(-8, -40, 6, 40 - Math.max(0, a)); g.fillRect(2, -40, 6, 40 - Math.max(0, -a));
-      if (typeof Path2D !== 'undefined') { g.fill(new Path2D(F.body)); g.fill(new Path2D(F.cap)); } else g.fillRect(-11, -95, 22, 57);
-      g.beginPath(); g.arc(0, F.head, 8, 0, 7); g.fill();
+      g.save(); g.translate(x, y); g.scale(k, k); MGFIG(g, 'M', k === CFG.boy ? 'boy' : 'pierre', sw);
       g.restore();
     };
     const holePath = (g, pad) => {
@@ -11070,7 +11112,7 @@ function gDyke(box, win) {
       c.save(); c.translate(st.x, GY); c.transform(1, 0, -f * bend - (moving ? f * 0.04 : 0), 1, 0, 0);
       man(c, 0, moving ? -Math.abs(sw) * 1.5 : 0, K, { sw });
       const shy = F.sh * K, hx = f * 21, hy = -50 * K;
-      c.strokeStyle = INK; c.lineWidth = 5; c.lineCap = 'round';
+      c.strokeStyle = MGLOOK.pierre.sleeve; c.lineWidth = 5; c.lineCap = 'round';
       if (b && b.kind === 'cut') {
         // the narrow dyking spade goes down into the turf
         const dy = Math.sin(bk * Math.PI) * 12; c.beginPath(); c.moveTo(-8 * K, shy); c.lineTo(f * 20, -44 + dy); c.moveTo(8 * K, shy); c.lineTo(f * 24, -30 + dy); c.stroke();
