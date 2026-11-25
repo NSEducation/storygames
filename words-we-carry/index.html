@@ -2904,7 +2904,7 @@ function aboutBox() {
     el('details', {}, [
       el('summary', { text: 'What we could not confirm (for teachers)' }),
       el('ul', {}, [
-        'Mi’kmaw spellings and pronunciations throughout the game need checking by a fluent speaker. This includes Jiji’kes, Tatapn, sipekn, wisqoq, kat, ji’kmaqn, Kun’tewiktu, and the number words newt, ta’pu and si’st.',
+        'Mi’kmaw spellings and pronunciations throughout the game need checking by a fluent speaker. This includes Jiki’kes, Tatapn, sipekn, wisqoq, kat, ji’kmaqn, Kun’tewiktu, and the number words newt, ta’pu and si’st.',
         'Chickadee’s story: a summer camp at the Narrows about 600 years ago, trading visits to the Wolastoq and Epekwitk, the handful of corn, and the details of pottery, canoe building, sturgeon fishing by torchlight, egg gathering and maple sap are our best reading of the sources, not confirmed facts. “The first eels go to the oldest people” is our invention.',
         'Frank’s story: Frank, Joe and Louis are made up. The 25th Battalion’s journey follows published histories of the battalion. Sources disagree about which battalion Stephen Toney first joined, and about the year Sam Glode was born, so the game leaves both out. What Frank’s father says about the treaties and the war is our own writing, not a recorded Mi’kmaw view from 1915.',
         'A priest riding with the Indian agent in 1959 is not confirmed for Indian Brook.',
@@ -4410,9 +4410,9 @@ function withGlints(svg, where) {
 const A_BOOK = ['“Muin and the Seven Bird Hunters,” shared by Elders Lillian Marshall and Murdena Marshall (a book, and a video in Mi’kmaw, English and French)', 'https://astronomynovascotia.ca/index.php/articles/21-muin-and-the-7-bird-hunters-mi-kmaw-sky-story'];
 const A_DEBERT = ['Mi’kmawey Debert Cultural Centre: Sharing Our Stories', 'https://www.mikmaweydebert.ca/'];
 const A_SKY = 'is one of the seven bird hunters in the night-sky story shared by Elders Lillian Marshall of Potlotek and Murdena Marshall of Eskasoni. This game does not retell the story.';
-// key: [English name, Mi'kmaw name, how people lived with it, teaching or story (or ''), [label, url]]
+// key: [English name, Mi'kmaw name, how people lived with it, teaching or story (or ''), [label, url], how to say the name (optional)]
 const ANIMALS = {
-  chickadee: ['Chickadee', 'Jiji’kes', 'Chickadees stay in Mi’kma’ki all winter, even in the coldest weather, and come close to camps and houses.', 'In the night-sky story shared by Elders Lillian Marshall and Murdena Marshall, Chickadee is one of the seven bird hunters, and the one who carries the cooking pot. This game does not retell the story. (This word is spelled in more than one way.)', A_BOOK],
+  chickadee: ['Chickadee', 'Jiki’kes', 'Chickadees stay in Mi’kma’ki all winter, even in the coldest weather, and come close to camps and houses.', 'In the night-sky story shared by Elders Lillian Marshall and Murdena Marshall, Chickadee is one of the seven bird hunters, and the one who carries the cooking pot. This game does not retell the story. (This word is spelled in more than one way.)', A_BOOK, 'jih-GEE-gess'],
   robin: ['Robin', 'Jipjawej', 'Robins come back to Mi’kma’ki in spring, one of the signs that winter is ending.', 'Robin ' + A_SKY, A_BOOK],
   bluejay: ['Blue jay', 'Tities', 'Blue jays stay all year, and are quick to warn the whole forest when something is coming.', 'Blue Jay ' + A_SKY, A_BOOK],
   greyjay: ['Grey jay', 'Mikjaqoqwej', 'Grey jays, also called Canada jays or moose birds, are bold birds that visit winter camps looking for food.', 'Grey Jay ' + A_SKY, A_BOOK],
@@ -4528,10 +4528,10 @@ function withChick(svg, where) {
   return svg.slice(0, i) + (fly ? FLY_SVG(spot[0], spot[1], Number(where) % 2, a[0], 'An animal is hiding here') : CHICK_SVG(spot[0], spot[1], Number(where) % 2, a[0])) + svg.slice(i);
 }
 function animalCard(key) {
-  const [en, mik, lived, teach, hear] = ANIMALS[key];
+  const [en, mik, lived, teach, hear, say] = ANIMALS[key];
   const link = (t, u) => el('a', { href: u, target: '_blank', rel: 'noopener', text: t + ' ↗' });
   return [
-    el('p', {}, [el('strong', { text: 'Mi’kmaw name: ' }), document.createTextNode(mik + '. '), link('Hear Mi’kmaw words spoken at mikmaqonline.org', 'https://mikmaqonline.org/')]),
+    el('p', {}, [el('strong', { text: 'Mi’kmaw name: ' }), document.createTextNode(mik + (say ? ' (say it: ' + say + ')' : '') + '. '), link('Hear Mi’kmaw words spoken at mikmaqonline.org', 'https://mikmaqonline.org/')]),
     el('p', {}, [el('strong', { text: 'Living with it: ' }), document.createTextNode(lived)]),
     ...(teach ? [el('p', {}, [el('strong', { text: 'In Mi’kmaw teaching: ' }), document.createTextNode(teach)])] : []),
     el('p', {}, [el('strong', { text: 'Hear it from Mi’kmaw tellers: ' }), link(hear[0], hear[1])]),
