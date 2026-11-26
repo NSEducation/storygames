@@ -1097,7 +1097,7 @@
   };
   const glow = (cx, cy, r, color = GLOW, op = 0.85) => {
     const gid = id('glow');
-    return `<defs><radialGradient id="${gid}"><stop offset="0" stop-color="${color}" stop-opacity="${op}"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></radialGradient></defs><circle class="anim-glow" cx="${cx}" cy="${cy}" r="${r}" fill="url(#${gid})"/>`;
+    return `<defs><radialGradient id="${gid}"><stop offset="0" stop-color="${color}" stop-opacity="${op}"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></radialGradient></defs><circle class="anim-glow" cx="${cx}" cy="${cy}" r="${r}" fill="url(#${gid})" pointer-events="none"/>`;
   };
   const ship = (...a) => '<g class="anim-bob">' + ship0(...a) + '</g>';
   const ship0 = (x, y, s, o = {}) => {
@@ -2216,7 +2216,7 @@
   };
   const w1WSky = (o, d) => skyOf(o, o.night ? SKY.night : o.dusk ? SKY.dusk : o.rain || o.sleet ? SKY.grey : o.snow ? SKY.winter : o.dawn ? SKY.dusk : d);
   const w1Bags__ = (x0, x1, y, rows = 3, c = W1.bag) => { let s = ''; for (let r = 0; r < rows; r++) for (let x = x0 + (r % 2) * 14; x < x1; x += 28) s += `<rect x="${x}" y="${y - r * 11}" width="26" height="11" rx="4" fill="${r % 2 ? c : W1.bag2}" stroke="#7A6A44" stroke-width="0.8"/>`; return s; };
-  const w1Wire__ = (y, x0 = 0, x1 = 600) => { let s = ''; for (let x = x0; x < x1; x += 40) s += `<path d="M${x},${y} L${x},${y - 18}" stroke="#4A3A2A" stroke-width="2.5"/>`; s += `<path d="M${x0},${y - 14} ${Array.from({ length: Math.ceil((x1 - x0) / 20) }, (_, i) => `Q${x0 + i * 20 + 10},${y - 24 + (i % 2) * 14} ${x0 + i * 20 + 20},${y - 14}`).join(' ')}" stroke="#3A3A3A" stroke-width="1.2" fill="none"/><path d="M${x0},${y - 6} ${Array.from({ length: Math.ceil((x1 - x0) / 16) }, (_, i) => `Q${x0 + i * 16 + 8},${y - 12 + (i % 2) * 10} ${x0 + i * 16 + 16},${y - 6}`).join(' ')}" stroke="#3A3A3A" stroke-width="1" fill="none"/>`; return s; };
+  const w1Wire__ = (y, x0 = 0, x1 = 600) => { let s = `<rect class="tiphit" x="${x0}" y="${y - 27}" width="${x1 - x0}" height="29" fill="#000" fill-opacity="0"/>`; for (let x = x0; x < x1; x += 40) s += `<path d="M${x},${y} L${x},${y - 18}" stroke="#4A3A2A" stroke-width="2.5"/>`; s += `<path d="M${x0},${y - 14} ${Array.from({ length: Math.ceil((x1 - x0) / 20) }, (_, i) => `Q${x0 + i * 20 + 10},${y - 24 + (i % 2) * 14} ${x0 + i * 20 + 20},${y - 14}`).join(' ')}" stroke="#3A3A3A" stroke-width="1.2" fill="none"/><path d="M${x0},${y - 6} ${Array.from({ length: Math.ceil((x1 - x0) / 16) }, (_, i) => `Q${x0 + i * 16 + 8},${y - 12 + (i % 2) * 10} ${x0 + i * 16 + 16},${y - 6}`).join(' ')}" stroke="#3A3A3A" stroke-width="1" fill="none"/>`; return s; };
   const w1Holes__ = (y0, y1, n, seed, c = '#4A3828', water) => { const r = rnd(seed); return T(n, () => { const x = r() * 600, y = y0 + r() * (y1 - y0), w = 22 + r() * 36; return `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${w.toFixed(0)}" ry="${(w * 0.28).toFixed(0)}" fill="${c}"/>` + (water ? `<ellipse cx="${x.toFixed(0)}" cy="${(y + 1).toFixed(0)}" rx="${(w * 0.75).toFixed(0)}" ry="${(w * 0.18).toFixed(0)}" fill="${W1.water}"/>` : ''); }); };
   const w1Stumps2__ = (y, xs) => xs.map((x, i) => `<path d="M${x - 4},${y} L${x - 3},${y - 40 - (i % 3) * 18} L${x + 1},${y - 46 - (i % 3) * 18} L${x + 4},${y}" fill="#3A2E24"/>`).join('');
   const w1SmokeBand = (x, y0, y1, op = 0.7) => T(8, (i) => `<circle cx="${x + (i % 3) * 16 - 16}" cy="${y0 + i * (y1 - y0) / 8}" r="${22 + (i % 3) * 8}" fill="#B8B0A0" opacity="${op}"/>`) + T(5, (i) => `<circle cx="${x + (i % 2) * 10 - 5}" cy="${y0 + 10 + i * (y1 - y0) / 5}" r="${8 + (i % 2) * 4}" fill="#E8833A" opacity="0.6"/>`);
@@ -2296,7 +2296,7 @@
   const vgrad = (stops) => { const i = wid(); return [`<defs><linearGradient id="${i}" x1="0" y1="0" x2="0" y2="1">${stops.map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}"${a == null ? '' : ` stop-opacity="${a}"`}/>`).join('')}</linearGradient></defs>`, `url(#${i})`]; };
   const band = (y, h, stops, x = 0, w = 600) => { const [d, u] = vgrad(stops); return d + `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${u}"/>`; };
   const gfill = (path, stops) => { const [d, u] = vgrad(stops); return d + `<path d="${path}" fill="${u}"/>`; };
-  const rglow = (cx, cy, rx, ry, c, op = 0.6) => { const i = wid(); return `<defs><radialGradient id="${i}"><stop offset="0" stop-color="${c}" stop-opacity="${op}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient></defs><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${i})"/>`; };
+  const rglow = (cx, cy, rx, ry, c, op = 0.6) => { const i = wid(); return `<defs><radialGradient id="${i}"><stop offset="0" stop-color="${c}" stop-opacity="${op}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient></defs><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${i})" pointer-events="none"/>`; };
   const vignette = (op = 0.26) => { const i = wid(); return `<defs><radialGradient id="${i}" cx="0.5" cy="0.45" r="0.78"><stop offset="0.55" stop-color="#1E150F" stop-opacity="0"/><stop offset="1" stop-color="#1E150F" stop-opacity="${op}"/></radialGradient></defs><rect width="600" height="250" fill="url(#${i})" pointer-events="none"/>`; };
   const dk = (c, t) => mix(c, '#1E150F', t);
   const lit = (o, name) => { if (o && o.k != null) PC.set(o.k, name); };
@@ -2326,7 +2326,7 @@
   const sandbags__ = (x0, x1, y, rows, o = {}) => { let s = ''; const w = o.w || 27, h = o.h || 10.5, t = o.t || 0; for (let r = 0; r < rows; r++) for (let x = x0 - (r % 2) * (w / 2); x < x1; x += w) { const d = (Math.round(x / w) + r * 2) % 3 === 0;
     s += `<rect x="${x.toFixed(1)}" y="${(y - (r + 1) * h).toFixed(1)}" width="${w - 1}" height="${h}" rx="4" fill="${dk(d ? W2.bag2 : W2.bag, t)}" stroke="${dk(W2.bagD, t)}" stroke-width="0.7"/>`; } return s; };
   const duckboards__ = (y, o = {}) => T(14, (i) => `<g transform="translate(${i * 46 - 8} ${y + (o.float ? (i % 3) * 3 - 3 : 0)})${o.float ? ` rotate(${(i % 3) * 5 - 5})` : ''}"><rect x="0" y="0.6" width="44" height="2" fill="${dk(W2.woodD, o.t || 0)}"/><rect x="0" y="7" width="44" height="2" fill="${dk(W2.woodD, o.t || 0)}"/>${T(6, (j) => `<rect x="${1.5 + j * 7.2}" y="-1" width="5.2" height="11.4" rx="0.6" fill="${dk(j % 2 ? W2.wood : '#AB8E62', o.t || 0)}"/>`)}</g>`);
-  const wire__ = (y, x0, x1, seed, o = {}) => { const r = rnd(seed), c = o.c || '#3E332A', sc = o.s || 1; let s = '', pts = [];
+  const wire__ = (y, x0, x1, seed, o = {}) => { const r = rnd(seed), c = o.c || '#3E332A', sc = o.s || 1; let s = `<rect class="tiphit" x="${x0}" y="${(y - 25 * sc).toFixed(1)}" width="${x1 - x0}" height="${(27 * sc).toFixed(1)}" fill="#000" fill-opacity="0"/>`, pts = [];   // an invisible strip so the hover glow and label stay steady instead of blinking on the thin wires
     for (let x = x0; x < x1; x += (26 + r() * 16) * sc) { const h = (14 + r() * 7) * sc, le = (r() - 0.5) * 6 * sc; s += `<path d="M${x.toFixed(0)},${y} l${le.toFixed(1)},${(-h).toFixed(1)}" stroke="${c}" stroke-width="${(1.8 * sc).toFixed(1)}"/>`; pts.push([x + le, y - h]); }
     for (let k = 0; k < 3; k++) s += `<path d="M${pts.map(([x, yy], i) => `${x.toFixed(0)},${(yy + (2 + k * 4.4 + ((i + k) % 2) * 2.4) * sc).toFixed(1)}`).join(' L')}" stroke="${c}" stroke-width="${(0.8 * sc).toFixed(1)}" fill="none"/>`;
     for (let i = 0; i < pts.length - 1; i++) { const [x, yy] = pts[i], [x2, y2] = pts[i + 1]; s += `<path d="M${x.toFixed(0)},${(yy + 2).toFixed(0)} Q${((x + x2) / 2 - 4).toFixed(0)},${(Math.max(yy, y2) + 15 * sc).toFixed(0)} ${x2.toFixed(0)},${(y2 + 10 * sc).toFixed(0)} M${x.toFixed(0)},${(yy + 10 * sc).toFixed(0)} Q${((x + x2) / 2 + 4).toFixed(0)},${(Math.min(yy, y2) - 2).toFixed(0)} ${x2.toFixed(0)},${(y2 + 3).toFixed(0)}" stroke="${c}" stroke-width="${(0.6 * sc).toFixed(1)}" fill="none"/>`; }
@@ -5035,7 +5035,7 @@ function flyerInner(kind) {
     o += `<circle cx="10.7" cy="-2.1" r="0.7" fill="${has('eyeline') ? '#E0A82E' : ink}"/>`;
     o += has('hook') ? `<path d="M12.3,-2.6 L15.6,-2 Q16.4,-0.8 15,0 L14.6,-0.9 L12.3,-0.6 Z" fill="${bill}"/>` : has('heavy') ? `<path d="M12.2,-2.8 L16.6,-1.2 L12.2,-0.2 Z" fill="${bill}"/>` : `<path d="M12.4,-2.2 L15.2,-1.4 L12.4,-0.6 Z" fill="${bill}"/>`;
   }
-  o += `<g transform="translate(0 -1) scale(${w})"><path class="flywing" ${dur} d="M-4,0 Q-5,-12 -12,-17 Q-1,-13 5,0 Z" fill="${wing}"/>${has('tips') ? '<path class="flywing" ' + dur + ' d="M-12,-17 Q-9.4,-16.2 -7.6,-13.6 L-9.6,-13 Z" fill="#1B2529"/>' : ''}</g>`;
+  o += `<g transform="translate(0 -1) scale(${w})"><g class="flywing" ${dur}><path d="M-4,0 Q-5,-12 -12,-17 Q-1,-13 5,0 Z" fill="${wing}"/>${has('tips') ? '<path d="M-12,-17 Q-9.4,-16.2 -7.6,-13.6 L-9.6,-13 Z" fill="#1B2529"/>' : ''}</g></g>`;
   return o + '</g>';
 }
 Object.assign(A_SVG, {

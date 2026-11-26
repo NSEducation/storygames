@@ -5357,7 +5357,7 @@ function flyerInner(kind) {
     o += `<circle cx="10.7" cy="-2.1" r="0.7" fill="${has('eyeline') ? '#E0A82E' : ink}"/>`;
     o += has('hook') ? `<path d="M12.3,-2.6 L15.6,-2 Q16.4,-0.8 15,0 L14.6,-0.9 L12.3,-0.6 Z" fill="${bill}"/>` : has('heavy') ? `<path d="M12.2,-2.8 L16.6,-1.2 L12.2,-0.2 Z" fill="${bill}"/>` : `<path d="M12.4,-2.2 L15.2,-1.4 L12.4,-0.6 Z" fill="${bill}"/>`;
   }
-  o += `<g transform="translate(0 -1) scale(${w})"><path class="flywing" ${dur} d="M-4,0 Q-5,-12 -12,-17 Q-1,-13 5,0 Z" fill="${wing}"/>${has('tips') ? '<path class="flywing" ' + dur + ' d="M-12,-17 Q-9.4,-16.2 -7.6,-13.6 L-9.6,-13 Z" fill="#1B2529"/>' : ''}</g>`;
+  o += `<g transform="translate(0 -1) scale(${w})"><g class="flywing" ${dur}><path d="M-4,0 Q-5,-12 -12,-17 Q-1,-13 5,0 Z" fill="${wing}"/>${has('tips') ? '<path d="M-12,-17 Q-9.4,-16.2 -7.6,-13.6 L-9.6,-13 Z" fill="#1B2529"/>' : ''}</g></g>`;
   return o + '</g>';
 }
 const FLY_SVG = (x, y, flip, kind, label) => `<g class="chick flyer" data-chick="1" data-kind="${kind}" data-animal="${kind}" role="button" tabindex="0" aria-label="${label || 'A bird is flying here'}" transform="translate(${x} ${y}) scale(${flip ? -1.35 : 1.35} 1.35)"><circle r="19" fill="transparent"/><g class="flybody">${flyerInner(kind)}</g></g>`;
