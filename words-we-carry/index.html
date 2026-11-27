@@ -9648,10 +9648,1068 @@ function mapBigButtons() {
 }
 try { new MutationObserver(mapBigButtons).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) { /* no bigger-map button on very old browsers */ }
 
+const CALLMOOSE = {
+  intro: 'It is the Mate Calling moon. In the fall the bull moose call for mates, and the hunters call back. This fall, you go with the hunters.',
+  how: 'What the hunters teach you: read a track first, how old, how big, how fast. Walk with the wind in your face, so your smell blows away behind you. Then listen. When the bull calls, let him finish, and call back with a roll of birchbark.',
+  keys: 'Click or tap a ring to look closely, then press the button under the picture. With the keyboard, ← and → choose, and Space or Enter acts. When you are calling, Space (or a tap on the picture) calls back. The number keys pick an answer. P pauses.',
+  facts: [
+    'Moose, called tia’m in Mi’kmaw, gave meat, hides for clothing and moccasins, bone for tools and sinew for thread.',
+    'The fall moon when moose call for mates is the Mate Calling moon.',
+    'Many Mi’kmaw families still mark the year by the seasons of the land and water: the smelt run, the eel harvest, the fall moose hunt.',
+    'Today, some Mi’kmaw hunters still share moose meat with Elders and others in their communities, as a way of taking care of each other.',
+  ],
+  neta: 'Netukulimk (say it: neh-DOO-goo-limk) is a Mi’kmaw way of living that Elders still teach. It means using what the land and water give to feed and care for your family and community, without harming the land’s ability to give in the future.',
+  today: 'Today the mainland moose is endangered in Nova Scotia. Mi’kmaw organizations work on moose management guided by netukulimk, and in Unama’ki (Cape Breton) the Mi’kmaw moose harvest is managed by the Mi’kmaq themselves.',
+  endShare: 'When the hunt is over, the hunters give thanks. Nothing is wasted: meat, hide, bone and sinew all have a use. The meat is shared through the whole camp.',
+  endLet: 'You never take more than is needed. And you make every young hunter say back to you, word for word, why.',
+  sources: 'Where this comes from: the story’s own words in scenes 713, 717 and 807, their History Notes, and the moose stew in the Kitchen. Nothing new is claimed here.',
+  parts: [
+    { k: 'hide', name: 'the hide', ans: 1, hint: 'The hide is the moose’s thick skin. What could be made from it?' },
+    { k: 'sinew', name: 'the sinew', ans: 3, hint: 'Sinew is long, thin and very strong.' },
+    { k: 'bone', name: 'the bone', ans: 2, hint: 'Bone is hard, and it can be worked to a point or an edge.' },
+    { k: 'meat', name: 'the meat', ans: 0, hint: 'Everyone in camp is hungry.' },
+  ],
+  uses: ['Food, shared through the whole camp', 'Clothing and moccasins', 'Tools', 'Thread for sewing'],
+  why: ['We', 'never', 'take', 'more', 'than', 'is', 'needed.'],
+};
+// ================= CALL THE MOOSE =================
+// Chickadee's story, scenes 713, 717 and 807: "In the fall the bull moose call for mates. The hunters call back. You learn
+// to walk with the wind in your face, so your smell blows away behind you. You learn to read a track: how old, how big, how
+// fast." Read the tracks, choose a place to call from with the wind in your face, then call back each time the bull calls,
+// until he steps out of the bog. No weapon is ever shown and no animal is hurt: the game ends when he steps out, and the
+// next picture is the camp, where nothing is wasted and the meat is shared. On the last day the drying racks are full, so
+// you let him go, and the young hunter says back why, word for word. There is no way to lose. The people are the story
+// pictures' own figures (ART.people), dressed as in passage 717.
+function gMoose(box, win) {
+  const CFG = CALLMOOSE, H = 420, SF = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const mulb = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join(''); };
+  const rgba = (h, a) => { const [r, gg, b] = rgb(h); return `rgba(${r},${gg},${b},${a})`; };
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+  let stopRun = null;
+
+  // quiet sound effects: only when the Sound button at the top is on
+  const sfx = (() => {
+    let nb = null;
+    const A = () => { try { if (typeof SND === 'undefined' || !SND.on) return null; const a = SND._audio(); return a && a.ctx && a.master ? a : null; } catch (e) { return null; } };
+    const tone = (a, type, f0, f1, dur, vol, delay) => {
+      const t = a.ctx.currentTime + (delay || 0), o = a.ctx.createOscillator(), g = a.ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.03);
+    };
+    const noise = (a, dur, vol, f, delay) => {
+      const ctx = a.ctx, t = ctx.currentTime + (delay || 0);
+      if (!nb || nb.sampleRate !== ctx.sampleRate) { nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.5), ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      const src = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+      src.buffer = nb; bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = 0.9;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(bp); bp.connect(g); g.connect(a.master); src.start(t); src.stop(t + dur + 0.05);
+    };
+    // a low voice through a soft filter: the bull's grunt, or the long call through the birchbark roll
+    const voice = (a, f0, f1, dur, vol, cut, delay, wob) => {
+      const ctx = a.ctx, t = ctx.currentTime + (delay || 0), o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f1, t + dur * 0.6); o.frequency.linearRampToValueAtTime(f0 * 0.92, t + dur);
+      if (wob) { const lf = ctx.createOscillator(), lg = ctx.createGain(); lf.frequency.value = wob; lg.gain.value = f0 * 0.04; lf.connect(lg); lg.connect(o.frequency); lf.start(t); lf.stop(t + dur + 0.05); }
+      lp.type = 'lowpass'; lp.frequency.value = cut; lp.Q.value = 2;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.18); g.gain.setValueAtTime(vol, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(lp); lp.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.05);
+    };
+    return (kind, near) => {
+      const a = A(); if (!a) return;
+      try {
+        const v = 0.035 + (near || 0) * 0.05;
+        if (kind === 'step') noise(a, 0.07, 0.03, 1400 + Math.random() * 900);
+        else if (kind === 'tick') tone(a, 'triangle', 700, 740, 0.035, 0.018);
+        else if (kind === 'bull') { voice(a, 95, 120, 0.42, v, 520, 0); voice(a, 90, 112, 0.36, v * 0.8, 480, 0.55); }
+        else if (kind === 'horn') voice(a, 210, 330, 1.05, 0.04, 900, 0, 5);
+        else if (kind === 'crack') { noise(a, 0.05, 0.08, 2600); noise(a, 0.3, 0.05, 700, 0.12); noise(a, 0.3, 0.04, 600, 0.45); }
+        else if (kind === 'splash') { noise(a, 0.25, 0.05, 900); noise(a, 0.2, 0.035, 1300, 0.3); }
+        else if (kind === 'good') [523, 659, 784].forEach((f, i) => tone(a, 'triangle', f, f, 0.22, 0.04, i * 0.1));
+        else if (kind === 'oops') tone(a, 'sine', 320, 250, 0.22, 0.03);
+        else if (kind === 'note') tone(a, 'triangle', 600, 600, 0.12, 0.028);
+        else if (kind === 'done') [392, 523, 659, 784].forEach((f, i) => tone(a, 'triangle', f, f, 0.3, 0.04, i * 0.13));
+      } catch (e) { /* sound is a nicety; never let it stop the game */ }
+    };
+  })();
+
+  // three falls; the wind comes from a different side each time (map units: u across, v away from you)
+  const DAYS = [
+    { n: 1, icon: '🍂', name: 'Your first fall with the hunters', tag: 'The hunter shows you how. Read the tracks, find the wind, and answer the bull three times.', look: 'dawn', calls: 3, win: [0.3, 4.6], mult: 1, seed: 7, wind: [0, -1], bull: [0.63, 0.69], tracks: { T1: 'good', T2: 'old', T3: 'small' }, me: ['LG', 100, 'chick14'], bud: ['LM', 108, 'celderMan'], teach: 'bud', coach: true },
+    { n: 2, icon: '🍁', name: 'The next fall', tag: 'This time the hunter lets you call. The wind comes from a new side, and the bull is warier.', look: 'gold', calls: 4, win: [0.4, 3.6], mult: 1.25, seed: 19, wind: [-1, 0.12], bull: [0.66, 0.7], tracks: { T1: 'old', T2: 'fast', T3: 'good', T4: 'small' }, me: ['LG', 100, 'chick14'], bud: ['LM', 108, 'celderMan'], teach: 'bud' },
+    { n: 3, icon: '🌅', name: 'Many falls later', tag: 'You are the Moose Caller now, and a young hunter comes with you. The drying racks at camp are already full.', look: 'mist', calls: 5, win: [0.5, 3.0], mult: 1.5, seed: 31, wind: [0.72, -0.69], bull: [0.6, 0.71], tracks: { T1: 'fast', T2: 'good', T3: 'small', T4: 'old' }, me: ['LW', 104, 'chickAdult'], bud: ['LM', 104, ''], teach: 'me', decide: true },
+  ];
+  const BUDNAME = (L) => (L.n === 3 ? 'the young hunter' : 'the hunter');
+
+  function menu() {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const best = PROG.mooseBest || 0, bs = PROG.mooseStars || {};
+    box.append(
+      el('p', { class: 'readable', text: CFG.intro }),
+      el('p', { class: 'readable', text: CFG.how }),
+      el('p', { class: 'hint', text: CFG.keys }),
+      el('h2', { class: 'readable', text: 'Choose a fall' }),
+      el('div', { class: 'trail-courses' }, DAYS.map((L) => el('button', { type: 'button', class: 'ghcard' + (bs[L.n] ? ' done' : ''), onclick: () => play(L) }, [
+        el('span', { class: 'ghicon', text: L.icon }), el('strong', { text: L.name }), el('span', { text: L.tag }),
+        el('span', { class: 'ghwhere', text: bs[L.n] ? `Best: ${stars(bs[L.n])}` : 'Not tried yet' }),
+      ]))),
+      el('label', { class: 'grelax' }, [
+        el('input', { type: 'checkbox', checked: RELAXED ? 'checked' : null, onchange: (e) => { RELAXED = e.target.checked; } }),
+        document.createTextNode(' Relaxed mode (more time to answer the bull, with more tips; it scores a little less)'),
+      ]),
+      el('p', { class: 'hint', text: best ? `Your best score: ${best}` : 'Finish a fall to set your first score.' }),
+    );
+  }
+
+  function play(L) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const W = (box.clientWidth || 720) < 520 ? 520 : 720, small = W < 700, FZ = small ? 1.3 : 1, SZ = small ? 0.86 : 1;
+    const relaxed = !!RELAXED, coach = relaxed || !!L.coach;
+    const WIN = relaxed ? [0.15, 5.6] : L.win;
+    const TEACH = L.teach;
+    const RNG = mulb((L.seed * 7919 + Date.now()) | 0);
+
+    // ---------- the picture: the hills and the bog, seen from above and in front ----------
+    const D1 = 2.15, YH = -58, KZ = 470, Q = 0.5;
+    const P = (u, v) => { const d = 1 + v * (D1 - 1); return { x: u * W, y: YH + KZ / d, s: 1 / d }; };
+    const UV = (x, y) => { const d = KZ / Math.max(1, y - YH); return { u: x / W, v: (d - 1) / (D1 - 1) }; };
+    const yFar = P(0, 1).y;
+    const cv = document.createElement('canvas'); cv.className = 'trailcv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`;
+    cv.setAttribute('role', 'img');
+    let dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const bar = el('div', { class: 'row tight moosebar' });
+    const live = el('p', { class: 'hint', 'aria-live': 'polite', text: '' });
+    box.append(el('div', { class: 'trailwrap' }, [cv]), bar, live);
+
+    // ---------- light ----------
+    const LOOKS = {
+      dawn: { skyTop: '#6C83B5', skyBot: '#F3C7AA', hill: '#8F8CA6', far: '#6F7A72', mist: '#F6E7E2', light: 'rgba(255,214,190,0.22)' },
+      gold: { skyTop: '#86AAD2', skyBot: '#F6DCA6', hill: '#9AA0A0', far: '#6E7A60', mist: '#FBF1DA', light: 'rgba(255,226,160,0.18)' },
+      mist: { skyTop: '#8C9FB4', skyBot: '#E7E3DA', hill: '#A7AEB4', far: '#7C8580', mist: '#EEF0F0', light: 'rgba(230,236,240,0.2)' },
+    };
+    const LK = LOOKS[L.look];
+    const PAL = { ground: '#9A7E52', ground2: '#B48E5A', litter: ['#B8452C', '#D0702E', '#E1A43A', '#8A5A30', '#C9883A', '#A33A28'], bog: '#8E8048', bog2: '#A65A3A', bog3: '#6F7C42', bogEdge: '#5E5636',
+      water: '#5F7F9E', waterHi: '#B9CCDC', spruce: '#2F4A38', spruce2: '#3E5E46', sprDk: '#1F3227', trunk: '#4E3A2C', maple: ['#C2402A', '#D9572C', '#E07A2E'], birchL: ['#E2B93E', '#ECCB55', '#D8A836'],
+      beech: ['#B7843C', '#C99A4A'], tam: ['#D8A63A', '#E6BC52', '#C99230'], alder: '#6B5A3A', alderL: ['#8A8A3E', '#A39A48', '#7A7238'], stem: '#5E4636', stemHi: '#7E604A', birch: '#EEEBE3', birchMk: '#3A3430',
+      print: '#5A4632', printDk: '#3E3022', mud: '#6E5A40', ink: '#22252B' };
+
+    // ---------- the people: the story pictures' own figures, turned into small pictures once ----------
+    const SPR = {};
+    (function makeSprites() {
+      const defs = { me: [L.me[0], L.me[1], L.me[2]], bud: [L.bud[0], L.bud[1], L.bud[2]], meK: ['KNEEL', 100, L.me[2]], budK: ['KNEEL', 100, L.bud[2]],
+        nuk: ['LE', 96, 'cnukumi'], mom: ['LW', 102, 'cmother'], dad: ['LM', 108, 'cfather'], kid: ['CHILD', 66, ''], chick: ['LG', 100, 'chick14'] };
+      if (typeof ART === 'undefined' || !ART.people || !ART.people.group) return;
+      Object.entries(defs).forEach(([name, [kind, h, role]]) => [false, true].forEach((flip) => {
+        try {
+          const o = {}; if (role) o.role = role; if (flip) o.flip = true;
+          const inner = ART.people.group('717', [[kind, 60, 150, h, o]]);
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="240" height="320">${inner}</svg>`;
+          const img = new Image();
+          img.onload = () => { try { const cs = document.createElement('canvas'); cs.width = 240; cs.height = 320; cs.getContext('2d').drawImage(img, 0, 0, 240, 320); SPR[name + (flip ? 'F' : '')] = { cv: cs, h }; } catch (e) { /* keep the plain figure */ } };
+          img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        } catch (e) { /* no picture: a plain figure is drawn instead */ }
+      }));
+    })();
+    // draws a person with feet at (x, y), th pixels tall
+    function person(g, name, x, y, th, flip) {
+      const s = SPR[name + (flip ? 'F' : '')];
+      if (s) { const k = th / s.h; g.drawImage(s.cv, x - 60 * k, y - 150 * k, 120 * k, 160 * k); return; }
+      g.save(); g.translate(x, y); g.scale(th / 100, th / 100); g.fillStyle = '#2A2420';
+      g.beginPath(); g.arc(0, -90, 8, 0, 7); g.fill(); g.beginPath(); g.moveTo(-10, -80); g.lineTo(10, -80); g.lineTo(14, -30); g.lineTo(-14, -30); g.closePath(); g.fill();
+      g.fillRect(-9, -32, 6, 32); g.fillRect(3, -32, 6, 32); g.restore();
+    }
+
+    // ---------- shapes ----------
+    const ell = (g, x, y, rx, ry, rot) => { g.beginPath(); g.ellipse(x, y, Math.max(0.15, rx), Math.max(0.15, ry), rot || 0, 0, Math.PI * 2); };
+    const rr = (g, x, y, w, h, r) => { r = Math.min(r, w / 2, h / 2); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+    function curve(pts) {
+      const p = pts.map(([u, v]) => P(u, v)), raw = [];
+      for (let i = 0; i < p.length - 1; i++) {
+        const a = p[Math.max(0, i - 1)], b = p[i], d2 = p[i + 1], e = p[Math.min(p.length - 1, i + 2)];
+        for (let k = 0; k < 20; k++) {
+          const t = k / 20, t2 = t * t, t3 = t2 * t;
+          const f = (A, B, C, D) => 0.5 * (2 * B + (-A + C) * t + (2 * A - 5 * B + 4 * C - D) * t2 + (-A + 3 * B - 3 * C + D) * t3);
+          raw.push({ x: f(a.x, b.x, d2.x, e.x), y: f(a.y, b.y, d2.y, e.y), s: f(a.s, b.s, d2.s, e.s) });
+        }
+      }
+      raw.push(p[p.length - 1]);
+      const out = [raw[0]];
+      for (let i = 1; i < raw.length; i++) {
+        let A = out[out.length - 1]; const B = raw[i];
+        let dx = B.x - A.x, dy = B.y - A.y, dl = Math.hypot(dx, dy);
+        while (dl >= 3) { const t = 3 / dl, Pt = { x: A.x + dx * t, y: A.y + dy * t, s: A.s + (B.s - A.s) * t }; out.push(Pt); A = Pt; dx = B.x - A.x; dy = B.y - A.y; dl = Math.hypot(dx, dy); }
+      }
+      for (let i = 0; i < out.length; i++) {
+        const a = out[Math.max(0, i - 2)], b = out[Math.min(out.length - 1, i + 2)];
+        let tx = b.x - a.x, ty = (b.y - a.y) / Q; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+        const o = out[i]; o.ax = tx; o.ay = ty * Q; o.nx = -ty; o.ny = tx * Q;
+      }
+      return out;
+    }
+    // a moose hoofprint on the ground: two halves, pointing the way the moose walked
+    function hoof(g, x, y, ang, sz, sq, col, crisp) {
+      g.save(); g.translate(x, y); g.scale(1, sq); g.rotate(ang);
+      g.fillStyle = col;
+      [-1, 1].forEach((sd) => { g.beginPath(); g.moveTo(sd * 0.4 * sz, 0.9 * sz); g.quadraticCurveTo(sd * 1.5 * sz, 0.6 * sz, sd * 1.25 * sz, -0.5 * sz); g.quadraticCurveTo(sd * 0.85 * sz, -1.5 * sz, sd * 0.28 * sz, -1.45 * sz); g.quadraticCurveTo(sd * 0.12 * sz, -0.2 * sz, sd * 0.4 * sz, 0.9 * sz); g.closePath(); g.fill(); });
+      if (crisp) { g.strokeStyle = 'rgba(255,240,220,0.35)'; g.lineWidth = Math.max(0.5, sz * 0.12); [-1, 1].forEach((sd) => { g.beginPath(); g.moveTo(sd * 1.5 * sz, 0.7 * sz); g.quadraticCurveTo(sd * 1.75 * sz, -0.4 * sz, sd * 1.1 * sz, -1.25 * sz); g.stroke(); }); }
+      g.restore();
+    }
+
+    // ---------- the place ----------
+    const BOG = { u: 0.57, v: 0.66, ru: 0.31, rv: 0.2 };
+    const TRACKS = {
+      T1: [[0.13, 0.09], [0.23, 0.19], [0.33, 0.29], [0.41, 0.38], [0.46, 0.47]],
+      T2: [[0.5, 0.03], [0.54, 0.15], [0.59, 0.27], [0.62, 0.38], [0.63, 0.46]],
+      T3: [[0.88, 0.07], [0.85, 0.19], [0.81, 0.31], [0.79, 0.42], [0.8, 0.5]],
+      T4: [[0.03, 0.34], [0.11, 0.42], [0.18, 0.5], [0.24, 0.57]],
+    };
+    const SPOTS = [
+      { id: 'near', at: [0.53, 0.42], cover: 'Low alders at the near edge of the bog, looking out across it.' },
+      { id: 'left', at: [0.22, 0.67], cover: 'A fallen spruce on the left side of the bog. Good cover.' },
+      { id: 'right', at: [0.91, 0.64], cover: 'A clump of young tamaracks on the right side of the bog.' },
+      { id: 'far', at: [0.6, 0.9], cover: 'Big spruce trees on the far side of the bog.' },
+    ];
+    const WD = (() => { const l = Math.hypot(L.wind[0], L.wind[1]); return [L.wind[0] / l, L.wind[1] / l]; })();
+    const windOf = (at, bull) => { const du = at[0] - bull[0], dv = at[1] - bull[1], l = Math.hypot(du, dv) || 1, k = (du * WD[0] + dv * WD[1]) / l; return k > 0.7 ? 'face' : k < -0.4 ? 'back' : 'cross'; };
+    const WINDTXT = { face: 'The wind is on your face.', back: 'The wind is at your back.', cross: 'The wind blows across you, from the side.' };
+    const TRACKTXT = {
+      good: 'Big prints, sharp at the edges, in wet, dark mud. They are close together, one after another.',
+      old: 'Big prints, but leaves have fallen into them, and rainwater stands in the bottoms.',
+      small: 'Small prints, close together.',
+      fast: 'Big prints, very far apart, the mud thrown up behind each one.',
+    };
+    const TRACKQ = { old: 'How old are these?', small: 'How big?', fast: 'How fast was this one going?' };
+    const TRACKNO = {
+      old: 'How old? Leaves have fallen into these prints, and rain has stood in them. The moose that made them is long gone.',
+      small: 'How big? These are small prints. A young moose made them. Look for big ones.',
+      fast: 'How fast? These prints are far apart. That moose was running, and it is far away by now.',
+    };
+    const M = (() => {
+      const R = mulb(L.seed * 977 + 13), m = { objs: [], tracks: [], spots: [], bull: L.bull.slice(), bogPoly: [], chan: null, leaves: [] };
+      // the bog's edge, a little uneven
+      for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2, r = 1 + Math.sin(a * 3 + L.seed) * 0.07 + Math.sin(a * 5 + 1) * 0.05; m.bogPoly.push([BOG.u + Math.cos(a) * BOG.ru * r, BOG.v + Math.sin(a) * BOG.rv * r]); }
+      m.chan = curve([[0.3, 0.73], [0.42, 0.67], [0.55, 0.7], [0.68, 0.63], [0.8, 0.66], [0.86, 0.62]]);
+      Object.entries(L.tracks).forEach(([id, kind]) => { const pts = TRACKS[id]; const cc = curve(pts); const mid = cc[Math.floor(cc.length * 0.5)]; m.tracks.push({ id, kind, c: cc, x: mid.x, y: mid.y, s: mid.s, end: pts[pts.length - 1] }); });
+      SPOTS.forEach((sp) => { const q = P(sp.at[0], sp.at[1]); m.spots.push(Object.assign({}, sp, { x: q.x, y: q.y, s: q.s, wind: windOf(sp.at, m.bull), tried: false })); });
+      const inBog = (u, v) => ((u - BOG.u) / BOG.ru) ** 2 + ((v - BOG.v) / BOG.rv) ** 2;
+      const nearLine = (u, v, r) => m.tracks.some((t) => t.c.some((o) => { const w = UV(o.x, o.y); return Math.hypot(w.u - u, (w.v - v) * 1.4) < r; }));
+      const nearSpot = (u, v, r) => SPOTS.some((sp) => Math.hypot(sp.at[0] - u, (sp.at[1] - v) * 1.4) < r);
+      const okAt = (u, v, r) => !nearLine(u, v, r) && !nearSpot(u, v, r + 0.02) && Math.hypot(u - 0.08, (v - 0.06) * 1.4) > 0.09;
+      // hardwood hills on the near side, mixed woods behind the bog
+      let near = 0;
+      for (let i = 0; i < 600 && near < 20; i++) {
+        const u = R() * 1.06 - 0.03, v = R() * 0.48, edge = Math.abs(u - 0.5) * 2;
+        if (R() > 0.15 + edge * edge * 0.85) continue;
+        if (inBog(u, v) < 1.7 || !okAt(u, v, 0.075)) continue;
+        const r = R(), k = r < 0.4 ? 'maple' : r < 0.66 ? 'birch' : r < 0.82 ? 'beech' : 'spruce';
+        m.objs.push({ k, u, v, h: (k === 'spruce' ? 100 : 84) + R() * 28, seed: (R() * 1e6) | 0 }); near++;
+      }
+      for (let i = 0; i < 110; i++) {
+        const u = R() * 1.06 - 0.03, v = 0.84 + R() * 0.2;
+        if (inBog(u, v) < 1.12 || nearSpot(u, v, 0.05)) continue;
+        const r = R(), k = v > 0.96 ? (r < 0.7 ? 'spruce' : r < 0.85 ? 'maple' : 'tam') : r < 0.45 ? 'spruce' : r < 0.65 ? 'tam' : r < 0.82 ? 'maple' : 'birch';
+        m.objs.push({ k, u, v, h: (k === 'spruce' ? 150 : 128) + R() * 50, seed: (R() * 1e6) | 0 });
+      }
+      // in and around the bog: tamaracks, black spruce and alder thickets
+      for (let i = 0; i < 44; i++) {
+        const a = R() * Math.PI * 2, rr2 = 0.92 + R() * 0.3, u = BOG.u + Math.cos(a) * BOG.ru * rr2, v = BOG.v + Math.sin(a) * BOG.rv * rr2;
+        if (nearSpot(u, v, 0.06) || nearLine(u, v, 0.05) || v < 0.44) continue;
+        m.objs.push({ k: R() < 0.45 ? 'alder' : 'tam', u, v, h: 46 + R() * 30, seed: (R() * 1e6) | 0 });
+      }
+      for (let i = 0; i < 8; i++) { const u = m.bull[0] + (R() - 0.5) * 0.11, v = m.bull[1] + (R() - 0.3) * 0.07; m.objs.push({ k: 'alder', u, v, h: 52 + R() * 20, seed: (R() * 1e6) | 0, thick: true }); }
+      for (let i = 0; i < 7; i++) { const u = BOG.u + (R() - 0.5) * BOG.ru * 1.3, v = BOG.v + (R() - 0.5) * BOG.rv * 1.2; if (inBog(u, v) < 0.8 && Math.hypot(u - m.bull[0], v - m.bull[1]) > 0.08) m.objs.push({ k: 'bspruce', u, v, h: 50 + R() * 30, seed: (R() * 1e6) | 0 }); }
+      m.objs.sort((a, b) => b.v - a.v);
+      return m;
+    })();
+
+    // ---------- drawing the land ----------
+    function spruce(g, x, y, h, seed, far) {
+      const R = mulb(seed), w = h * (0.34 + R() * 0.07), tiers = far ? 6 : 8;
+      g.fillStyle = PAL.trunk; g.fillRect(x - h * 0.022, y - h * 0.1, h * 0.044, h * 0.11);
+      for (let i = 0; i < tiers; i++) {
+        const t = i / tiers, ty = y - h * (0.07 + t * 0.84), tw = w * (1 - t * 0.86) * (0.9 + R() * 0.2), th = h * (0.2 - t * 0.04);
+        g.fillStyle = PAL.spruce2; g.beginPath(); g.moveTo(x, ty - th); g.lineTo(x - tw / 2, ty); for (let k = 0; k <= 6; k++) g.lineTo(x - tw / 2 + (tw / 2) * k / 6, ty + (k % 2 ? th * 0.1 : -th * 0.05)); g.closePath(); g.fill();
+        g.fillStyle = PAL.spruce; g.beginPath(); g.moveTo(x, ty - th); g.lineTo(x + tw / 2, ty); for (let k = 0; k <= 6; k++) g.lineTo(x + tw / 2 - (tw / 2) * k / 6, ty + (k % 2 ? th * 0.1 : -th * 0.05)); g.closePath(); g.fill();
+      }
+      g.fillStyle = PAL.spruce; g.beginPath(); g.moveTo(x, y - h); g.lineTo(x - h * 0.03, y - h * 0.88); g.lineTo(x + h * 0.03, y - h * 0.88); g.closePath(); g.fill();
+    }
+    function tamarack(g, x, y, h, seed) {
+      const R = mulb(seed), w = h * 0.3;
+      g.strokeStyle = PAL.trunk; g.lineWidth = Math.max(1, h * 0.025); g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - h); g.stroke();
+      for (let i = 0; i < 9; i++) {
+        const t = i / 9, ty = y - h * (0.1 + t * 0.85), tw = w * (1 - t * 0.85);
+        g.fillStyle = PAL.tam[i % 3]; ell(g, x + (R() - 0.5) * tw * 0.2, ty, tw * 0.55, h * 0.06); g.fill();
+        g.fillStyle = 'rgba(255,240,190,0.25)'; ell(g, x - tw * 0.18, ty - h * 0.015, tw * 0.25, h * 0.025); g.fill();
+      }
+    }
+    function hardwood(g, x, y, h, seed, kind) {
+      const R = mulb(seed), cols = kind === 'maple' ? PAL.maple : kind === 'birch' ? PAL.birchL : PAL.beech, cw = h * (0.32 + R() * 0.06);
+      g.lineCap = 'round';
+      g.strokeStyle = kind === 'birch' ? PAL.birch : PAL.trunk; g.lineWidth = Math.max(1.2, h * 0.05);
+      g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (R() - 0.5) * h * 0.08, y - h * 0.3, x, y - h * 0.55); g.stroke();
+      if (kind === 'birch') { g.strokeStyle = PAL.birchMk; g.lineWidth = Math.max(0.6, h * 0.016); for (let k = 0; k < 4; k++) { const yy = y - h * (0.08 + k * 0.11); g.beginPath(); g.moveTo(x - h * 0.02, yy); g.lineTo(x + h * 0.012, yy - 0.5); g.stroke(); } }
+      g.strokeStyle = kind === 'birch' ? PAL.birch : PAL.trunk; g.lineWidth = Math.max(0.8, h * 0.022);
+      [-1, 1].forEach((sd) => { g.beginPath(); g.moveTo(x, y - h * 0.42); g.lineTo(x + sd * cw * 0.45, y - h * 0.7); g.stroke(); });
+      const cy0 = y - h * 0.72;
+      g.fillStyle = mix(cols[0], '#3A2418', 0.35); ell(g, x + cw * 0.06, cy0 + cw * 0.2, cw * 0.9, cw * 0.55); g.fill();
+      for (let i = 0; i < 16; i++) {
+        const a = R() * Math.PI * 2, d = Math.sqrt(R()) * 0.72, cx = x + Math.cos(a) * cw * d, cy = cy0 + Math.sin(a) * cw * d * 0.72 - cw * 0.06, r = cw * (0.24 + R() * 0.16);
+        g.fillStyle = mix(cols[i % cols.length], cy > cy0 ? '#3A2418' : '#FFF2D0', cy > cy0 ? 0.18 : 0.12); ell(g, cx, cy, r, r * 0.85); g.fill();
+      }
+      for (let i = 0; i < 26; i++) { const a = R() * Math.PI * 2, d = Math.sqrt(R()) * 0.85; g.fillStyle = i % 3 ? mix(cols[i % cols.length], '#FFF2D0', 0.3) : mix(cols[0], '#2A1810', 0.4); ell(g, x + Math.cos(a) * cw * d, cy0 + Math.sin(a) * cw * d * 0.7, cw * 0.06, cw * 0.045); g.fill(); }
+      // leaves already down, under the tree
+      for (let k = 0; k < 10; k++) { g.fillStyle = cols[k % cols.length]; ell(g, x + (R() - 0.5) * cw * 1.6, y + (R() - 0.3) * h * 0.06, 1.6, 0.9, R() * 3); g.fill(); }
+    }
+    function alder(g, x, y, h, seed, thick) {
+      const R = mulb(seed), n = thick ? 9 : 6;
+      g.lineCap = 'round';
+      for (let i = 0; i < n; i++) {
+        const a = (i / (n - 1) - 0.5) * 1.0 + (R() - 0.5) * 0.3, len = h * (0.6 + R() * 0.4), x1 = x + Math.sin(a) * len * 0.6, y1 = y - Math.cos(a) * len;
+        g.strokeStyle = i % 2 ? PAL.stem : PAL.stemHi; g.lineWidth = Math.max(0.8, h * 0.035);
+        g.beginPath(); g.moveTo(x + (R() - 0.5) * h * 0.08, y); g.quadraticCurveTo(x + Math.sin(a) * len * 0.2, y - len * 0.55, x1, y1); g.stroke();
+        g.fillStyle = PAL.alderL[i % 3]; ell(g, x1, y1 + h * 0.04, h * 0.14, h * 0.1); g.fill();
+      }
+      g.fillStyle = rgba(PAL.alderL[0], 0.9); ell(g, x, y - h * 0.45, h * 0.3, h * 0.2); g.fill();
+    }
+    function bspruce(g, x, y, h, seed) { const R = mulb(seed); g.fillStyle = PAL.sprDk; g.beginPath(); g.moveTo(x, y - h); for (let i = 0; i <= 8; i++) { const t = i / 8, yy = y - h + h * t, w = h * 0.12 * (0.3 + t * 0.7) * (0.8 + R() * 0.4); g.lineTo(x + (i % 2 ? w : w * 0.6), yy); } for (let i = 8; i >= 0; i--) { const t = i / 8, yy = y - h + h * t, w = h * 0.12 * (0.3 + t * 0.7); g.lineTo(x - (i % 2 ? w : w * 0.6), yy); } g.closePath(); g.fill(); }
+    function drawObj(g, o) {
+      const q = P(o.u, o.v), h = o.h * q.s * SZ;
+      if (o.k === 'spruce') spruce(g, q.x, q.y, h, o.seed, false);
+      else if (o.k === 'tam') tamarack(g, q.x, q.y, h, o.seed);
+      else if (o.k === 'alder') alder(g, q.x, q.y, h, o.seed, o.thick);
+      else if (o.k === 'bspruce') bspruce(g, q.x, q.y, h, o.seed);
+      else hardwood(g, q.x, q.y, h, o.seed, o.k);
+    }
+    function trackPrints(g, t) {
+      const R = mulb(t.id.charCodeAt(1) * 41 + L.seed), cc = t.c, kind = t.kind;
+      for (let i = 0; i < cc.length; i += 2) { const o = cc[i]; g.fillStyle = kind === 'old' ? 'rgba(80,60,40,0.07)' : 'rgba(64,46,28,0.12)'; ell(g, o.x, o.y, 7 * o.s, 7 * o.s * Q); g.fill(); }
+      const gap = kind === 'fast' ? 30 : kind === 'small' ? 9 : 13, sz = kind === 'small' ? 1.7 : 2.6;
+      let acc = 0, side = 1;
+      for (let i = 2; i < cc.length - 2; i++) {
+        const o = cc[i]; acc += 3; if (acc < gap * o.s + 2) continue; acc = 0; side = -side;
+        const x = o.x + o.nx * 2.6 * side * o.s, y = o.y + o.ny * 2.6 * side * o.s, ang = Math.atan2(o.ay / Q, o.ax) - Math.PI / 2;
+        if (kind === 'old') { hoof(g, x, y, ang, sz * o.s * 1.1, Q * 1.6, 'rgba(90,70,50,0.38)', false); if (R() < 0.8) { g.fillStyle = PAL.litter[(R() * 6) | 0]; ell(g, x + (R() - 0.5) * 3, y, 1.6, 0.9, R() * 3); g.fill(); } }
+        else hoof(g, x, y, ang, sz * o.s * 1.1, Q * 1.6, kind === 'fast' ? PAL.printDk : PAL.print, false);
+      }
+    }
+    function drawBog(g) {
+      const poly = M.bogPoly.map(([u, v]) => P(u, v));
+      const path = () => { g.beginPath(); poly.forEach((q, i) => (i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y))); g.closePath(); };
+      path(); g.fillStyle = PAL.bogEdge; g.save(); g.translate(0, 2); g.fill(); g.restore();
+      path(); g.fillStyle = PAL.bog; g.fill();
+      g.save(); path(); g.clip();
+      const R = mulb(L.seed + 404);
+      for (let i = 0; i < 160; i++) { const u = BOG.u + (R() - 0.5) * BOG.ru * 2.2, v = BOG.v + (R() - 0.5) * BOG.rv * 2.2, q = P(u, v), r = (6 + R() * 16) * q.s; g.fillStyle = [PAL.bog2, PAL.bog3, '#9A8A50', '#B07A48'][i % 4]; g.globalAlpha = 0.45; ell(g, q.x, q.y, r, r * Q); g.fill(); }
+      g.globalAlpha = 1;
+      // open water: a channel through the middle, the sky in it
+      const cc = M.chan, band = (w) => { g.beginPath(); cc.forEach((o, i) => { const x = o.x + o.nx * w * o.s, y = o.y + o.ny * w * o.s; if (i) g.lineTo(x, y); else g.moveTo(x, y); }); for (let i = cc.length - 1; i >= 0; i--) { const o = cc[i]; g.lineTo(o.x - o.nx * w * o.s, o.y - o.ny * w * o.s); } g.closePath(); };
+      band(17); g.fillStyle = 'rgba(60,50,30,0.35)'; g.fill();
+      band(13); const wg = g.createLinearGradient(0, yFar, 0, P(0, 0.4).y); wg.addColorStop(0, mix(LK.skyBot, PAL.water, 0.35)); wg.addColorStop(1, PAL.water); g.fillStyle = wg; g.fill();
+      g.strokeStyle = rgba(PAL.waterHi, 0.7); g.lineWidth = 1;
+      for (let k = -1; k <= 1; k += 2) { g.beginPath(); let on = false; cc.forEach((o, i) => { if (i % 11 > 6) { on = false; return; } const x = o.x + o.nx * k * 5 * o.s, y = o.y + o.ny * k * 5 * o.s; if (on) g.lineTo(x, y); else { g.moveTo(x, y); on = true; } }); g.stroke(); }
+      // sedge tufts
+      g.strokeStyle = '#7A7A3E'; g.lineWidth = 1;
+      for (let i = 0; i < 90; i++) { const u = BOG.u + (R() - 0.5) * BOG.ru * 2, v = BOG.v + (R() - 0.5) * BOG.rv * 2, q = P(u, v); for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(q.x, q.y); g.lineTo(q.x + k * 2.5 * q.s, q.y - 6 * q.s); g.stroke(); } }
+      g.restore();
+    }
+    function drawWorld(g) {
+      const sg = g.createLinearGradient(0, 0, 0, yFar + 10); sg.addColorStop(0, LK.skyTop); sg.addColorStop(1, LK.skyBot); g.fillStyle = sg; g.fillRect(0, 0, W, yFar + 40);
+      const hg = g.createRadialGradient(W * (L.look === 'gold' ? 0.82 : 0.25), yFar - 20, 6, W * 0.5, yFar, W * 0.7); hg.addColorStop(0, LK.light); hg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = hg; g.fillRect(0, 0, W, yFar + 20);
+      g.fillStyle = LK.hill; g.beginPath(); g.moveTo(0, yFar - 24); for (let x = 0; x <= W; x += 24) g.lineTo(x, yFar - 30 - Math.sin(x * 0.009 + 0.8) * 12 - Math.sin(x * 0.027) * 5); g.lineTo(W, yFar + 10); g.lineTo(0, yFar + 10); g.closePath(); g.fill();
+      const top = P(0, 1.13).y;
+      const gg = g.createLinearGradient(0, top, 0, H); gg.addColorStop(0, mix(PAL.ground, LK.hill, 0.35)); gg.addColorStop(1, PAL.ground2); g.fillStyle = gg; g.fillRect(0, top, W, H - top);
+      // fallen leaves all over the hills
+      const R = mulb(L.seed + 77);
+      for (let i = 0; i < 1500; i++) { const u = R() * 1.02 - 0.01, v = R() * 1.05, q = P(u, v); g.fillStyle = PAL.litter[i % PAL.litter.length]; g.globalAlpha = 0.35 + R() * 0.4; ell(g, q.x, q.y, (1.4 + R() * 1.6) * q.s * 1.4, (0.8 + R()) * q.s, R() * 3); g.fill(); }
+      g.globalAlpha = 1;
+      for (let i = 0; i < 12; i++) { const q = P(R(), R() * 0.9), w = (50 + R() * 110) * q.s; g.fillStyle = 'rgba(60,40,20,0.08)'; ell(g, q.x, q.y, w, w * 0.12); g.fill(); }
+      // the far woods
+      const RB = mulb(L.seed + 999);
+      for (let u = -0.04; u < 1.06; u += 0.022 + RB() * 0.02) { const v = 1.04 + RB() * 0.1, q = P(u, v), r = RB(); if (r < 0.62) spruce(g, q.x, q.y, (110 + RB() * 90) * q.s * SZ, (RB() * 1e6) | 0, true); else hardwood(g, q.x, q.y, (100 + RB() * 60) * q.s * SZ, (RB() * 1e6) | 0, r < 0.82 ? 'maple' : 'birch'); }
+      drawBog(g);
+      M.tracks.forEach((t) => trackPrints(g, t));
+      M.objs.forEach((o) => drawObj(g, o));
+      // soft morning light over everything
+      g.fillStyle = LK.light; g.fillRect(0, 0, W, H);
+    }
+    let layer = null;
+    function world() { if (layer) return layer; const cs = document.createElement('canvas'); cs.width = W * dpr; cs.height = H * dpr; const g = cs.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); drawWorld(g); return (layer = cs); }
+
+    // ---------- the moose ----------
+    // side on, facing right when dir is 1; (x, y) is the ground under him; s = 1 means about 100 px at the shoulder
+    function moose(g, x, y, s, dir, o) {
+      o = o || {};
+      const walk = o.walk || 0, head = o.head || 0;
+      g.save(); g.translate(x, y); g.scale(s * dir, s);
+      const body = '#46322A', hi = '#64493A', legC = '#8F8270', legD = '#6A5E50', ant = '#DCCDA6', antD = '#BCA97E';
+      if (o.alpha !== undefined) g.globalAlpha = o.alpha;
+      g.fillStyle = 'rgba(30,25,20,0.18)'; ell(g, 2, 1, 58, 5); g.fill();
+      const legAt = (lx, ph, col, w) => { const sw = Math.sin(walk + ph) * 10, kn = Math.max(0, Math.sin(walk + ph + 1.2)) * 6; g.strokeStyle = col; g.lineCap = 'round'; g.lineWidth = w; g.beginPath(); g.moveTo(lx, -54); g.lineTo(lx + sw * 0.35, -28 - kn); g.lineTo(lx + sw, -2); g.stroke(); g.fillStyle = '#2A2018'; ell(g, lx + sw + 1.5, -1.5, 4.2, 2.2); g.fill(); };
+      legAt(-40, Math.PI, legD, 7); legAt(30, 0, legD, 6.5);
+      // body: a long body, a high hump over the shoulders, a long head
+      g.fillStyle = body; g.beginPath();
+      g.moveTo(-54, -70); g.quadraticCurveTo(-64, -62, -60, -50); g.quadraticCurveTo(-52, -44, -40, -50); g.quadraticCurveTo(-6, -46, 26, -50); g.quadraticCurveTo(40, -50, 46, -60);
+      g.quadraticCurveTo(50, -70, 58, -78); g.lineTo(72 + head * 2, -76 + head * 8);
+      g.quadraticCurveTo(86 + head * 2, -70 + head * 9, 96 + head * 3, -70 + head * 10); g.quadraticCurveTo(102 + head * 3, -74 + head * 10, 98 + head * 3, -82 + head * 10);
+      g.quadraticCurveTo(88 + head * 2, -92 + head * 9, 76 + head * 2, -96 + head * 8); g.quadraticCurveTo(66, -100, 52, -102);
+      g.quadraticCurveTo(30, -114, 14, -106); g.quadraticCurveTo(-20, -90, -54, -70); g.closePath(); g.fill();
+      g.fillStyle = hi; g.beginPath(); g.moveTo(-40, -76); g.quadraticCurveTo(-4, -92, 18, -102); g.quadraticCurveTo(-2, -86, -36, -70); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(255,226,196,0.35)'; g.lineWidth = 2; g.beginPath(); g.moveTo(-50, -71); g.quadraticCurveTo(-20, -90, 14, -106); g.quadraticCurveTo(30, -113, 50, -102); g.stroke();
+      // the bell under his throat, ear and eye
+      g.fillStyle = body; g.beginPath(); g.moveTo(58, -72); g.quadraticCurveTo(62, -58, 57, -48); g.quadraticCurveTo(53, -56, 53, -68); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(70 + head * 2, -96 + head * 8); g.lineTo(62 + head * 2, -110 + head * 8); g.lineTo(75 + head * 2, -100 + head * 8); g.closePath(); g.fill();
+      g.fillStyle = '#120C08'; g.beginPath(); g.arc(84 + head * 2, -86 + head * 9, 1.8, 0, 7); g.fill();
+      g.fillStyle = '#5A4434'; ell(g, 97 + head * 3, -76 + head * 10, 2.4, 1.6); g.fill();
+      if (o.antlers !== false) {
+        // wide, flat antlers with points along the edge
+        const bx = 72 + head * 2, by = -100 + head * 8;
+        const palm = (dx, col, k) => { g.fillStyle = col; g.beginPath(); g.moveTo(bx, by); g.quadraticCurveTo(bx - 8 * k + dx, by - 10, bx - 22 * k + dx, by - 16); g.lineTo(bx - 30 * k + dx, by - 30); g.lineTo(bx - 24 * k + dx, by - 26); g.lineTo(bx - 20 * k + dx, by - 36); g.lineTo(bx - 14 * k + dx, by - 28); g.lineTo(bx - 8 * k + dx, by - 38); g.lineTo(bx - 3 * k + dx, by - 28); g.lineTo(bx + 4 * k + dx, by - 37); g.lineTo(bx + 7 * k + dx, by - 25); g.lineTo(bx + 14 * k + dx, by - 31); g.lineTo(bx + 13 * k + dx, by - 18); g.quadraticCurveTo(bx + 6 * k + dx, by - 9, bx + 2, by - 2); g.closePath(); g.fill(); };
+        palm(10, antD, 0.85); palm(0, ant, 1);
+      }
+      legAt(-30, 0, legC, 7.5); legAt(40, Math.PI, legC, 7);
+      if (o.breath) { g.fillStyle = `rgba(250,250,250,${0.35 * o.breath})`; g.beginPath(); g.arc(108 + head * 3, -76 + head * 10, 5 + (1 - o.breath) * 8, 0, 7); g.fill(); }
+      g.restore();
+    }
+
+    // ---------- the close look: a ring on the ground, seen from right above it ----------
+    function lensDraw(g, cx, cy, R, item) {
+      g.save(); g.beginPath(); g.arc(cx, cy, R, 0, 7); g.clip();
+      const RN = mulb((item.id || 'x').charCodeAt(0) * 31 + L.seed), k = R / 70;
+      if (item.kind) {
+        // the mud and leaves of a moose trail, from above
+        g.fillStyle = '#8C7450'; g.fillRect(cx - R, cy - R, R * 2, R * 2);
+        for (let i = 0; i < 70; i++) { g.fillStyle = PAL.litter[i % 6]; g.globalAlpha = 0.5; ell(g, cx + (RN() - 0.5) * 2 * R, cy + (RN() - 0.5) * 2 * R, 4 * k, 2.2 * k, RN() * 3); g.fill(); }
+        g.globalAlpha = 1;
+        g.fillStyle = 'rgba(70,52,34,0.5)'; ell(g, cx, cy, R * 0.5, R * 1.2, 0.35); g.fill();
+        const kind = item.kind, ang = 0.35;
+        const at = (t) => ({ x: cx - Math.sin(ang) * t * R, y: cy + Math.cos(ang) * t * R });
+        const list = kind === 'fast' ? [[-0.55, -1], [0.62, 1]] : kind === 'small' ? [[-0.6, -1], [-0.3, 1], [0, -1], [0.3, 1], [0.6, -1]] : [[-0.65, -1], [-0.22, 1], [0.22, -1], [0.65, 1]];
+        const sz = (kind === 'small' ? 5.2 : 8.5) * k;
+        list.forEach(([t, sd]) => {
+          const p = at(t), x = p.x + Math.cos(ang) * sd * 9 * k, y = p.y + Math.sin(ang) * sd * 9 * k;
+          if (kind === 'old') {
+            hoof(g, x, y, ang + Math.PI, sz, 1, 'rgba(70,55,40,0.55)', false);
+            g.fillStyle = 'rgba(150,180,200,0.55)'; ell(g, x, y + sz * 0.3, sz * 0.9, sz * 0.5); g.fill();
+            for (let j = 0; j < 3; j++) { g.fillStyle = PAL.litter[(RN() * 6) | 0]; ell(g, x + (RN() - 0.5) * sz * 1.6, y + (RN() - 0.5) * sz * 1.4, sz * 0.5, sz * 0.24, RN() * 3); g.fill(); }
+          } else {
+            if (kind === 'fast') { g.fillStyle = 'rgba(60,44,30,0.6)'; ell(g, x + Math.sin(ang) * sz * 1.8, y - Math.cos(ang) * sz * 1.8, sz * 1.1, sz * 0.6, ang); g.fill(); }
+            hoof(g, x, y, ang + Math.PI, sz, 1, kind === 'good' ? '#2E2216' : '#3A2C1E', true);
+          }
+        });
+      } else {
+        // a calling place: the bog seen from that spot, and which way the leaves blow
+        const sg = g.createLinearGradient(0, cy - R, 0, cy + R); sg.addColorStop(0, LK.skyTop); sg.addColorStop(0.5, LK.skyBot); sg.addColorStop(0.52, PAL.bog); sg.addColorStop(1, PAL.ground2); g.fillStyle = sg; g.fillRect(cx - R, cy - R, R * 2, R * 2);
+        for (let i = 0; i < 12; i++) spruce(g, cx - R + (i + 0.5) * R / 6, cy + 4 * k, (26 + RN() * 22) * k, (RN() * 1e6) | 0, true);
+        g.fillStyle = rgba(PAL.water, 0.8); ell(g, cx, cy + R * 0.22, R * 0.8, R * 0.08); g.fill();
+        const tt = st.t, w = item.wind;
+        for (let i = 0; i < 9; i++) {
+          const f = ((tt * 0.45 + i / 9) % 1), col = PAL.litter[i % 6];
+          let x, y, s2;
+          if (w === 'face') { x = cx + Math.cos(i * 2.1) * R * 0.6 * f; y = cy + Math.sin(i * 1.7) * R * 0.3 * f; s2 = 1 + f * 4; }
+          else if (w === 'back') { x = cx + Math.cos(i * 2.1) * R * 0.6 * (1 - f); y = cy + Math.sin(i * 1.7) * R * 0.3 * (1 - f); s2 = 1 + (1 - f) * 4; }
+          else { const dirx = item.side || 1; x = cx + dirx * (f * 2 - 1) * R; y = cy - R * 0.2 + Math.sin(i * 2.3) * R * 0.4; s2 = 2.5; }
+          g.fillStyle = col; ell(g, x, y, s2 * k * 1.2, s2 * k * 0.7, tt * 3 + i); g.fill();
+        }
+      }
+      g.restore();
+      g.strokeStyle = 'rgba(27,37,41,0.85)'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,0.9)'; g.lineWidth = 1.2; g.beginPath(); g.arc(cx, cy, R - 2.5, 0, 7); g.stroke();
+      const t = '🔍 Close look'; g.font = `700 ${Math.round(12 * FZ)}px ${SF}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const w2 = g.measureText(t).width + 16; g.fillStyle = 'rgba(27,37,41,0.82)'; rr(g, cx - w2 / 2, cy + R - 9, w2, 20 * FZ, 10); g.fill(); g.fillStyle = '#FFFFFF'; g.fillText(t, cx, cy + R + 1 + (FZ - 1) * 8);
+    }
+
+    // ---------- across the bog: where you kneel and call ----------
+    const HZ = 196;   // the far edge of the bog
+    let closeBG = null;
+    function close() {
+      if (closeBG) return closeBG;
+      const cs = document.createElement('canvas'); cs.width = W * dpr; cs.height = H * dpr;
+      const g = cs.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const R = mulb(L.seed + 51);
+      const sg = g.createLinearGradient(0, 0, 0, HZ); sg.addColorStop(0, LK.skyTop); sg.addColorStop(1, LK.skyBot); g.fillStyle = sg; g.fillRect(0, 0, W, HZ + 4);
+      const lg = g.createRadialGradient(W * (L.look === 'gold' ? 0.85 : 0.2), HZ - 10, 6, W * 0.5, HZ, W * 0.75); lg.addColorStop(0, LK.light.replace(/0\.\d+\)$/, '0.6)')); lg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = lg; g.fillRect(0, 0, W, HZ);
+      g.fillStyle = LK.hill; g.beginPath(); g.moveTo(0, HZ - 30); for (let x = 0; x <= W; x += 20) g.lineTo(x, HZ - 36 - Math.sin(x * 0.012 + 0.4) * 10); g.lineTo(W, HZ); g.lineTo(0, HZ); g.closePath(); g.fill();
+      for (let i = 0; i < 46; i++) { const x = (i + R() * 0.7) / 44 * W, r = R(); if (r < 0.55) spruce(g, x, HZ + 4, 54 + R() * 50, (R() * 1e6) | 0, true); else if (r < 0.8) tamarack(g, x, HZ + 4, 50 + R() * 34, (R() * 1e6) | 0); else hardwood(g, x, HZ + 4, 50 + R() * 30, (R() * 1e6) | 0, r < 0.92 ? 'maple' : 'birch'); }
+      // the bog, flat and wide, coming toward you
+      const bg = g.createLinearGradient(0, HZ, 0, H); bg.addColorStop(0, mix(PAL.bog, LK.hill, 0.35)); bg.addColorStop(1, PAL.bog); g.fillStyle = bg; g.fillRect(0, HZ, W, H - HZ);
+      for (let i = 0; i < 140; i++) { const y = HZ + Math.pow(R(), 1.6) * (H - HZ), sc = 0.3 + (y - HZ) / (H - HZ) * 1.6, x = R() * W; g.fillStyle = [PAL.bog2, PAL.bog3, '#9A8A50', '#B07A48'][i % 4]; g.globalAlpha = 0.4; ell(g, x, y, 22 * sc, 3.5 * sc); g.fill(); }
+      g.globalAlpha = 1;
+      // open water, with the sky in it
+      const wy = HZ + 46, wg = g.createLinearGradient(0, wy - 10, 0, wy + 26); wg.addColorStop(0, mix(LK.skyBot, PAL.water, 0.2)); wg.addColorStop(1, mix(LK.skyTop, PAL.water, 0.4)); g.fillStyle = wg;
+      g.beginPath(); g.moveTo(-10, wy + 6); g.bezierCurveTo(W * 0.25, wy - 14, W * 0.45, wy + 26, W * 0.62, wy + 4); g.bezierCurveTo(W * 0.78, wy - 14, W * 0.9, wy + 18, W + 10, wy); g.lineTo(W + 10, wy + 22); g.bezierCurveTo(W * 0.85, wy + 34, W * 0.7, wy + 12, W * 0.56, wy + 26); g.bezierCurveTo(W * 0.38, wy + 40, W * 0.2, wy + 14, -10, wy + 26); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.45)'; g.lineWidth = 1; for (let i = 0; i < 12; i++) { const x = R() * W, y = wy + 4 + R() * 18; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 14 + R() * 18, y); g.stroke(); }
+      // tamaracks and black spruce standing in the bog
+      [[0.08, 0.3], [0.2, 0.18], [0.36, 0.08], [0.9, 0.24]].forEach(([fx, fy]) => { const y = HZ + fy * (H - HZ); tamarack(g, fx * W, y, 70 + fy * 160, (R() * 1e6) | 0); });
+      [[0.28, 0.05], [0.48, 0.04]].forEach(([fx, fy]) => bspruce(g, fx * W, HZ + fy * (H - HZ), 46, (R() * 1e6) | 0));
+      // the near edge: sedges, and a fallen log for cover
+      g.fillStyle = '#5E5232'; g.fillRect(0, H - 40, W, 40);
+      g.strokeStyle = '#8A8048'; g.lineWidth = 1.6;
+      for (let i = 0; i < 160; i++) { const x = R() * W, y = H - R() * 48, hh = 12 + R() * 22; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (R() - 0.5) * 8, y - hh * 0.6, x + (R() - 0.5) * 14, y - hh); g.stroke(); }
+      g.fillStyle = '#5A4434'; rr(g, -20, H - 70, W * 0.42, 26, 13); g.fill(); g.fillStyle = '#6E5644'; rr(g, -20, H - 70, W * 0.42, 9, 5); g.fill();
+      g.fillStyle = '#4A3628'; ell(g, W * 0.42 - 18, H - 57, 9, 13); g.fill(); g.fillStyle = '#8A6E50'; ell(g, W * 0.42 - 18, H - 57, 6, 9); g.fill();
+      return (closeBG = cs);
+    }
+    // the thicket he waits in (drawn in front of him), and where he stands at each step closer
+    const HIDE = [{ x: W * 0.8, y: HZ + 30, s: 0.44 }, { x: W * 0.74, y: HZ + 40, s: 0.56 }, { x: W * 0.69, y: HZ + 50, s: 0.68 }, { x: W * 0.66, y: HZ + 58, s: 0.78 }];
+    const OUT = { x: W * 0.5, y: HZ + 94, s: 1.12 };
+    const TCOL = ['#6E6C34', '#7E7A3A', '#8E8842', '#9C904A', '#8A7440', '#A88A3E', '#5E5E30'];
+    function thicket(g, shake) {
+      const R = mulb(L.seed * 3 + 1), base = (f) => HZ + 64 - f * 24;
+      g.strokeStyle = PAL.stem; g.lineCap = 'round';
+      for (let i = 0; i < 46; i++) { const f = R(), x = W * (0.6 + f * 0.38), y = base(f), hh = (26 + R() * 30) * SZ; g.lineWidth = 1.6 + R() * 1.4; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (R() - 0.5) * 8, y - hh * 0.5, x + (R() - 0.5) * 14, y - hh); g.stroke(); }
+      for (let i = 0; i < 90; i++) {
+        const f = R(), lift = R(), x = W * (0.6 + f * 0.38) + (shake ? Math.sin(st.t * 22 + i) * shake * 3 : 0), y = base(f) - (18 + lift * (74 - f * 22)) * SZ, r = (11 + R() * 14) * SZ * (1 - f * 0.3);
+        g.fillStyle = mix(TCOL[i % TCOL.length], lift < 0.35 ? '#2E2A18' : '#FFF4D0', lift < 0.35 ? 0.3 : lift > 0.8 ? 0.16 : 0); ell(g, x, y, r, r * 0.78); g.fill();
+      }
+      for (let i = 0; i < 40; i++) { const f = R(), x = W * (0.6 + f * 0.38), y = base(f) - (30 + R() * 60) * SZ; g.fillStyle = R() < 0.5 ? '#C9A646' : '#B8C25A'; g.globalAlpha = 0.7; ell(g, x, y, 2.6 * SZ, 1.7 * SZ, R() * 3); g.fill(); g.globalAlpha = 1; }
+    }
+
+    // ---------- the camp, where nothing is wasted ----------
+    function wikuom(g, x, y, h) {
+      const w = h * 0.92;
+      g.strokeStyle = '#6E5E4A'; g.lineWidth = Math.max(1, h * 0.018); g.lineCap = 'round';
+      [[-0.1, -1.16], [0.05, -1.2], [0.14, -1.14]].forEach(([dx, dy]) => { g.beginPath(); g.moveTo(x, y - h * 0.97); g.lineTo(x + dx * h, y + dy * h * 0.86 - h * 0.02); g.stroke(); });
+      g.fillStyle = '#C9B48E'; g.beginPath(); g.moveTo(x - w / 2, y); g.quadraticCurveTo(x - w * 0.24, y - h * 0.62, x - h * 0.05, y - h * 0.97); g.lineTo(x + h * 0.05, y - h * 0.97); g.quadraticCurveTo(x + w * 0.24, y - h * 0.62, x + w / 2, y); g.closePath(); g.fill();
+      g.fillStyle = 'rgba(80,60,40,0.3)'; g.beginPath(); g.moveTo(x, y - h * 0.97); g.quadraticCurveTo(x + w * 0.24, y - h * 0.62, x + w / 2, y); g.lineTo(x + w * 0.12, y); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(70,50,35,0.7)'; g.lineWidth = Math.max(0.6, h * 0.008);
+      [0.3, 0.55, 0.78].forEach((t) => { const yy = y - h * 0.97 * (1 - t), hw = w * 0.5 * t * 0.98; g.beginPath(); g.moveTo(x - hw, yy); g.quadraticCurveTo(x, yy + h * 0.03, x + hw, yy); g.stroke(); });
+      g.fillStyle = '#2A1E18'; g.beginPath(); g.moveTo(x - h * 0.09, y); g.lineTo(x - h * 0.06, y - h * 0.28); g.quadraticCurveTo(x, y - h * 0.33, x + h * 0.06, y - h * 0.28); g.lineTo(x + h * 0.09, y); g.closePath(); g.fill();
+    }
+    function rack(g, x, y, h, n) {
+      g.strokeStyle = '#5A4434'; g.lineWidth = 3; g.lineCap = 'round';
+      [[-1, 0], [1, 0]].forEach(([sd]) => { g.beginPath(); g.moveTo(x + sd * h * 0.6, y); g.lineTo(x + sd * h * 0.55, y - h); g.stroke(); });
+      [0.45, 0.8].forEach((t) => { g.beginPath(); g.moveTo(x - h * 0.62, y - h * t); g.lineTo(x + h * 0.62, y - h * t); g.stroke(); });
+      for (let i = 0; i < n; i++) { const xx = x - h * 0.5 + (i % 7) * h * 0.16, yy = y - h * (i < 7 ? 0.8 : 0.45); g.fillStyle = i % 2 ? '#6A3A2A' : '#7A4632'; rr(g, xx - 3, yy, 6, h * 0.24, 2); g.fill(); }
+    }
+    function campPic(g, w, hh, done, look) {
+      const sg = g.createLinearGradient(0, 0, 0, hh * 0.55); sg.addColorStop(0, look === 'dusk' ? '#4A5680' : LK.skyTop); sg.addColorStop(1, look === 'dusk' ? '#E2A68A' : LK.skyBot); g.fillStyle = sg; g.fillRect(0, 0, w, hh);
+      const R = mulb(L.seed + 8);
+      for (let x = -10; x < w + 20; x += 16 + R() * 14) { const r = R(); if (r < 0.5) spruce(g, x, hh * 0.56 + R() * 6, 60 + R() * 60, (R() * 1e6) | 0, true); else hardwood(g, x, hh * 0.56 + R() * 6, 60 + R() * 40, (R() * 1e6) | 0, r < 0.75 ? 'maple' : 'birch'); }
+      const gg = g.createLinearGradient(0, hh * 0.55, 0, hh); gg.addColorStop(0, '#8E7A50'); gg.addColorStop(1, '#A8875A'); g.fillStyle = gg; g.fillRect(0, hh * 0.55, w, hh * 0.45);
+      for (let i = 0; i < 260; i++) { g.fillStyle = PAL.litter[i % 6]; g.globalAlpha = 0.5; ell(g, R() * w, hh * 0.56 + R() * hh * 0.44, 2, 1.1, R() * 3); g.fill(); }
+      g.globalAlpha = 1;
+      wikuom(g, w * 0.16, hh * 0.86, hh * 0.46); wikuom(g, w * 0.84, hh * 0.84, hh * 0.42); wikuom(g, w * 0.66, hh * 0.72, hh * 0.3);
+      rack(g, w * 0.38, hh * 0.82, hh * 0.3, done.meat ? 12 : 4);
+      // the fire, with its smoke
+      const fx = w * 0.53, fy = hh * 0.9;
+      g.fillStyle = '#4A3A30'; [-1, 0, 1].forEach((k) => { ell(g, fx + k * 10, fy, 7, 4); g.fill(); });
+      g.fillStyle = '#F2A85A'; g.beginPath(); g.moveTo(fx - 9, fy - 2); g.quadraticCurveTo(fx - 4, fy - 22, fx, fy - 30); g.quadraticCurveTo(fx + 5, fy - 18, fx + 9, fy - 2); g.closePath(); g.fill();
+      g.fillStyle = '#FFE0A0'; g.beginPath(); g.moveTo(fx - 4, fy - 2); g.quadraticCurveTo(fx, fy - 14, fx + 1, fy - 18); g.quadraticCurveTo(fx + 3, fy - 10, fx + 4, fy - 2); g.closePath(); g.fill();
+      for (let i = 0; i < 6; i++) { g.fillStyle = `rgba(225,225,230,${0.35 - i * 0.05})`; g.beginPath(); g.arc(fx + 6 + i * 7, fy - 40 - i * 14, 6 + i * 3, 0, 7); g.fill(); }
+      // the people of the camp, from the story pictures
+      person(g, 'nuk', w * 0.27, hh * 0.92, hh * 0.32, false);
+      person(g, 'mom', w * 0.62, hh * 0.93, hh * 0.34, true);
+      person(g, 'kid', w * 0.69, hh * 0.95, hh * 0.22, true);
+      person(g, 'dad', w * 0.76, hh * 0.92, hh * 0.36, true);
+      person(g, L.n === 3 ? 'me' : 'chick', w * 0.45, hh * 0.95, hh * 0.34, false);
+      // what each part became, in a row along the bottom
+      const items = [['meat', 'Shared'], ['hide', 'Moccasins'], ['bone', 'Tools'], ['sinew', 'Thread']];
+      items.forEach(([k, lab], i) => {
+        if (!done[k]) return;
+        const x = w * (0.14 + i * 0.24), y = hh * 0.12;
+        g.fillStyle = 'rgba(255,253,248,0.92)'; rr(g, x - 46, y - 4, 92, 52, 10); g.fill();
+        g.save(); g.translate(x, y + 20);
+        if (k === 'meat') { g.fillStyle = '#7A5A3C'; ell(g, 0, 6, 18, 7); g.fill(); g.fillStyle = '#5A3A26'; ell(g, 0, 3, 14, 4); g.fill(); g.strokeStyle = 'rgba(240,240,240,0.7)'; g.lineWidth = 1.5; [-5, 0, 5].forEach((d) => { g.beginPath(); g.moveTo(d, -2); g.quadraticCurveTo(d + 3, -8, d, -14); g.stroke(); }); }
+        else if (k === 'hide') { g.fillStyle = '#C9A678'; [-1, 1].forEach((sd) => { g.beginPath(); g.moveTo(sd * 9 - 9, 8); g.quadraticCurveTo(sd * 9 - 11, -4, sd * 9 - 2, -6); g.quadraticCurveTo(sd * 9 + 9, -6, sd * 9 + 10, 8); g.closePath(); g.fill(); }); g.strokeStyle = '#8A6A44'; g.lineWidth = 1; [-1, 1].forEach((sd) => { g.beginPath(); g.moveTo(sd * 9 - 5, -3); g.lineTo(sd * 9 + 5, -3); g.stroke(); }); }
+        else if (k === 'bone') { g.fillStyle = '#EDE3CC'; g.beginPath(); g.moveTo(-16, 2); g.lineTo(14, -2); g.lineTo(18, 0); g.lineTo(14, 2); g.closePath(); g.fill(); g.fillStyle = '#D8CBAE'; ell(g, -16, 2, 4, 3.5); g.fill(); }
+        else if (k === 'sinew') { g.strokeStyle = '#E6D3A8'; g.lineWidth = 1.4; for (let j = 0; j < 4; j++) { g.beginPath(); g.arc(0, 0, 6 + j * 2.2, 0.3, 5.6); g.stroke(); } g.beginPath(); g.moveTo(12, 0); g.lineTo(18, 9); g.stroke(); }
+        g.restore();
+        g.font = `700 ${Math.round(11 * FZ)}px ${SF}`; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = '#22252B'; g.fillText(lab, x, y + 44);
+      });
+    }
+
+    // ---------- the state of the hunt ----------
+    const st = { phase: 'ready', t: 0, started: false, paused: false, ended: false, sel: -1, look: false,
+      me: { u: 0.08, v: 0.06 }, bud: { u: 0.05, v: 0.09 }, walk: null, step: 0, msg: null, msgT: 0,
+      trackTries: 0, windTries: 0, call: null, prog: 0, mistakes: 0, part: 0, partWrong: 0, partFirst: 0, done: {}, decideTries: 0, words: [], wordWrong: 0,
+      scent: [], leaves: [], mist: [], shake: 0, flee: 0, bullV: 0, outT: 0, low: false, hold: false };
+    box._moose = st; st.L = L; st.M = M;
+    const say = (text, dur) => { st.msg = text; st.msgT = dur || 5; live.textContent = text; };
+    const syncGT = () => { box.dataset.idle = st.started && !st.paused && !st.ended ? '0' : '1'; box.dataset.busy = st.started && !st.ended ? '1' : '0'; };
+    const label = () => {
+      const ph = st.phase;
+      cv.setAttribute('aria-label', ph === 'call' || ph === 'out' || ph === 'decide' || ph === 'tiles' ? `Looking out across a bog in the fall, from behind a fallen log. Chickadee and ${BUDNAME(L)} kneel at the left. An alder thicket stands across the water.` : ph === 'camp' ? 'The camp in the hardwood hills: birchbark wikuoms, a fire, a drying rack, and the people of the camp.' : `The hardwood hills in the fall, seen from above: red and yellow trees, moose tracks crossing the slope, and a bog with open water. Rings mark places to look closely.`);
+    };
+
+    // ---------- buttons under the picture ----------
+    const btn = (text, fn, aria) => { const b = el('button', { class: 'gamebtn', type: 'button', text }); if (aria) b.setAttribute('aria-label', aria); b.onclick = () => { if (!begin()) fn(); cv.focus({ preventScroll: true }); }; return b; };
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' }); pauseBtn.onclick = () => { pause(); cv.focus({ preventScroll: true }); };
+    const backBtn = el('button', { class: 'gamebtn', type: 'button', text: '↩ Choose a fall', onclick: () => menu() });
+    let choiceFns = [];
+    function bars() {
+      bar.innerHTML = ''; choiceFns = [];
+      const ph = st.phase, add = (...b) => bar.append(...b);
+      const choice = (i, text, fn) => { choiceFns[i] = fn; return btn(`${i + 1}. ${text}`, fn); };
+      if (ph === 'tracks') add(btn('◀', () => cycle(-1), 'Look at the tracks before'), btn('▶', () => cycle(1), 'Look at the next tracks'), btn('👣 Follow these tracks', () => act()));
+      else if (ph === 'wind') add(btn('◀', () => cycle(-1), 'Look at the place before'), btn('▶', () => cycle(1), 'Look at the next place'), btn('🌬️ Call from here', () => act()));
+      else if (ph === 'call') { const b = btn('Call back', () => callBack(), 'Call back with the birchbark roll'); b.classList.add('primary'); add(b); }
+      else if (ph === 'out' && !L.decide) add(btn('▶ Go on', () => toCamp()));
+      else if (ph === 'decide') add(choice(0, 'Let him go', () => decide(0)), choice(1, 'Take him too', () => decide(1)));
+      else if (ph === 'tiles') st.order.forEach((w, i) => { const used = st.words.length > 0 && st.usedIdx.includes(i); const b = choice(i, w, () => tile(i)); if (used) b.disabled = true; add(b); });
+      else if (ph === 'camp' && st.part < CFG.parts.length) CFG.uses.forEach((u, i) => add(choice(i, u, () => use(i))));
+      add(pauseBtn, backBtn);
+    }
+
+    // ---------- choosing ----------
+    const items = () => (st.phase === 'tracks' ? M.tracks : st.phase === 'wind' ? M.spots.filter((s) => !s.tried) : []);
+    function select(i) {
+      const list = st.phase === 'tracks' ? M.tracks : M.spots, it = list[i]; if (!it) return;
+      st.sel = i; st.look = true; sfx('tick');
+      if (st.phase === 'tracks') { live.textContent = '🔍 ' + TRACKTXT[it.kind]; if (coach && TRACKQ[it.kind]) say(TRACKQ[it.kind], 4); }
+      else { const sd = it.wind === 'cross' ? 1 : 0; it.side = sd ? (it.at[0] < M.bull[0] ? -1 : 1) : 0; live.textContent = '🔍 ' + it.cover + ' ' + WINDTXT[it.wind]; if (coach) say(TEACH === 'me' ? 'Which way are the leaves blowing here?' : 'Feel the wind here. Which way are the leaves going?', 4); }
+    }
+    function cycle(d) {
+      if (!st.started || st.paused || st.ended) return;
+      const list = st.phase === 'tracks' ? M.tracks : st.phase === 'wind' ? M.spots : null; if (!list) return;
+      const vis = items().slice().sort((a, b) => a.x - b.x); if (!vis.length) return;
+      const k = vis.findIndex((it) => list.indexOf(it) === st.sel);
+      const nx = vis[((k < 0 ? (d > 0 ? -1 : 0) : k) + d + vis.length) % vis.length];
+      select(list.indexOf(nx));
+    }
+    function walkTo(pts, then) {
+      // walk along a list of map points; the other person follows a step behind
+      const path = pts.map(([u, v]) => ({ u, v }));
+      let len = 0; for (let i = 1; i < path.length; i++) { const a = P(path[i - 1].u, path[i - 1].v), b = P(path[i].u, path[i].v); len += Math.hypot(b.x - a.x, b.y - a.y); }
+      st.walk = { path, t: 0, T: RM ? 0.01 : clamp(len / 150, 0.5, 3.4), then };
+    }
+    function act() {
+      if (!st.started || st.paused || st.ended || st.walk) return;
+      if (st.phase === 'tracks') {
+        const t = M.tracks[st.sel]; if (!t) { say('First choose a ring on the tracks.', 3); return; }
+        st.trackTries++;
+        if (t.kind !== 'good') { sfx('oops'); say(TRACKNO[t.kind], 7); return; }
+        sfx('good'); st.look = false; st.sel = -1;
+        say(TEACH === 'me' ? 'Fresh, big, and walking. We follow these.' : 'Fresh, big, and walking. Good. We follow these.', 4);
+        st.phase = 'follow'; bars();
+        const pts = TRACKS[t.id], start = [[st.me.u, st.me.v], pts[0]];
+        walkTo(start.concat(pts.slice(1)), () => {
+          st.phase = 'wind'; st.sel = -1; bars(); label();
+          say(TEACH === 'me' ? 'The tracks go into the bog. He is in there. Now we find a place to call from, with the wind in our faces, so our smell blows away behind us.' : 'The tracks go into the bog. He is in there. Find a place to call from, with the wind in your face, so your smell blows away behind you.', 8);
+          live.textContent = 'Four rings around the bog are places to call from. Look closely at each one.';
+        });
+      } else if (st.phase === 'wind') {
+        const sp = M.spots[st.sel]; if (!sp || sp.tried) { say('First choose a ring by the bog.', 3); return; }
+        st.windTries++; st.look = false;
+        st.phase = 'go'; bars();
+        const end = [sp.at[0] + (sp.at[0] > M.bull[0] ? 0.02 : -0.02), sp.at[1] - 0.025];
+        walkTo(around([st.me.u, st.me.v], end), () => arrive(sp));
+      }
+    }
+    // a path from a to b that goes round the edge of the bog
+    function around(a, b) {
+      const inside = (u, v) => ((u - BOG.u) / BOG.ru) ** 2 + ((v - BOG.v) / BOG.rv) ** 2 < 0.92;
+      let cut = false; for (let i = 1; i < 12; i++) { const t = i / 12; if (inside(lerp(a[0], b[0], t), lerp(a[1], b[1], t))) cut = true; }
+      if (!cut) return [a, b];
+      const side = (a[0] + b[0]) / 2 < BOG.u ? -1 : 1, su = BOG.u + side * (BOG.ru + 0.07);
+      const pts = [a, [su, Math.min(a[1], BOG.v - 0.02)]];
+      if (b[1] > BOG.v + BOG.rv * 0.5) pts.push([su, BOG.v + BOG.rv * 0.85]);
+      pts.push(b); return pts;
+    }
+    function arrive(sp) {
+      if (sp.wind === 'face') {
+        st.phase = 'settle'; st.settle = 1.2; sfx('good');
+        say(TEACH === 'me' ? 'The wind is in our faces. He cannot smell us here. Down low, and listen.' : 'The wind is in your face. He cannot smell you here. Get down low, and listen.', 5);
+        return;
+      }
+      sp.tried = true; st.phase = 'smell'; st.smellT = 0;
+    }
+    function smelled() {
+      sfx('crack'); st.shake = 1.2; st.flee = 1;
+      const sp = M.spots[st.sel] || M.spots.find((s) => s.tried);
+      const why = sp && sp.wind === 'back' ? 'The wind was at your back, and it carried your smell into the bog.' : 'The wind blew across you, and carried your smell along the edge of the bog to him.';
+      say(`${why} He smelled you, and crashed off deeper into the bog. Wait for him to settle, then choose a better place.`, 9);
+      M.bull[1] = Math.min(0.8, M.bull[1] + 0.03);
+      M.spots.forEach((s) => { s.wind = windOf(s.at, M.bull); });
+      st.phase = 'wind'; st.sel = -1; bars(); label();
+    }
+
+    // ---------- calling: he calls, you let him finish, then call back ----------
+    function startCall() {
+      st.phase = 'call'; st.call = { state: 'wait', t: 0, next: RM ? 1.6 : 2.2, arcs: [], horn: 0 };
+      bars(); label();
+      say(TEACH === 'me' ? 'Listen first. When he calls, let him finish. Then I call back.' : 'Listen first. When he calls, let him finish. Then call back.', 6);
+      live.textContent = 'Listen for the bull. When he has called, press Space, tap the picture or press Call back.';
+    }
+    const stage = () => Math.min(HIDE.length - 1, Math.floor(st.prog / L.calls * HIDE.length));
+    function hisCall() {
+      const C = st.call; C.state = 'his'; C.t = 0; const h = HIDE[stage()];
+      C.arcs.push({ x: h.x, y: h.y - 70 * h.s, t: 0, his: true });
+      sfx('bull', st.prog / L.calls); st.shake = 0.5;
+      live.textContent = st.prog ? 'He calls again, closer.' : 'A deep call, from the alders across the bog.';
+      if (coach) say(st.prog ? 'Closer. Let him finish…' : 'There he is. Let him finish…', 2.2);
+    }
+    function callBack() {
+      if (st.phase !== 'call' || st.paused || st.ended) return;
+      const C = st.call;
+      if (C.state === 'mine') return;
+      if (C.state === 'his' || (C.state === 'answer' && C.t < WIN[0])) { mistake('Wait until he has finished calling. Then call back.'); return; }
+      if (C.state !== 'answer') { mistake(st.prog ? 'Let him call first. Then answer him.' : 'He has not called yet. Listen, and let him call first.'); return; }
+      st.prog++; C.state = 'mine'; C.t = 0; C.horn = 1.2; sfx('horn');
+      C.arcs.push({ x: W * 0.22 + 0.13 * (L.n === 3 ? 190 : 176) * SZ + 34 * SZ, y: H - 26 - 0.47 * (L.n === 3 ? 190 : 176) * SZ - 10 * SZ, t: 0, his: false });
+      live.textContent = `You call back. ${st.prog} of ${L.calls}.`;
+      if (st.prog >= L.calls) say(TEACH === 'me' ? 'That is the last one. Be still now.' : 'Be still now. Watch the alders.', 4);
+      else if (coach) say('Good. Now wait for him.', 2.4);
+    }
+    function mistake(text) {
+      st.mistakes++; sfx('oops');
+      const C = st.call; C.state = 'wait'; C.t = 0; C.next = 5 + RNG() * 2;
+      say(`${text} He has gone quiet for a while.`, 5);
+    }
+    function callStep(dt) {
+      const C = st.call; C.t += dt;
+      C.arcs.forEach((a) => { a.t += dt; }); C.arcs = C.arcs.filter((a) => a.t < 2.2);
+      if (C.horn > 0) C.horn -= dt;
+      if (C.state === 'wait' && C.t >= C.next) hisCall();
+      else if (C.state === 'his' && C.t >= 1.1) { C.state = 'answer'; C.t = 0; if (coach) say(TEACH === 'me' ? 'He has finished. Now: call back.' : 'He has finished. Now: call back!', 3); }
+      else if (C.state === 'answer' && C.t >= WIN[1]) { C.state = 'wait'; C.t = 0; C.next = 2 + RNG() * 1.5; if (coach) say('He waited for an answer. Next time he calls, call back after he finishes.', 4); }
+      else if (C.state === 'mine' && C.t >= 1.3) {
+        if (st.prog >= L.calls) { comeOut(); return; }
+        C.state = 'listen'; C.t = 0; C.next = 1.4 + RNG() * 1.4;
+      } else if (C.state === 'listen' && C.t >= C.next) hisCall();
+    }
+    function comeOut() {
+      st.phase = 'out'; st.outT = 0; sfx('splash');
+      say('The alders move, and a bull moose steps out of the bog.', 5);
+      live.textContent = 'A bull moose steps out of the alders, into the open at the edge of the water.';
+      bars(); label();
+    }
+    function toCamp() {
+      if (st.phase !== 'out' || L.decide) return;
+      st.phase = 'camp'; st.part = 0; bars(); label();
+      say('The hunters do the rest. When the hunt is over, the hunters give thanks.', 6);
+      setTimeout(() => { if (st.phase === 'camp' && !st.ended && cv.isConnected) askPart(); }, RM ? 400 : 2200);
+    }
+    function askPart() { const p = CFG.parts[st.part]; if (!p) return; st.asked = true; say(`Nothing is wasted. What is ${p.name} for?`, 30); live.textContent = `Nothing is wasted. What is ${p.name} for? Choose with the buttons, or the keys 1 to 4.`; bars(); }
+    function use(i) {
+      if (st.phase !== 'camp' || !st.asked) return;
+      const p = CFG.parts[st.part]; if (!p) return;
+      if (i !== p.ans) { st.partWrong++; p.missed = true; sfx('oops'); say(`Not that one. ${p.hint}`, 30); return; }
+      if (!p.missed) st.partFirst++;
+      st.done[p.k] = true; sfx('good'); st.part++;
+      if (st.part >= CFG.parts.length) { say('The meat is shared through the whole camp. Nothing is wasted.', 6); bars(); setTimeout(() => { if (!st.ended && cv.isConnected) { st.ended = true; finish(); } }, RM ? 600 : 2600); return; }
+      say(`Yes: ${CFG.uses[p.ans].toLowerCase()}.`, 2); bars();
+      setTimeout(() => { if (st.phase === 'camp' && !st.ended && cv.isConnected) askPart(); }, RM ? 300 : 1100);
+    }
+    function decide(i) {
+      if (st.phase !== 'decide') return;
+      st.decideTries++;
+      st.letGo = true; st.phase = 'leave'; st.leaveT = 0; bars();
+      if (i === 0) { sfx('good'); say('You let him go. He turns, and wades back into the mist.', 6); }
+      else { sfx('note'); say('The young hunter is ready. But the racks are full. You put your hand on his arm, and you let the bull go.', 7); st.decideWrong = true; }
+      setTimeout(() => { if (st.ended || !cv.isConnected) return; st.phase = 'tiles'; st.order = shuffleWords(); st.usedIdx = []; st.words = []; bars(); say('“Why?” he asks. Make him say it back to you, word for word.', 30); live.textContent = 'Choose the words in order, with the buttons or the number keys.'; }, RM ? 800 : 4200);
+    }
+    function shuffleWords() { const a = CFG.why.slice(); const R = mulb(L.seed + 3); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } if (a.join(' ') === CFG.why.join(' ')) a.reverse(); return a; }
+    function tile(i) {
+      if (st.phase !== 'tiles' || st.usedIdx.includes(i)) return;
+      const want = CFG.why[st.words.length];
+      if (st.order[i] !== want) { st.wordWrong++; sfx('oops'); say(`“${st.words.concat('…').join(' ')}” Not that word yet.`, 30); return; }
+      st.usedIdx.push(i); st.words.push(st.order[i]); sfx('tick');
+      if (st.words.length === CFG.why.length) { sfx('good'); say(`“${st.words.join(' ')}”`, 30); bars(); setTimeout(() => { if (!st.ended && cv.isConnected) { st.ended = true; finish(); } }, RM ? 600 : 2600); return; }
+      say(`“${st.words.join(' ')} …”`, 30); bars();
+    }
+
+    // ---------- moving ----------
+    const windScreen = (() => { const a = P(0.5, 0.5), b = P(0.5 + WD[0] * 0.05, 0.5 + WD[1] * 0.05), l = Math.hypot(b.x - a.x, b.y - a.y) || 1; return [(b.x - a.x) / l, (b.y - a.y) / l]; })();
+    function step(dt) {
+      st.t += dt; if (st.msgT > 0) st.msgT -= dt; if (st.shake > 0) st.shake = Math.max(0, st.shake - dt);
+      if (st.walk) {
+        const w = st.walk; w.t += dt; const u = clamp(w.t / w.T, 0, 1), e = u * u * (3 - 2 * u);
+        const n = w.path.length - 1, f = e * n, i = Math.min(n - 1, Math.floor(f)), k = f - i, a = w.path[i], b = w.path[i + 1];
+        const prev = { u: st.me.u, v: st.me.v };
+        st.me = { u: lerp(a.u, b.u, k), v: lerp(a.v, b.v, k) };
+        st.dir = st.me.u >= prev.u ? 1 : -1;
+        st.bud = { u: lerp(st.bud.u, st.me.u - 0.03 * st.dir, Math.min(1, dt * 3)), v: lerp(st.bud.v, st.me.v + 0.025, Math.min(1, dt * 3)) };
+        st.step += Math.hypot(st.me.u - prev.u, st.me.v - prev.v) * 60;
+        if (st.step > 1) { st.step = 0; sfx('step'); }
+        if (st.phase === 'go' && !RM && st.scent.length < 60 && Math.random() < dt * 14) st.scent.push({ u: st.me.u, v: st.me.v, a: 0.6 });
+        if (u >= 1) { st.walk = null; w.then(); }
+      }
+      // your smell drifts with the wind
+      st.scent.forEach((s) => { s.u += WD[0] * dt * 0.07; s.v += WD[1] * dt * 0.07; s.a -= dt * 0.18; }); st.scent = st.scent.filter((s) => s.a > 0);
+      if (st.phase === 'smell') {
+        st.smellT += dt;
+        if (!RM && st.scent.length < 60 && Math.random() < dt * 14) st.scent.push({ u: st.me.u, v: st.me.v, a: 0.6 });
+        const reached = st.scent.some((s) => Math.hypot(s.u - M.bull[0], (s.v - M.bull[1]) * 1.4) < 0.06);
+        if (reached || st.smellT > (RM ? 0.6 : 3.2)) smelled();
+      }
+      if (st.phase === 'settle') { st.settle -= dt; if (st.settle <= 0) startCall(); }
+      if (st.phase === 'call') callStep(dt);
+      if (st.phase === 'out' || st.phase === 'decide') { st.outT += dt; if (st.call) callStep2(dt); if (L.decide && st.phase === 'out' && st.outT > 3.2) { st.phase = 'decide'; bars(); say('“Do we take him?” the young hunter whispers. The drying racks at camp are already full.', 30); live.textContent = 'Choose: 1, let him go, or 2, take him too.'; } }
+      if (st.phase === 'leave') st.leaveT += dt;
+      if (st.flee > 0) st.flee = Math.max(0, st.flee - dt * 0.5);
+      // leaves on the wind, and mist over the bog
+      if (!RM && !st.low && st.leaves.length < 26 && Math.random() < dt * 9) {
+        const side = Math.abs(windScreen[0]) >= Math.abs(windScreen[1]);
+        const x = side ? (windScreen[0] > 0 ? -10 : W + 10) : Math.random() * W, y = side ? 110 + Math.random() * (H - 120) : (windScreen[1] > 0 ? 100 : H + 10);
+        st.leaves.push({ x, y, r: Math.random() * 6, c: PAL.litter[(Math.random() * 6) | 0], sp: 55 + Math.random() * 40 });
+      }
+      st.leaves.forEach((l) => { l.x += windScreen[0] * l.sp * dt + Math.sin(st.t * 3 + l.r) * 10 * dt; l.y += windScreen[1] * l.sp * dt + Math.cos(st.t * 2.4 + l.r) * 8 * dt; l.r += dt * 4; });
+      st.leaves = st.leaves.filter((l) => l.x > -20 && l.x < W + 20 && l.y > 80 && l.y < H + 20);
+    }
+    function callStep2(dt) { const C = st.call; C.arcs.forEach((a) => { a.t += dt; }); C.arcs = C.arcs.filter((a) => a.t < 2.2); }
+
+    // ---------- drawing ----------
+    function arcs(g, a) {
+      const f = a.t / 2.2, n = 3;
+      for (let i = 0; i < n; i++) { const r = 10 + (f * 60) + i * 12, al = Math.max(0, 0.8 - f - i * 0.15); g.strokeStyle = a.his ? `rgba(60,40,30,${al})` : `rgba(255,250,235,${al})`; g.lineWidth = 2.4; g.beginPath(); if (a.his) g.arc(a.x, a.y, r, Math.PI * 0.75, Math.PI * 1.25); else g.arc(a.x, a.y, r, -Math.PI * 0.25, Math.PI * 0.25); g.stroke(); }
+    }
+    function drawMap() {
+      c.drawImage(world(), 0, 0, W, H);
+      // rings where you can look
+      if (st.phase === 'tracks' || st.phase === 'wind' || st.phase === 'ready') {
+        const list = st.phase === 'wind' ? M.spots : M.tracks;
+        list.forEach((it, i) => {
+          if (it.tried) return; if (st.phase === 'ready' && list !== M.tracks) return;
+          const sel = i === st.sel, r = (sel ? 25 : 21) * it.s * (small ? 1.12 : 1), pulse = RM ? 0 : Math.sin(st.t * 3 + i) * 1.5;
+          c.setLineDash(sel ? [] : [5, 4]); c.lineWidth = sel ? 3.2 : 2;
+          c.strokeStyle = sel ? '#FFD54A' : 'rgba(27,37,41,0.75)'; ell(c, it.x, it.y, r + pulse, (r + pulse) * Q); c.stroke();
+          if (!sel) { c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineWidth = 1; ell(c, it.x, it.y, r + pulse - 2, (r + pulse - 2) * Q); c.stroke(); }
+          c.setLineDash([]);
+        });
+      }
+      // the bull is hidden; when he smells you, the alders shake where he is, and he crashes off
+      if (st.shake > 0 && st.phase !== 'call') { const q = P(M.bull[0], M.bull[1]); c.save(); for (let i = 0; i < 6; i++) { const sw = Math.sin(st.t * 30 + i) * st.shake * 3; alder(c, q.x + (i - 2.5) * 10 * q.s + sw, q.y + 3, 66 * q.s, 900 + i, true); } c.restore(); }
+      // your smell, drifting with the wind
+      for (const s of st.scent) { const q = P(s.u, s.v); c.strokeStyle = `rgba(250,250,245,${s.a * 0.7})`; c.lineWidth = 1.4; c.beginPath(); c.moveTo(q.x - 6 * q.s, q.y - 20 * q.s); c.bezierCurveTo(q.x - 2 * q.s, q.y - 26 * q.s, q.x + 2 * q.s, q.y - 14 * q.s, q.x + 6 * q.s, q.y - 20 * q.s); c.stroke(); }
+      // the two of you, far one first
+      const ppl = [['me', st.me], ['bud', st.bud]].sort((a, b) => b[1].v - a[1].v);
+      const bob = st.walk ? Math.abs(Math.sin(st.t * 9)) * 1.5 : 0;
+      for (const [k, pos] of ppl) { const q = P(pos.u, pos.v); person(c, k, q.x, q.y - (k === 'me' ? bob : 0), 104 * q.s * SZ, (st.dir || 1) < 0); }
+      // leaves on the wind
+      for (const l of st.leaves) { c.fillStyle = l.c; ell(c, l.x, l.y, 3.2, 1.6, l.r); c.fill(); }
+      // the close look
+      if (st.look && st.sel >= 0 && (st.phase === 'tracks' || st.phase === 'wind')) {
+        const it = (st.phase === 'tracks' ? M.tracks : M.spots)[st.sel], R = small ? 86 : 74, cx = it.x > W * 0.55 ? R + 14 : W - R - 14, cy = R + 54 * FZ;
+        lensDraw(c, cx, cy, R, it);
+        const dl = Math.hypot(it.x - cx, it.y - cy) || 1;
+        c.strokeStyle = 'rgba(255,213,74,0.8)'; c.lineWidth = 1.5; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(it.x, it.y); c.lineTo(cx + (it.x - cx) * R / dl, cy + (it.y - cy) * R / dl); c.stroke(); c.setLineDash([]);
+      }
+    }
+    function drawClose() {
+      c.drawImage(close(), 0, 0, W, H);
+      const ph = st.phase, C = st.call || { arcs: [] };
+      // drifting mist over the water
+      for (let i = 0; i < 4; i++) { const x = ((st.t * (6 + i * 3) * (RM ? 0 : 1) + i * 190) % (W + 300)) - 150, y = HZ + 14 + i * 16; c.fillStyle = rgba(LK.mist, 0.18 + i * 0.03); ell(c, x, y, 160, 9); c.fill(); }
+      // the bull: hidden in the thicket, closer each time, then out in the open
+      const sg = stage(), hd = HIDE[sg];
+      let bx = hd.x, by = hd.y, bs = hd.s, walk = 0, vis = sg >= 2, dir = -1, alpha;
+      if (ph === 'out' || ph === 'decide' || ph === 'leave' || ph === 'tiles') {
+        if (ph === 'out' || ph === 'decide') { const f = clamp(st.outT / 2.6, 0, 1), e = f * f * (3 - 2 * f); bx = lerp(HIDE[3].x, OUT.x, e); by = lerp(HIDE[3].y, OUT.y, e); bs = lerp(HIDE[3].s, OUT.s, e); walk = f < 1 && !RM ? st.outT * 6 : 0; }
+        else { const f = clamp((st.leaveT || 0) / 4, 0, 1); bx = lerp(OUT.x, W * 0.86, f); by = lerp(OUT.y, HZ + 34, f); bs = lerp(OUT.s, 0.5, f); walk = f < 1 && !RM ? st.leaveT * 5 : 0; dir = 1; alpha = 1 - f * 0.85; if (ph === 'tiles') { bx = W * 0.86; by = HZ + 34; bs = 0.5; alpha = 0.15; walk = 0; } }
+        vis = true;
+      }
+      const behind = ph === 'call' || bx > W * 0.61, mo = { walk, head: ph === 'call' ? Math.sin(st.t * 0.8) * 0.3 : ph === 'decide' ? -0.4 : 0, alpha, breath: ph === 'decide' && !RM ? (Math.sin(st.t * 1.6) + 1) / 2 : 0 };
+      if (vis && behind) moose(c, bx, by, bs * SZ, dir, mo);
+      thicket(c, ph === 'call' && C.state === 'his' ? 1 : st.shake);
+      if (vis && !behind) moose(c, bx, by, bs * SZ, dir, mo);
+      // the two of you, low behind the log, and the roll of birchbark
+      const KB = 190 * SZ, KM = (L.n === 3 ? 190 : 176) * SZ, mx = W * 0.22, my = H - 26;
+      person(c, 'budK', W * 0.09, H - 30, KB, false);
+      person(c, 'meK', mx, my, KM, false);
+      const hx = mx + 0.13 * KM, hy = my - 0.47 * KM;
+      c.save(); c.translate(hx, hy); c.rotate(-0.35 + (C.horn > 0 && !RM ? Math.sin(st.t * 30) * 0.03 : 0));
+      c.fillStyle = '#EDE6D6'; c.beginPath(); c.moveTo(0, -3.5); c.lineTo(30 * SZ, -11 * SZ); c.lineTo(30 * SZ, 11 * SZ); c.lineTo(0, 3.5); c.closePath(); c.fill();
+      c.strokeStyle = '#3A3430'; c.lineWidth = 1; for (let i = 1; i < 5; i++) { const x = i * 6 * SZ; c.beginPath(); c.moveTo(x, -3 - i * 1.6 * SZ); c.lineTo(x + 2, -2 - i * 1.6 * SZ); c.stroke(); }
+      c.fillStyle = '#C8B89A'; ell(c, 30 * SZ, 0, 3, 11 * SZ); c.fill();
+      c.restore();
+      for (const a of C.arcs) arcs(c, a);
+    }
+    function drawCamp() {
+      const key = JSON.stringify(st.done) + Object.keys(SPR).length;
+      if (!st.campCv || st.campKey !== key) { const cs = st.campCv || document.createElement('canvas'); cs.width = W * dpr; cs.height = H * dpr; st.campCv = cs; st.campKey = key; const g = cs.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); campPic(g, W, H, st.done, 'day'); }
+      c.drawImage(st.campCv, 0, 0, W, H);
+    }
+    function wrapLines(text, maxW) {
+      const out = []; let line = '';
+      for (const wd of text.split(' ')) { const t = line ? line + ' ' + wd : wd; if (c.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; }
+      if (line) out.push(line); return out;
+    }
+    function bubble(text, x, y, w) {
+      c.font = `600 ${Math.round(14 * FZ)}px ${SF}`; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+      const lines = wrapLines(text, w - 24), lh = 18 * FZ, bh = lines.length * lh + 16, bw = Math.min(w, Math.max(...lines.map((l) => c.measureText(l).width)) + 26);
+      let bx = clamp(x - bw / 2, 8, W - bw - 8), by = y - bh - 14; if (by < 8) by = y + 26;
+      c.fillStyle = 'rgba(255,253,248,0.96)'; rr(c, bx, by, bw, bh, 12); c.fill(); c.strokeStyle = 'rgba(27,37,41,0.35)'; c.lineWidth = 1; rr(c, bx, by, bw, bh, 12); c.stroke();
+      if (by < y) { const tx = clamp(x, bx + 14, bx + bw - 14); c.fillStyle = 'rgba(255,253,248,0.96)'; c.beginPath(); c.moveTo(tx - 7, by + bh - 1); c.lineTo(tx + 7, by + bh - 1); c.lineTo(x, by + bh + 10); c.closePath(); c.fill(); }
+      c.fillStyle = '#22252B'; lines.forEach((l, i) => c.fillText(l, bx + 13, by + 8 + lh * (i + 0.78)));
+    }
+    function banner(text, bottom) {
+      c.font = `600 ${Math.round(15 * FZ)}px ${SF}`; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+      const lines = wrapLines(text, W - 60), lh = 19 * FZ, bh = lines.length * lh + 18, bw = Math.min(W - 24, Math.max(...lines.map((l) => c.measureText(l).width)) + 28), by = bottom ? H - bh - 12 : 12;
+      c.fillStyle = 'rgba(255,253,248,0.95)'; rr(c, W / 2 - bw / 2, by, bw, bh, 14); c.fill(); c.strokeStyle = 'rgba(27,37,41,0.3)'; c.lineWidth = 1; rr(c, W / 2 - bw / 2, by, bw, bh, 14); c.stroke();
+      c.fillStyle = '#22252B'; lines.forEach((l, i) => c.fillText(l, W / 2 - bw / 2 + 14, by + 9 + lh * (i + 0.8)));
+    }
+    function pill(x, y, text, val, n) {
+      c.font = `700 ${Math.round(12 * FZ)}px ${SF}`; c.textAlign = 'left'; c.textBaseline = 'middle';
+      const tw = c.measureText(text).width, w = tw + 24 + (val !== undefined ? n * 14 * FZ + 6 : 0), h = 26 * FZ;
+      c.fillStyle = 'rgba(255,253,248,0.93)'; rr(c, x, y, w, h, h / 2); c.fill();
+      c.fillStyle = '#22252B'; c.fillText(text, x + 12, y + h / 2 + 0.5);
+      if (val !== undefined) for (let i = 0; i < n; i++) { c.fillStyle = i < val ? '#C9862F' : '#E1D9C8'; c.beginPath(); c.arc(x + tw + 22 + i * 14 * FZ, y + h / 2, 4.5 * FZ, 0, 7); c.fill(); }
+      return w;
+    }
+    function draw() {
+      const ph = st.phase;
+      if (ph === 'call' || ph === 'out' || ph === 'decide' || ph === 'leave' || ph === 'tiles') drawClose();
+      else if (ph === 'camp') drawCamp();
+      else drawMap();
+      // what you can read at a glance
+      if (ph === 'tracks' || ph === 'ready') pill(10, 10, '👣 Read the tracks: how old, how big, how fast');
+      else if (ph === 'wind' || ph === 'go' || ph === 'smell' || ph === 'follow' || ph === 'settle') pill(10, 10, '🌬️ Find a place with the wind in your face');
+      else if (ph === 'call') {
+        const C = st.call, w1 = pill(10, H - 36 * FZ, 'Answered', st.prog, L.calls);
+        pill(18 + w1, H - 36 * FZ, C.state === 'his' ? '📣 He is calling' : C.state === 'mine' ? 'You are calling' : C.state === 'answer' && coach ? 'Call back now' : '👂 Listen');
+      }
+      if (st.msg && st.msgT > 0 && st.started && !st.paused) {
+        if (ph === 'call' || ph === 'out' || ph === 'decide' || ph === 'leave' || ph === 'tiles' || ph === 'camp') banner(st.msg, ph === 'camp');
+        else if (st.look && st.sel >= 0) banner(st.msg, true);
+        else { const who = TEACH === 'me' ? st.me : st.bud, q = P(who.u, who.v); bubble(st.msg, q.x, q.y - 92 * q.s * SZ, small ? W - 40 : 360); }
+      }
+      if ((!st.started || st.paused) && !st.hideUI) {
+        c.fillStyle = 'rgba(20,28,34,.45)'; c.fillRect(0, 0, W, H);
+        const cw = Math.min(W - 24, 540), title = st.paused ? 'Paused' : L.n === 3 ? 'Ready? The young hunter is waiting.' : 'Ready? The hunter is waiting.';
+        const body = st.paused ? ['Press Space or tap to carry on.'] : ['Read the tracks. Keep the wind in your face. Answer the bull when he has finished calling.', 'Press Space or tap to start.'];
+        c.font = `700 ${Math.round(20 * FZ)}px ${SF}`; const tl = wrapLines(title, cw - 36);
+        c.font = `600 ${Math.round(14 * FZ)}px ${SF}`; const bl = body.flatMap((t) => wrapLines(t, cw - 36));
+        const th = 26 * FZ, lh = 20 * FZ, ch = 30 + tl.length * th + 8 + bl.length * lh, cy = H / 2 - ch / 2;
+        c.fillStyle = 'rgba(255,253,248,.96)'; rr(c, W / 2 - cw / 2, cy, cw, ch, 16); c.fill();
+        c.fillStyle = '#22252B'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.font = `700 ${Math.round(20 * FZ)}px ${SF}`; tl.forEach((t, i) => c.fillText(t, W / 2, cy + 15 + th * (i + 0.5)));
+        c.font = `600 ${Math.round(14 * FZ)}px ${SF}`; bl.forEach((t, i) => c.fillText(t, W / 2, cy + 15 + tl.length * th + 8 + lh * (i + 0.5)));
+      }
+    }
+
+    // ---------- loop and controls ----------
+    let raf = 0, last = 0, alive = true, fN = 0, fT = 0;
+    const frame = (now) => {
+      if (!alive) return; if (!cv.isConnected) { stop(); return; }
+      const raw = (now - last) / 1000 || 0, dt = Math.min(0.05, raw); last = now;
+      if (st.started && !st.paused && !st.ended && !st.hold) {
+        step(dt);
+        if (!st.low && raw < 0.25 && fN < 90) { fN++; fT += raw; if (fN === 90 && fT / 90 > 0.026) { st.low = true; st.leaves = []; if (dpr > 1) { dpr = 1; cv.width = W; cv.height = H; c.setTransform(1, 0, 0, 1, 0, 0); layer = null; closeBG = null; st.campCv = null; } } }
+      }
+      if (st.ended) return;
+      draw(); raf = requestAnimationFrame(frame);
+    };
+    function begin() {
+      if (st.ended) return false;
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (e) { /* no sound */ }
+      if (st.paused) { st.paused = false; pauseBtn.textContent = '⏸ Pause'; syncGT(); return true; }
+      if (!st.started) {
+        st.started = true; st.phase = 'tracks'; syncGT(); bars(); label();
+        say(TEACH === 'me' ? 'Read the track first, I tell him: how old, how big, how fast.' : coach ? 'Read the track first: how old, how big, how fast. Look closely at each ring.' : 'Read the track first: how old, how big, how fast.', 7);
+        live.textContent = 'Tap a ring on the tracks, or use ← and →, to look closely.';
+        return true;
+      }
+      return false;
+    }
+    function pause() { if (!st.started || st.ended) return; st.paused = !st.paused; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; syncGT(); }
+    const kd = (e) => {
+      if (!cv.isConnected) { stop(); return; }
+      const tg = document.activeElement; if (tg && /INPUT|TEXTAREA|SELECT/.test(tg.tagName)) return;
+      const k = e.code, onBtn = tg && tg.tagName === 'BUTTON';
+      if (k === 'KeyP') { pause(); return; }
+      if (!st.started || st.paused) { if (k === 'Space' || k === 'Enter' || /^Arrow/.test(k)) { if (onBtn && k !== 'Space' && !/^Arrow/.test(k)) return; e.preventDefault(); begin(); } return; }
+      const ph = st.phase, num = /^Digit[1-9]$/.test(k) ? Number(k.slice(5)) - 1 : /^Numpad[1-9]$/.test(k) ? Number(k.slice(6)) - 1 : -1;
+      if (num >= 0 && choiceFns[num]) { e.preventDefault(); choiceFns[num](); return; }
+      if (ph === 'tracks' || ph === 'wind') {
+        if (k === 'ArrowLeft' || k === 'KeyA' || k === 'ArrowUp' || k === 'KeyW') { e.preventDefault(); cycle(-1); }
+        else if (k === 'ArrowRight' || k === 'KeyD' || k === 'ArrowDown' || k === 'KeyS') { e.preventDefault(); cycle(1); }
+        else if ((k === 'Enter' || k === 'Space') && !onBtn) { e.preventDefault(); if (e.repeat) return; if (st.sel < 0) cycle(1); else act(); }
+      } else if (ph === 'call') { if (((k === 'Space' || k === 'Enter') && !onBtn) || k === 'KeyC') { e.preventDefault(); if (!e.repeat) callBack(); } }
+      else if (ph === 'out') { if ((k === 'Space' || k === 'Enter') && !onBtn) { e.preventDefault(); toCamp(); } }
+    };
+    const vis = () => { if (document.hidden && st.started && !st.ended && !st.paused) pause(); };
+    const toXY = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
+    const pd = (e) => {
+      e.preventDefault(); cv.focus({ preventScroll: true });
+      if (begin() || st.ended) return;
+      const p = toXY(e), ph = st.phase;
+      if (ph === 'tracks' || ph === 'wind') {
+        const list = ph === 'tracks' ? M.tracks : M.spots; let best = -1, bd = 1e9;
+        list.forEach((it, i) => { if (it.tried) return; const sc = 34 * it.s * (small ? 1.25 : 1), d = Math.hypot((p.x - it.x) / sc, (p.y - it.y) / (sc * 0.75)); if (d < 1 && d < bd) { bd = d; best = i; } });
+        if (best >= 0) { if (best === st.sel) act(); else select(best); }
+      } else if (ph === 'call') callBack();
+      else if (ph === 'out') toCamp();
+    };
+    window.addEventListener('keydown', kd); document.addEventListener('visibilitychange', vis);
+    cv.addEventListener('pointerdown', pd); cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    function stop() { alive = false; cancelAnimationFrame(raf); layer = null; closeBG = null; st.campCv = null; window.removeEventListener('keydown', kd); document.removeEventListener('visibilitychange', vis); if (stopRun === stop) stopRun = null; }
+    stopRun = stop;
+    st.api = { begin, select, cycle, act, callBack, decide, tile, use, toCamp, step, draw, pause,
+      skip: () => { if (st.walk) { st.walk.t = st.walk.T; step(0.001); } if (st.phase === 'smell') { st.smellT = 99; step(0.001); } if (st.phase === 'settle') { st.settle = 0; step(0.001); } if (st.phase === 'out') { st.outT = 9; step(0.001); } },
+      heard: () => { const C = st.call; if (C && (C.state === 'wait' || C.state === 'listen')) { C.t = C.next; step(0.001); } if (C && C.state === 'his') { C.t = 1.2; step(0.001); C.t = WIN[0] + 0.05; } } };
+    bars(); label(); cv.focus({ preventScroll: true }); raf = requestAnimationFrame(frame);
+    live.textContent = 'Press Space or tap the picture to start.';
+
+    // ---------- the end of the day ----------
+    function finish() {
+      stop();
+      const pTrack = st.trackTries <= 1 ? 200 : st.trackTries === 2 ? 100 : 0;
+      const pWind = st.windTries <= 1 ? 200 : st.windTries === 2 ? 100 : 0;
+      const pCall = Math.max(0, 300 - 60 * st.mistakes);
+      const pCamp = L.decide ? (st.decideWrong ? 0 : 150) + Math.max(0, 50 - 10 * st.wordWrong) : st.partFirst * 50;
+      const score = Math.round((pTrack + pWind + pCall + pCamp) * L.mult * (relaxed ? 0.8 : 1));
+      const firsts = (st.trackTries <= 1 ? 1 : 0) + (st.windTries <= 1 ? 1 : 0) + (L.decide ? (st.decideWrong ? 0 : 1) : st.partFirst === CFG.parts.length ? 1 : 0);
+      const n = 1 + (firsts >= 2 ? 1 : 0) + (firsts === 3 && st.mistakes <= 1 ? 1 : 0);
+      PROG.mooseStars = PROG.mooseStars || {}; PROG.mooseStars[L.n] = Math.max(PROG.mooseStars[L.n] || 0, n);
+      const isBest = score > (PROG.mooseBest || 0); PROG.mooseBest = Math.max(PROG.mooseBest || 0, score);
+      const fact = CFG.facts[((PROG.mooseN = (PROG.mooseN || 0) + 1) - 1) % CFG.facts.length];
+      saveProg(); try { if (typeof cloudSend === 'function') cloudSend(true); } catch (e) { /* not signed in */ } win(); sfx('done');
+      box.innerHTML = '';
+      box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
+      const pic = document.createElement('canvas'); pic.className = 'trailcv'; pic.style.aspectRatio = `${W} / 260`; pic.width = W * dpr; pic.height = 260 * dpr;
+      pic.setAttribute('role', 'img');
+      const g = pic.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (L.decide) {
+        pic.setAttribute('aria-label', 'Dawn over the bog. Far off in the mist, the bull moose wades away. Chickadee and the young hunter kneel behind a fallen log, watching him go.');
+        const cs = close(), oy = 140; g.drawImage(cs, 0, oy * dpr, W * dpr, 260 * dpr, 0, 0, W, 260);
+        g.save(); g.translate(0, -oy); thicket(g, 0); moose(g, W * 0.86, HZ + 34, 0.5 * SZ, 1, { alpha: 0.5 }); for (let i = 0; i < 3; i++) { g.fillStyle = rgba(LK.mist, 0.32); ell(g, W * (0.3 + i * 0.25), HZ + 26 + i * 10, 170, 10); g.fill(); } person(g, 'budK', W * 0.09, H - 30, 190 * SZ, false); person(g, 'meK', W * 0.22, H - 26, 190 * SZ, false); g.restore();
+      } else {
+        pic.setAttribute('aria-label', 'The camp in the hardwood hills: birchbark wikuoms, a fire with smoke, a full drying rack, and the people of the camp. Along the top: what each part of the moose became.');
+        campPic(g, W, 260, { meat: 1, hide: 1, bone: 1, sinew: 1 }, 'dusk');
+      }
+      const NW = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'], nw = (k) => NW[k] || String(k);
+      const lineTrack = st.trackTries <= 1 ? 'You read the tracks right the first time.' : `You found the right tracks on your ${['', 'first', 'second', 'third', 'fourth'][st.trackTries] || 'last'} try.`;
+      const lineWind = st.windTries <= 1 ? 'You found the wind the first time.' : `It took ${nw(st.windTries)} tries to find a place with the wind in your face.`;
+      const lineCall = st.mistakes === 0 ? `You answered him ${nw(L.calls)} times, and never called at the wrong moment.` : `You answered him ${nw(L.calls)} times. ${st.mistakes === 1 ? 'Once' : st.mistakes === 2 ? 'Twice' : `${nw(st.mistakes).charAt(0).toUpperCase() + nw(st.mistakes).slice(1)} times`} you called at the wrong moment, and he went quiet.`;
+      box.append(
+        el('h2', { class: 'trail-title readable', text: L.decide ? '🌫️ You let him go' : '🍂 Enough for the whole camp' }),
+        el('p', { class: 'trail-stars', text: stars(n), role: 'img', 'aria-label': `${n} out of 3 stars` }),
+        el('div', { class: 'trailwrap' }, [pic]),
+        el('p', { class: 'readable', text: `${lineTrack} ${lineWind} ${lineCall}` }),
+        el('p', { class: 'readable', text: L.decide ? `${CFG.endLet} Today the young hunter said it back: “${CFG.why.join(' ')}”` : CFG.endShare }),
+        el('section', { class: 'fact' }, [
+          el('h2', { text: `Score: ${score}${isBest ? '  (your new best!)' : ''}` }),
+          el('p', { text: `Reading the tracks ${pTrack}  +  the wind ${pWind}  +  calling ${pCall}  +  ${L.decide ? `letting him go and the words ${pCamp}` : `nothing wasted ${pCamp}`}${L.mult !== 1 ? `, then × ${L.mult} for this harder fall` : ''}${relaxed ? ', then × 0.8 for relaxed mode' : ''}.` }),
+          el('p', { text: n === 3 ? 'Three stars.' : 'For three stars: read the tracks and find the wind the first time, get the last step right the first time, and call at the wrong moment no more than once.' }),
+        ]),
+        el('section', { class: 'fact' }, [el('h2', { text: '💡 Did you know?' }), el('p', { text: fact })]),
+        el('section', { class: 'fact' }, [el('h2', { text: '🍂 Netukulimk, then and today' }), el('p', { text: CFG.neta }), el('p', { text: CFG.today }), el('p', { class: 'hint', text: CFG.sources })]),
+        timeUp()
+          ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' })
+          : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '▶ Play this fall again', onclick: () => play(L) }), el('button', { class: 'secondary', type: 'button', text: '🍂 Choose a different fall', onclick: () => menu() })]),
+      );
+      window.scrollTo(0, 0);
+    }
+  }
+  menu();
+}
+
 const GAMES = {
   wikuom: { icon: '🏕️', name: 'Build the wikuom', blurb: 'Choose the right materials in the right order, and build a birchbark wikuom with Nukumi.', where: 'Chickadee at the summer place', run: gWikuom },
   eel: { icon: '🐟', name: 'Eels at the weir', blurb: 'Spear six eels as they come down the river in the fall.', where: 'Chickadee at the stone weir', run: gEel },
   paddle: { icon: '🛶', name: 'Paddle to the Narrows', blurb: 'Help Nukumi steer down the chain of lakes to the sea, and say each place name back.', where: 'Chickadee in the Maple Sugar moon', run: gPaddle },
+  moose: { icon: '🍂', name: 'Call the moose', blurb: 'Read the tracks, keep the wind in your face, and answer the bull until he steps out of the bog.', where: 'Chickadee with the hunters', run: gMoose },
   route: { icon: '🧺', name: 'From tree to basket', blurb: 'Make the right choice at each step of making an ash basket.', where: 'Lizzie and her mother', run: gRoute },
   wages: { icon: '🪙', name: 'Market day', blurb: 'You have the basket money. What does the family need before winter?', where: 'Lizzie at the Halifax market', run: gTruck },
   cove: { icon: '📦', name: 'What do we take?', blurb: 'The agent has ordered everyone to move. What can your family carry?', where: 'Lizzie in November 1917', run: (b, w) => gCoffre(b, w, 'cove') },
@@ -9663,7 +10721,7 @@ const GAMES = {
   kitchen: { icon: '👩‍🍳', name: 'Kitchen mix-up', blurb: 'Put a recipe’s steps back in order.', where: 'The Kitchen', run: gKitchen },
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
-const GAME_AT = { 706: ['wikuom'], 705: ['paddle'], 711: ['eel'], 2: ['route'], 29: ['route'], 6: ['wages'], 17: ['cove'], 212: ['who'], 504: ['who'], 507: ['decode'], 215: ['memory'], 505: ['memory'], 514: ['kitchen'] };
+const GAME_AT = { 717: ['moose'], 807: ['moose'], 706: ['wikuom'], 705: ['paddle'], 711: ['eel'], 2: ['route'], 29: ['route'], 6: ['wages'], 17: ['cove'], 212: ['who'], 504: ['who'], 507: ['decode'], 215: ['memory'], 505: ['memory'], 514: ['kitchen'] };
 // ================= GAME TIME =================
 // Each student gets 10 minutes of mini-games a day, so that games do not take over the class.
 // The count is kept in this browser and is shared by all four story games on this site, so switching
@@ -10844,6 +11902,7 @@ function cloudStats() {
     f: P.chase || 0,
     r: P.frun || 0,
     p: P.paddleBest || 0,
+    m: P.mooseBest || 0,
   };
 }
 function cloudPacket() {
@@ -10925,6 +11984,7 @@ async function cloudPull() {
   const cf = (mine.d.st || {}).f || 0; if (cf > (PROG.chase || 0)) { PROG.chase = cf; added++; }
   const crun = (mine.d.st || {}).r || 0; if (crun > (PROG.frun || 0)) { PROG.frun = crun; added++; }
   const cpad = (mine.d.st || {}).p || 0; if (cpad > (PROG.paddleBest || 0)) { PROG.paddleBest = cpad; added++; }
+  const cmoose = (mine.d.st || {}).m || 0; if (cmoose > (PROG.mooseBest || 0)) { PROG.mooseBest = cmoose; added++; }
   const found = load(KEY_FOUND, []);
   (mine.d.f || []).forEach((e) => { if (!found.includes(e)) { found.push(e); added++; } });
   save(KEY_FOUND, found); saveProg();
@@ -11022,6 +12082,7 @@ const BOARDS = [
   ['f', '🏃 Best chase score'],
   ['r', '🌲 Best trail run'],
   ['p', '🛶 Best paddle to the Narrows'],
+  ['m', '🍂 Best moose calling'],
 ];
 function topTrait(tr) {
   const t = Object.entries(tr || {}).filter(([k, v]) => v > 0 && LEARN.traits[k]).sort((a, b) => b[1] - a[1])[0];
