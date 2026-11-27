@@ -950,7 +950,7 @@ const wcWN = (key, f) => { wcNoG++; try { return wcW(key, f()); } finally { wcNo
 // what each person's head, clothes and feet say, for their people, time and place
 function wcPeople(L) {
   const none = { head: '', body: '', feet: '' }, n = wcCur, g = WCGRP[n] || '';
-  if (!L || !wcIn || WCQ[n] || L.kind === 'LIE' || L.kind === 'HUP') return none;
+  if (!L || !wcIn || WCQ[n] || L.kind === 'LIE') return none;
   if (L.role === 'lonecloud') return { whole: wcTip('lonecloud') };
   if (L.role === 'agent') return { whole: wcTip('agent') };
   if (L.role === 'king') return { whole: wcTip('king') };
