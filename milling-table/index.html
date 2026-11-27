@@ -1036,7 +1036,7 @@ function mtPeople(L, n) {
   const rum = g === 'rum', cb = L.era === 'y1826' && !rum, shoes = L.bt === 'bare' ? '' : MTX.brogue;
   if (L.outfit === 'coat') return { head: L.hat === 'bonnet' ? MTX.bonnet : '', body: L.era === 'y1773' ? MTX.coat73 : rum ? MTX.coatRum : MTX.coatCB, feet: shoes };
   if (L.outfit === 'gown') return { head: MTX.kertch, body: cb ? '' : MTX.gown73, feet: shoes };
-  if (L.outfit === 'gownKid') return /^(brother|angusBoy|lachlan)$/.test(L.role || '') ? none : { head: MTX.snood, body: n === 40 ? MTX.boundout : '', feet: '' };
+  if (L.outfit === 'gownKid') return { head: MTX.snood, body: n === 40 ? MTX.boundout : '', feet: '' };
   if (L.outfit === 'shirtKid') return { head: L.hat === 'bonnet' ? MTX.bonnet : '', body: '', feet: shoes };
   return none;
 }
@@ -1410,14 +1410,14 @@ const ART = (() => {
       kirstyOld: { g: 'G', sex: 'f', skin: '#E9C5A4', hair: '#C4C2BC', old: 1, y1826: { top: '#4F5F3A', apron: '#EFE7D3', capC: '#F2EDE0', shawl: '#6E4A5E' } },
       kmother: { g: 'G', sex: 'f', skin: '#E3B795', hair: '#5A3E2A', y1773: { top: '#8A3F32', apron: '#E8DCC0', capC: '#F4EFE4', kerchief: '#E6D2B4' } },
       kfather: { g: 'G', skin: '#E9C5A4', hair: '#5A3E2A', y1773: { hat: 'bonnet', hatC: '#2E3E5E', top: '#5A4A38', top2: '#8A6A3A', bottom: '#6B5A42', legs: '#C4BCA8' } },
-      brother: { g: 'G', kid: 1, skin: '#F0D2B6', hair: '#8A4B1E', y1773: { top: '#8A6A4A' } },
+      brother: { g: 'G', sex: 'm', kid: 1, skin: '#F0D2B6', hair: '#8A4B1E', y1773: { top: '#8A6A4A' } },
       seanmhair: { g: 'G', sex: 'f', skin: '#E9C5A4', hair: '#C4C2BC', old: 1, y1773: { top: '#3E5570', apron: '#DCD2BA', capC: '#F4EFE4', shawl: '#5E6A78' } },
       annie: { g: 'G', sex: 'f', skin: '#F2D8C0', hair: '#3A2A1E', style: 'braids', ribbon: '#8A3F32', y1773: { top: '#6E4A5E', apron: '#E8DCC0', capC: '#E8E2D2' } },
       piper: { g: 'G', skin: '#EFCDAE', hair: '#A8603A', y1773: { hat: 'bonnet', hatC: '#36465E', top: '#44505E', top2: '#9C5438', bottom: '#5A5248', legs: '#E0D8C4' } },
       hugh: { g: 'G', skin: '#DDAE8C', hair: '#8E8E8A', y1773: { hat: 'bonnet', hatC: '#4A4438', top: '#55565C', top2: '#7A6248', bottom: '#4A4438', legs: '#C4BCA8' } },
       truroMistress: { g: 'G', sex: 'f', skin: '#F4DCC6', hair: '#6B4A2E', style: 'bun', y1773: { top: '#3E5570', apron: '#F4EFE4', capC: '#F4EFE4', kerchief: '#F4EFE4' } },
       // Angus's story, 1826 to the 1860s
-      angusBoy: { g: 'G', kid: 1, skin: '#E9C5A4', hair: '#5A3E2A', y1826: { top: '#6B7A8A', bottom: '#5A5248' } },
+      angusBoy: { g: 'G', sex: 'm', kid: 1, skin: '#E9C5A4', hair: '#5A3E2A', y1826: { top: '#6B7A8A', bottom: '#5A5248' } },
       angus: { g: 'G', skin: '#E9C5A4', hair: '#5A3E2A', y1826: { hat: 'bonnet', hatC: '#2E3E5E', top: '#3E4A5E', top2: '#8A6A3A', bottom: '#6B5A42', legs: '#C4BCA8' } },
       angusOld: { g: 'G', skin: '#E3B795', hair: '#A7A7A2', old: 1, y1826: { hat: '', top: '#3E4A5E', top2: '#8A6A3A', bottom: '#6B5A42' } },
       afather: { g: 'G', skin: '#DDAE8C', hair: '#3A2A1E', y1826: { hat: 'bonnet', hatC: '#4A4438', top: '#5A4A38', top2: '#5E6A4A', bottom: '#4A4438', legs: '#C4BCA8' } },
@@ -1426,7 +1426,7 @@ const ART = (() => {
       effie: { g: 'G', sex: 'f', kid: 1, skin: '#F0D2B6', hair: '#8A4B1E', style: 'braids', ribbon: '#8A3F32', y1826: { top: '#9C5438' } },
       kate: { g: 'G', sex: 'f', skin: '#F2D8C0', hair: '#3A2A1E', y1826: { top: '#8A3F32', apron: '#EFE7D3', capC: '#F2EDE0', kerchief: '#E8DCC0' } },
       kateOld: { g: 'G', sex: 'f', skin: '#E9C5A4', hair: '#A7A7A2', old: 1, y1826: { top: '#8A3F32', apron: '#EFE7D3', capC: '#F2EDE0', shawl: '#7A4A3E' } },
-      lachlan: { g: 'G', kid: 1, skin: '#EFCDAE', hair: '#6B4A2E', y1826: { top: '#5E7A4A', bottom: '#5A5248' } },
+      lachlan: { g: 'G', sex: 'm', kid: 1, skin: '#EFCDAE', hair: '#6B4A2E', y1826: { top: '#5E7A4A', bottom: '#5A5248' } },
       storyteller: { g: 'G', skin: '#E3B795', hair: '#8E8E8A', old: 1, y1826: { hat: '', top: '#4A4438', top2: '#9C5438', bottom: '#5A5248' } },
       acadian1: { g: 'G', skin: '#E8C09E', hair: '#3A2A1E', y1826: { hat: 'bonnet', hatC: '#8A3F32', top: '#4F5A48', bottom: '#6B5A42' } },
       acadian2: { g: 'G', skin: '#DDAE8C', hair: '#5A3E2A', y1826: { hat: 'bonnet', hatC: '#3E4A5E', top: '#6B5340', bottom: '#4A4438' } },
@@ -1447,7 +1447,7 @@ const ART = (() => {
       mikElder: { g: 'Q', sex: 'f', mik: 1, skin: '#8D5B3A', hair: '#C4C2BC', old: 1, style: 'long', y1773: { top: '#5E4A3A', shawl: '#4A5240' } },
       mikHunter: { g: 'Q', mik: 1, skin: '#9A6644', style: 'long', y1773: { top: '#2E4A6E', bottom: '#5A4636' } },
       mikWoman: { g: 'Q', sex: 'f', mik: 1, skin: '#A9714B', style: 'long', y1826: { top: '#7A2E2A', shawl: '#2E4A6E' } },
-      mikBoy: { g: 'Q', kid: 1, mik: 1, skin: '#B07A52', style: 'long', y1826: { top: '#6B5A3A' } },
+      mikBoy: { g: 'Q', sex: 'm', kid: 1, mik: 1, skin: '#B07A52', style: 'long', y1826: { top: '#6B5A3A' } },
       mikSister: { g: 'Q', sex: 'f', kid: 1, mik: 1, skin: '#B98455', style: 'long', y1826: { top: '#5E6A4A' } },
       mikBasketWoman: { g: 'Q', sex: 'f', mik: 1, skin: '#A9714B', era: 'y1916', style: 'bun', y1916: { top: '#F2E6D8', bottom: '#6E4A2E', hat: 'wide', hatC: '#3A3A48' } },
       mikBasketGirl: { g: 'Q', sex: 'f', kid: 1, mik: 1, skin: '#B07A52', era: 'y1916', style: 'braids', ribbon: '#8A2E2A', y1916: { top: '#5E7A4A' } },
@@ -2325,7 +2325,7 @@ const ART = (() => {
   // The people at the milling board are drawn as people, with faces, sitting behind the board with their hands on the cloth.
   const millBoard = (o = {}) => { const y = o.y || 150, n = o.n || 7, cl = o.cloth !== false, ks = o.ks || 'mwmwmwmw', big = o.h || 122; let s = '', hands = '';
     for (let i = 0; i < n; i++) { const x = 70 + i * (460 / (n - 1)), k = ks[i % ks.length];
-      const kind = o.now ? (k === 'w' ? 'W' : k === 'c' ? 'GIRL' : 'M') : (k === 'w' ? (i % 3 === 1 ? 'LE' : 'LW') : k === 'c' ? 'LG' : 'LM'), h = k === 'c' ? big * 0.8 : big;
+      const kind = o.now ? (k === 'w' ? 'W' : k === 'c' ? 'GIRL' : 'M') : (k === 'w' ? (i % 3 === 1 ? 'HE' : 'HW') : k === 'c' ? 'HG' : 'HM'), h = k === 'c' ? big * 0.8 : big;
       s += `<g class="anim-nod" style="animation-duration:1.8s;animation-delay:-${((i % 2) * 0.9).toFixed(1)}s">` + fig(kind, x, y + h * 0.62, h, { flip: i >= n / 2 }) + `</g>`;
       hands += `<circle cx="${x - h * 0.105}" cy="${y - 2}" r="${h * 0.04}" fill="#E3B795" stroke="#8A5A3C" stroke-width="0.8"/><circle cx="${x + h * 0.105}" cy="${y - 2}" r="${h * 0.04}" fill="#E3B795" stroke="#8A5A3C" stroke-width="0.8"/>`; }
     return s + mtOpen('millboard') + `<rect x="30" y="${y}" width="540" height="12" rx="2" fill="#B98E58"/><rect x="30" y="${y}" width="540" height="2" fill="#D8B27A" opacity="0.7"/><rect x="34" y="${y + 12}" width="532" height="6" fill="#7A5A36"/>` +
