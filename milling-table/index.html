@@ -708,6 +708,41 @@
   .poprow { position: relative; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.8rem 0; }
   .poprow .popwrap { margin: 0; }
   .popchip { font-size: 0.85rem; font-weight: 600; padding: 0.35rem 0.8rem; border-width: 1px; }
+
+  /* reflections: a writing box under the choices, and every answer gathered on the ending pages */
+  .sheet .reflect, .sheet .reflectsum { margin: 1.6rem 0; padding: 0 1.1rem 1rem; border-radius: 12px; border: 2px solid #22686A; background: #EEF6F5; box-shadow: 0 2px 6px rgba(0,0,0,0.06); overflow: hidden; }
+  .sheet .reflect > h2, .sheet .reflectsum > h2 { margin: 0 -1.1rem 0.8rem; padding: 0.55rem 1.1rem; font-size: 1.02rem; background: #22686A; color: #fff; }
+  .rf-head { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.35rem; }
+  .rf-q { display: block; font-weight: 700; margin: 0 0 0.6rem; }
+  .rf-text { display: block; width: 100%; min-height: 5.4em; font: inherit; line-height: 1.45; padding: 0.55rem 0.7rem; border: 1px solid #7FA9A7; border-radius: 8px; background: #fff; color: var(--ink); resize: vertical; box-sizing: border-box; }
+  .rf-text:focus { outline: 3px solid #22686A; outline-offset: 1px; }
+  .rf-status { margin: 0.45rem 0 0; }
+  .reflectsum .rf-h { font-size: 1rem; margin: 1.1rem 0 0.35rem; color: #1B5456; }
+  .reflectsum .rf-item { margin: 0 0 0.75rem; }
+  .reflectsum .rf-askd { font-size: 0.9rem; font-style: italic; color: var(--muted); margin: 0 0 0.25rem; }
+  .reflectsum .rf-a, .rf-paper .rf-a { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+  .reflectsum .rf-a { background: #fff; border-left: 4px solid #22686A; padding: 0.45rem 0.7rem; border-radius: 4px; }
+  .reflectsum .rf-none { font-size: 0.9rem; font-style: italic; color: var(--muted); margin: 0 0 0.4rem; }
+  .reflectsum .rf-how { font-size: 1rem; margin: 1.5rem 0 0.4rem; padding-top: 1rem; border-top: 2px solid #BFD8D6; color: #1B5456; }
+  .reflectsum .rf-steps { margin: 0 0 0.9rem; padding-left: 1.4rem; }
+  .reflectsum .rf-steps li { margin: 0.25rem 0; }
+  .reflectsum .rf-copy { font: inherit; font-size: 1rem; font-weight: 700; color: #fff; background: #22686A; border: 2px solid #22686A; border-radius: 8px; padding: 0.7rem 1.3rem; cursor: pointer; }
+  .reflectsum .rf-copy:hover { background: #1B5456; border-color: #1B5456; }
+  .reflectsum .rf-copy:focus-visible { outline: 3px solid #E0A526; outline-offset: 2px; }
+  .rf-msg { font-weight: 700; color: #1B5456; margin: 0.6rem 0 0; }
+  .rf-msg:empty { display: none; }
+  .rf-manual { display: block; width: 100%; font: inherit; font-size: 0.9rem; margin-top: 0.6rem; padding: 0.5rem; box-sizing: border-box; }
+  .rf-share { margin-top: 1.2rem; }
+  .rf-paper { display: none; }
+  @media print {
+    .rf-paper { display: block; }
+    .rf-line { border-bottom: 1px solid #000; height: 2em; }
+    .reflect .rf-text, .reflect .rf-status { display: none !important; }
+    .sheet .reflect, .sheet .reflectsum { border: 1px solid #000 !important; background: #fff !important; box-shadow: none !important; }
+    .sheet .reflect > h2, .sheet .reflectsum > h2 { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; }
+    .reflectsum .rf-a { border-left: 2px solid #000; }
+    .reflectsum .rf-item, .reflect { break-inside: avoid; }
+  }
 </style><style id="scheme">
   /* colour scheme: Gaels: heather purple with Nova Scotia tartan blue, green and gold. Light only. */
   html:root, html:root[data-theme] {
@@ -4172,6 +4207,7 @@ function cover() {
         el('p', { text: 'Before your class plays: Kirsty’s voyage includes children dying of disease (told offstage), Angus’s story includes famine, and Mary’s story includes the war and a scene where a child is shamed at school for speaking Gaelic. None of it is graphic. Players never take part in cruelty.' }),
         el('p', { text: 'Perspective: The Gaelic characters are skilled, funny, determined people who make their own choices. The game is honest that they were also settlers on Mi’kmaw land. The Mi’kmaw characters lead their own lives and their own fight for their land. Nobody rescues them.' }),
         el('p', { text: 'Language: Gaelic words are spelled as in Nova Scotia Gaelic sources such as Gaelic Affairs, the Highland Village Museum and Cape Breton University, and should be checked by a fluent speaker. The game does not invent songs, stories, sayings or customs. It names real milling songs only as a kind of song, and points you to real recordings.' }),
+        el('p', { text: 'Reflections: Every story page with choices has a 📝 box with a question written for that scene, under one of 12 headings. Writing is optional. Answers are saved only in the browser on that Chromebook and are never sent anywhere. Every ending page gathers a character’s answers under the 12 headings, with a Copy button and steps for pasting them into a Google Doc.' }),
         el('p', { text: 'What it doesn’t do: It does not use tartan-and-bagpipes clichés or jokes about drinking or fighting. The Hector’s piper appears because he is part of the documented story, and the game says plainly that bagpipes were only one small part of Gaelic music. No playable character dies.' }),
       ]),
       el('details', {}, [
@@ -4589,6 +4625,145 @@ function runSummary() {
     ...(chicks ? [el('p', { class: 'readable', text: `🐦 Chickadees you spotted in the pictures: ${chicks}` })] : []),
   ]);
 }
+// ================= REFLECTIONS =================
+// Under the choices on every page with choices, a 📝 box asks a question written for that scene, under one of 12 headings.
+// Writing is optional. Answers stay in this browser only: they are never sent anywhere and are not part of the class leaderboard.
+// Every ending page gathers the answers for that character under the 12 headings, ready to copy into a Google Doc.
+const KEY_REFLECT = 'milling-table-reflections';
+const REFLECT_HEADS = ["What surprised me, or changed what I used to think", "What I understand now that I did not understand before", "A moment in the game that stayed with me, and why", "A choice I made, and what I might do differently next time", "How people in the story showed courage, skill, humour or love", "Something this community built, protected or kept going", "Something that was unfair, and how people stood up to it", "Whose voice I did not hear in the story, and what they might say", "A word I learned, and why it matters to the people who use it", "How this history connects to Nova Scotia today, or to my own life", "Someone from the story I would like to talk to, and what I would ask", "What I am still wondering about, and where I could find out"];
+const REFLECT_Q = {"1":[2,"Father says the rent has gone up again, the harvest was poor again, and a man named John Ross has promised land across the ocean. What do you understand now about why families left the Highlands?"],"2":[3,"Seanmhair puts her own mother’s spindle in Kirsty’s hand, the wood worn smooth by three pairs of hands. Why might this moment stay with you? What would you want to be given by someone you were leaving?"],"4":[10,"At the church at Clachan, people who are staying say goodbye to people who are going, and nobody pretends it is a happy day. Has your family ever said goodbye to someone moving far away? What helped?"],"8":[6,"When the captain wants to put the piper ashore, the passengers say they will share their own food so he can stay and play. Why would people on short food share it to keep music on the ship? What does it say about them?"],"12":[5,"Mother and the other women nurse whoever is sick, and hang blankets to keep the sick apart from the well. What kind of courage does it take to care for people on a ship full of sickness?"],"16":[11,"Hugh McLeod saved the mouldy oatcake scraps everyone else threw away, and in the last two days he shares them out. If you could talk to Hugh, what would you ask him?"],"17":[1,"Kirsty sees nothing but forest, because she does not know yet how to see a place where people live without fields. Before this story, how did you picture Nova Scotia before the settlers came? Did this page change that picture?"],"20":[7,"The families take only the food they need, write down every single thing, and promise to pay for it later. How is this a way of standing up to something unfair? What do you think of the captain who refused to march against them?"],"21":[12,"Kirsty has never seen snow like this, and the footprints outside are big, flat and round. What do you wonder about how newcomers learned to get through a Nova Scotia winter? Where could you find out?"],"24":[9,"Kirsty says “Fàilte,” welcome, then feels foolish, “because this is not your door. It is hers.” Why does it matter who says welcome? What do you think Kirsty is starting to understand?"],"28":[8,"A neighbour says, “It is our land now. We have the paper,” while Mi’kmaw hunters are teaching the settlers how to get through the winter. Whose voice is missing when he says that? What might the Mi’kmaw hunters say?"],"32":[4,"For the first time, Mother asks Kirsty what she thinks the family should do. Would you stay on the harbour, move up the river, or leave for Truro? What would you say, and why?"],"40":[10,"The children of the house laugh at Kirsty’s Gaelic, so at night she talks to herself in Gaelic so she will not forget it. Have you, or someone you know, ever worked to keep a language? What helps?"],"50":[6,"Kirsty spins for half the neighbours and teaches every girl who will sit still long enough. Some winters a Mi’kmaw woman comes to her door, and some winters Kirsty goes to hers. What did Kirsty help build over her life?"],"201":[7,"Mother says it is “a strange kind of kindness that empties a whole island.” What is unfair about moving three hundred and fifty people off Rum to make room for eight thousand sheep? Do you agree with Father or with Mother?"],"205":[9,"Grandfather’s word dùthchas means the place your people come from, and everything that ties you to it. “You cannot carry it in a bundle,” he says. “You will have to grow it again.” What would your dùthchas be?"],"207":[1,"On the shore, cousins and neighbours from home are shouting Angus’s father’s name. Did it surprise you that so many Gaels came to Cape Breton to join family who had come before? Why did that matter so much?"],"208":[6,"In Cape Breton, almost every house is a taigh céilidh, a visiting house, and old Donald walks twelve miles in the dark to finish a story. What do evenings like these keep alive for a community?"],"210":[10,"Every family that comes writes home to the next, because nobody wants to cross an ocean to a place where they know no one. How do newcomers to Nova Scotia help each other today?"],"212":[8,"The Mi’kmaw boy points toward the new clearings where the settlers are cutting trees and asks Angus a question. Angus understands it, and has no good answer. What do you think the boy is asking? What would a good answer be?"],"215":[5,"At the milling frolic, some songs are hundreds of years old, and some were made up last week about somebody’s cow, and everyone knows whose cow. How do humour and singing turn hard work into a party?"],"216":[3,"A neighbour says the milling board will last a hundred years. “He is wrong. It lasts much longer.” Why do you think the scene ends that way? What has lasted a long time in your family or community?"],"217":[11,"Kate’s grandmother crossed on the Hector in 1773. If you could talk to Kate’s grandmother, what would you ask her about the crossing, and about her first winter?"],"220":[4,"The blight comes back year after year, on every farm on the island. Would you walk to town with the neighbours to ask for meal, or stay and share what little you have? What would you weigh?"],"223":[12,"Some neighbours leave for Boston, some for Newfoundland, and nearly nine hundred people sail from St. Ann’s all the way to Australia and New Zealand. What do you wonder about the Gaels who moved on again? Where could you find out?"],"224":[7,"The Mi’kmaq at We’koqma’q have asked the government to stop settlers from taking their land. Now a neighbour wants Angus to sign a petition to sell half the reserve. What is unfair here? What would it take to say no to a neighbour?"],"226":[2,"Angus connects what happened on Rum to what is happening at We’koqma’q. Then a Mi’kmaw man asks him to be a witness, because “it is their fight.” What do you understand now about the difference between leading someone else’s fight and standing beside them?"],"501":[10,"At home Mary is Màiri, and her mother speaks to her in Gaelic. At the hospital she is Nurse MacLeod, and everything happens in English. Do you speak or act differently in different places? Why?"],"505":[3,"Mary’s mother does not cry at the station. She cries the night before, in Gaelic, so the landlady will not understand. Why might this detail stay with you? What does it tell you about her?"],"511":[9,"John, burning with fever, talks in Gaelic about the cows, and when Mary answers him in Gaelic, he goes quiet and holds her hand. Why can hearing your own language matter so much when you are sick and far from home?"],"514":[4,"The lists of names from Vimy come in the newspapers for days, and John’s battalion took the last hill. Would you read the lists, or write to your mother instead? Why?"],"522":[5,"Frank says something in Mi’kmaw that makes the man in the next bed laugh: “He said you are very bossy. It is a compliment.” What do Mary and the Gaelic and Mi’kmaw soldiers have in common? How does humour help them?"],"525":[1,"On November 11, the men sing in English, French, Gaelic, Mi’kmaw and a dozen other languages. Did it surprise you how many languages were in that hospital? What does it tell you about who served?"],"527":[11,"Mary’s mother holds her face and says something in Gaelic that Mary will keep for the rest of her life. If you could ask Mary’s mother what she said, what do you think she would tell you?"],"543":[7,"The shopkeeper says Gaelic belongs to the old days, and an old woman from Mabou answers him in Gaelic until the people who were nodding look at their boots. Was it fair to tell children that Gaelic held them back? How is she standing up for it?"]};
+const REFLECT_SAVES = (() => { try { const k = KEY_REFLECT + '-test'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true; } catch (e) { return false; } })();
+let REFLECT = (() => { const v = load(KEY_REFLECT, {}); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; })();
+const heroKeyOf = (id) => { const h = heroOf(id); return Object.keys(HEROES).find((k) => HEROES[k] === h) || Object.keys(HEROES)[0]; };
+function reflectSet(hk, id, text) {
+  const mine = REFLECT[hk] || (REFLECT[hk] = {});
+  if (text.trim()) mine[id] = { t: text, at: (mine[id] && mine[id].at) || Date.now() };
+  else delete mine[id];
+  if (!Object.keys(mine).length) delete REFLECT[hk];
+  save(KEY_REFLECT, REFLECT);
+}
+function reflectEntries(hk) {
+  return Object.entries(REFLECT[hk] || {})
+    .filter(([sid, v]) => v && typeof v.t === 'string' && v.t.trim() && REFLECT_Q[sid])
+    .map(([sid, v]) => ({ sid, h: REFLECT_Q[sid][0], q: REFLECT_Q[sid][1], t: v.t.trim(), at: Number(v.at) || 0 }))
+    .sort((a, b) => (a.at - b.at) || (Number(a.sid) - Number(b.sid)));
+}
+function reflectBox(id) {
+  const q = REFLECT_Q[id]; if (!q) return null;
+  const hk = heroKeyOf(id), sid = String(id), tid = 'rf-' + sid;
+  const mine = (REFLECT[hk] || {})[sid];
+  const ta = el('textarea', { id: tid, class: 'rf-text', rows: '3', maxlength: '4000', placeholder: 'Write your thoughts here…', 'aria-describedby': tid + '-s' });
+  ta.value = mine && typeof mine.t === 'string' ? mine.t : '';
+  const status = el('p', { class: 'hint rf-status', id: tid + '-s', 'aria-live': 'polite' });
+  const paper = el('div', { class: 'rf-paper' });
+  let had = null;
+  const update = () => {
+    const has = !!ta.value.trim();
+    if (has !== had) {
+      had = has;
+      status.textContent = REFLECT_SAVES
+        ? (has ? '✓ Saved on this Chromebook. You will find all your reflections on the last page of your story.' : 'Optional. What you write saves by itself, only on this Chromebook. Nothing is sent anywhere.')
+        : (has ? '✓ Kept while this page is open. On the last page of your story, copy your reflections before you close the page.' : 'Optional. This browser can’t save between visits, so what you write is kept only while this page is open.');
+    }
+    paper.replaceChildren(...(has ? [el('p', { class: 'rf-a', text: ta.value })] : [0, 1, 2, 3].map(() => el('div', { class: 'rf-line' }))));
+  };
+  const grow = () => { if (!ta.isConnected) return; ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 2, 480) + 'px'; };
+  ta.addEventListener('input', () => { reflectSet(hk, sid, ta.value); update(); grow(); });
+  update();
+  requestAnimationFrame(grow);
+  return el('section', { class: 'reflect' }, [
+    el('h2', { text: '📝 Your reflection' }),
+    el('p', { class: 'rf-head', text: `Heading ${q[0]} of 12: ${REFLECT_HEADS[q[0] - 1]}` }),
+    el('label', { class: 'readable rf-q', for: tid, text: q[1] }),
+    ta, status, paper,
+  ]);
+}
+async function reflectCopy(html, text, status, manual) {
+  const ok = () => { manual.hidden = true; status.textContent = '✓ Copied! Now open a new Google Doc and press Ctrl + V to paste.'; toast('📋 Your reflections are copied.'); };
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
+      ok(); return;
+    }
+  } catch (e) { /* blocked, for example inside a Google Sites embed: try the older way */ }
+  try {
+    const holder = el('div', { contenteditable: 'true', 'aria-hidden': 'true', style: 'position:fixed;left:-10000px;top:0;width:600px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11pt' });
+    holder.innerHTML = html;
+    document.body.appendChild(holder);
+    const sel = window.getSelection(), range = document.createRange();
+    range.selectNodeContents(holder); sel.removeAllRanges(); sel.addRange(range);
+    const done = document.execCommand('copy');
+    sel.removeAllRanges(); holder.remove();
+    if (done) { ok(); return; }
+  } catch (e) { /* show the text instead */ }
+  manual.value = text; manual.hidden = false; manual.focus(); manual.select();
+  status.textContent = 'This browser would not let the game copy. Your reflections are in the box below, already selected: press Ctrl + C to copy them, then paste them into your Google Doc with Ctrl + V.';
+}
+function reflectSummary(id) {
+  const box = el('section', { class: 'reflectsum' });
+  const fill = (msg) => box.replaceChildren(...reflectSummaryNodes(id, fill, msg));
+  fill();
+  return box;
+}
+function reflectSummaryNodes(id, refill, msg) {
+  const hk = heroKeyOf(id), hero = HEROES[hk], list = reflectEntries(hk);
+  const others = Object.keys(HEROES).filter((k) => k !== hk && reflectEntries(k).length).map((k) => `${HEROES[k].name}’s`);
+  const othersNote = others.length ? [el('p', { class: 'hint', text: `You also wrote reflections in ${others.length === 1 ? others[0] + ' story' : others.slice(0, -1).join(', ') + ' and ' + others[others.length - 1] + ' stories'}. You will find them on the ending pages of ${others.length === 1 ? 'that story' : 'those stories'}.` })] : [];
+  const head = el('h2', { class: 'readable', text: `📝 My reflections: ${hero.name}’s story` });
+  const note = msg ? [el('p', { class: 'rf-msg', role: 'status', text: msg })] : [];
+  if (!list.length) return [head, ...note, el('p', { class: 'readable', text: `You haven’t written any reflections in ${hero.name}’s story yet. Next time, look for the 📝 box under the choices on each page. Everything you write there will be gathered here, ready to copy into a Google Doc.` }), ...othersNote];
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const title = document.title || 'My story';
+  const ending = (STORY[id] && STORY[id].end) || '';
+  const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const doc = el('div', { class: 'rf-doc' });
+  const html = ['<h1>My reflections</h1>', `<p><b>${esc(title)}</b>: ${esc(hero.name)}’s story</p>`, '<p>Name: </p>', `<p>Ending: ${esc(ending)}. Copied on ${esc(date)}.</p>`];
+  const txt = ['My reflections', `${title}: ${hero.name}’s story`, 'Name: ', `Ending: ${ending}. Copied on ${date}.`, ''];
+  REFLECT_HEADS.forEach((h, i) => {
+    const mine = list.filter((x) => x.h === i + 1);
+    doc.appendChild(el('h3', { class: 'rf-h', text: `${i + 1}. ${h}` }));
+    html.push(`<h2>${i + 1}. ${esc(h)}</h2>`); txt.push(`${i + 1}. ${h}`);
+    if (!mine.length) { doc.appendChild(el('p', { class: 'rf-none', text: 'No answer yet.' })); html.push('<p><i>No answer yet.</i></p>'); txt.push('No answer yet.', ''); }
+    mine.forEach((x) => {
+      doc.appendChild(el('div', { class: 'rf-item' }, [el('p', { class: 'rf-askd', text: x.q }), el('p', { class: 'rf-a', text: x.t })]));
+      html.push(`<p><i>${esc(x.q)}</i></p>`, `<p>${esc(x.t).replace(/\r?\n/g, '<br>')}</p>`);
+      txt.push(`Question: ${x.q}`, `My answer: ${x.t}`, '');
+    });
+  });
+  const status = el('p', { class: 'rf-msg', role: 'status', 'aria-live': 'polite' });
+  const manual = el('textarea', { class: 'rf-manual noprint', readonly: '', rows: '8', 'aria-label': 'Your reflections, ready to copy', hidden: '' });
+  const copyBtn = el('button', { class: 'rf-copy', type: 'button', text: '📋 Copy my reflections', onclick: () => reflectCopy(html.join(''), txt.join('\n'), status, manual) });
+  const label = `🗑️ Clear ${hero.name}’s reflections`;
+  let armed = null;
+  const clearBtn = el('button', { class: 'secondary rf-clear', type: 'button', text: label });
+  clearBtn.onclick = () => {
+    if (!armed) { clearBtn.textContent = `Press again to clear all of ${hero.name}’s reflections`; armed = setTimeout(() => { armed = null; clearBtn.textContent = label; }, 6000); return; }
+    clearTimeout(armed); armed = null;
+    delete REFLECT[hk]; save(KEY_REFLECT, REFLECT);
+    refill(`${hero.name}’s reflections are cleared.`);
+  };
+  const n = list.length;
+  return [
+    head, ...note,
+    el('p', { class: 'kind', text: `Everything you wrote in the 📝 boxes in ${hero.name}’s story, sorted under 12 headings: ${n} answer${n === 1 ? '' : 's'} so far.` }),
+    doc,
+    el('h3', { class: 'rf-how noprint', text: '📄 Put your reflections in a Google Doc' }),
+    el('ol', { class: 'readable rf-steps noprint' }, [
+      'Press 📋 Copy my reflections, just below.',
+      'Open a new Google Doc. In Google Drive, choose New, then Google Docs, then Blank document.',
+      'Click inside the new document and press Ctrl + V to paste.',
+      'Type your name after “Name:” at the top, and give your document a title.',
+      'Hand it in the way your teacher asks.',
+    ].map((t) => el('li', { text: t }))),
+    el('div', { class: 'row tight noprint' }, [copyBtn]),
+    status, manual,
+    ...othersNote,
+    el('div', { class: 'rf-share noprint' }, [
+      el('p', { class: 'hint', text: REFLECT_SAVES ? 'Your reflections stay on this Chromebook until you clear them. If you share this Chromebook, clear them after you copy them.' : 'This browser is not saving between visits, so copy your reflections before you close this page.' }),
+      el('div', { class: 'row tight' }, [clearBtn]),
+    ]),
+  ];
+}
 function render(id) {
   undoBtn.hidden = trail.length === 0;
   const s = STORY[id];
@@ -4638,6 +4813,7 @@ function render(id) {
     s.c.forEach(([label, target]) => list.appendChild(el('button', { class: 'choice', type: 'button', text: label, onclick: () => { tagChoice(id, target); recordChoice(id, target, label); go(String(target)); } })));
     const db = doorButtons(id); if (db) list.appendChild(db);
     nodes.push(list);
+    const rfb = reflectBox(id); if (rfb) nodes.push(rfb);
   } else if (s.next) {
     nodes.push(el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: 'Keep reading', onclick: () => go(String(s.next)) })]));
   } else if (s.end) {
@@ -4668,7 +4844,7 @@ function render(id) {
       ...Object.values(HEROES).filter((h) => h !== heroOf(id)).map((h) => el('button', { class: 'secondary', type: 'button', text: `Play as ${h.name}`, onclick: () => go(h.start, false) })),
       el('button', { class: 'secondary', type: 'button', text: 'Back to the title page', onclick: cover }),
     ]));
-    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs); const qz = quizBox(id); if (qz) nodes.splice(nodes.length - 1, 0, qz);
+    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs); const qz = quizBox(id); if (qz) nodes.splice(nodes.length - 1, 0, qz); const rfs = reflectSummary(id); if (rfs) nodes.splice(nodes.length - 1, 0, rfs);
     undoBtn.hidden = true;
   }
   // From any scene: back to the story's title page, where you choose who to play.
