@@ -1031,9 +1031,9 @@
 
 <script>
 // ================= MORE HOVER BOXES =================
-// Every person in the pictures has up to three boxes: the hat, the clothes and the boots. Every picture also has a box
-// for the place itself (hover the sky, the ground or the water). Sources: the Sources page, "Clothing and gear in the
-// pictures"; facts that were already in the game are reused word for word.
+// Every person in the pictures has up to three boxes: the hat, the clothes and the boots. Mark's rule (27 Nov 2026): boxes
+// only for things (items, clothing, equipment, structures) and people's roles, never for a place on its own. Sources: the
+// Sources page, "Clothing, gear and ships in the pictures"; facts that were already in the game are reused word for word.
 const W1TIP = {
   helmet: 'Steel helmet|In February 1916 there were only enough steel helmets for one Canadian soldier in five, so men coming out of the front line handed theirs to the men going in.',
   peaked: 'Service cap|Made of khaki wool serge, with a badge that showed the soldier’s regiment or battalion. Some soldiers pulled out the wire that kept the peak stiff, which was against the rules.',
@@ -1046,11 +1046,9 @@ const W1TIP = {
   jack: 'Marching boots|German soldiers wore tall leather boots with metal hobnails hammered into the soles.',
   veil: 'Veil|Soldiers nicknamed Canadian nursing sisters “bluebirds” because of their blue dresses and white veils.',
   nsrank: 'Lieutenant|Canadian nursing sisters were officers, with the rank of lieutenant. In all, 2,845 nursing sisters served with the Canadian Army Medical Corps in the First World War.',
-  sea: 'North Atlantic|Troopships crossed the Atlantic with their lights out at night, because German submarines were hunting ships. The crossing took about a week.',
   warship: 'Warship|Troopships were often guarded by warships.',
   wake: 'Zigzag wake|Troopships zigzagged across the Atlantic. Very few troopships carrying Canadian soldiers were ever sunk.',
   greenband: 'Green band|Under the rules of war agreed in 1907, hospital ships run by a country’s armed forces were painted white with a broad green band. Hospital ships paid for by charities had a red band.',
-  vimy: 'Vimy Ridge|Hill 145 was the highest and most heavily defended part of Vimy Ridge.',
   hommes: 'French words|HOMMES 40 · CHEVAUX 8: hommes means “men” and chevaux means “horses.”',
   rifle: 'Rifle|Every infantry soldier carried one, and cleaned it every day.',
   matron: 'Matron|The nurse in charge of all the other nurses in a hospital.',
@@ -1064,6 +1062,11 @@ const W1TIP = {
   school: 'Schoolchildren|Schoolchildren all over Canada knitted socks and scarves for soldiers. Dry wool socks helped to prevent trench foot.',
   patient: 'Wounded soldier|Every wounded soldier carried a label, filled in by the first doctor who treated him, so that the next doctor or nurse would know what had been done.',
   apples: 'From the 1860s until the Second World War, apples from the Annapolis Valley were shipped across the Atlantic to Britain, packed in wooden barrels.',
+  vimywall: 'Vimy Memorial|The Canadian National Vimy Memorial was designed by the Canadian sculptor Walter Allward and took eleven years to build.',
+  wreath: 'Poppy wreath|Poppies grow where the ground has been dug up. After the war, they became the flower of remembrance.',
+  caribou255: 'Bronze caribou|In 1925, a memorial park was opened at Beaumont-Hamel, with a bronze caribou looking out over the battlefield.',
+  caribouvac: 'Bronze caribou|The caribou was the emblem of the Royal Newfoundland Regiment, and it was on the soldiers’ cap badges. Five memorials in the form of a caribou were built.',
+  warart: 'War artist’s sketchbook|In 1916, Lord Beaverbrook set up the Canadian War Memorials Fund to hire official war artists. Close to 120 artists made nearly 1,000 works of art about Canada’s war.',
 };
 // the picture being drawn (set just before each story picture is made); the pictures where the nurse is not yet, or no
 // longer, an army nursing sister (a Halifax hospital in 1915, and public health nursing in the 1920s); and the pictures
@@ -1149,35 +1152,6 @@ function w1Split(inner, L) {
     return out;
   } catch (e) { return inner; }
 }
-// the place itself: a box for the sky, the ground or the water, with a fact that suits it (never the scene's own fact)
-const W1BG = {
-  trench: ['220', '217', '26', '27'], nml: ['242', '222', '40', '322'], field: ['256', '32'], railway: ['60', '227'], tunnel: ['252', '22', '37'],
-  ridgetop: ['45', '34'], tank: ['232', '234'], memorial: ['59', '58', '255'], town16: ['202', '208', '3'], ruins: ['50', '234', '232'],
-  home: ['420', '403', '412', '422', '407'], nurse: ['321', '336', '56', '306'], ward: ['321', '56', '336'], harbour: ['15', '413'],
-};
-function w1First2(t) { const p = String(t || '').trim().split(/(?<=[.!?”])\s+(?=[A-Z“])/); return p.slice(0, 2).join(' '); }
-function w1BgTip(n) {
-  try {
-    const k = String(n), sp = ART.SPEC[k], set = sp ? sp[0] : '', st = STORY[k] || {}, place = st.place || '', opt = (sp && sp[2]) || {};
-    if (!place) return '';
-    let ids = W1BG[set] || ['15', '208'];
-    if (set === 'camp') ids = /Aldershot/.test(place) ? ['9', '410'] : /England|Sandling|Witley/.test(place) ? ['17', '216', '15'] : ['256', '32'];
-    if (set === 'valley') ids = /orchard|Annapolis/i.test(place) ? ['apples'] : /Aldershot/.test(place) ? ['9', '410'] : ['217', '256'];
-    if (set === 'room16') ids = opt.kind === 'kitchen' ? ['420', '7', '225'] : opt.kind === 'hall' ? ['3', '208'] : ['15', '227', '4'];
-    const own = [st.fact, st.hnote, st.note].filter(Boolean).join(' ');
-    const start = Number(k) % ids.length;
-    for (let j = 0; j < ids.length; j++) {
-      const id = ids[(start + j) % ids.length];
-      if (id === k) continue;
-      const src = W1TIP[id] ? null : STORY[id];
-      const t = W1TIP[id] || (src ? w1First2(src.fact || src.hnote || src.note) : '');
-      if (!t || own.includes(t.slice(0, 50))) continue;
-      return (place + '|' + t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-  } catch (e) { /* no box for this place */ }
-  return '';
-}
-function w1Bg(svg, n) { const t = w1BgTip(n); return t && svg && svg.indexOf('<svg ') >= 0 ? svg.replace('<svg ', `<svg data-bgtip="${t}" `) : svg; }
 const ART = (() => {
   // The Milling Table: a hand-cut print look. Flat bands of colour, carved lines, a paper border.
   const INK = '#1E2430', MID = '#3F4A5A', FAR = '#7D8A99', SAIL = '#EFE7D3', SAILN = '#7A848C';
@@ -2845,11 +2819,11 @@ const ART = (() => {
   });
   Object.assign(SET, {
     harbour: (alt, o) => { const k = o.k, night = !!o.night, dusk = !!o.dusk; lit(o, night ? 'night' : dusk ? 'dusk' : 'grey');
-      if (k === 14) return frame(SKY.w1grey, `<g data-tip="${W1TIP.sea}">` + seaW(120, '#7E949C', '#55707C') + '</g>' + `<path d="M0,120 Q90,104 180,112 Q250,106 330,120 L330,126 L0,126 Z" fill="#6E7E72"/><path d="M40,116 q60,-8 110,-2" stroke="#8E9A88" stroke-width="2" fill="none"/><rect x="258" y="88" width="7" height="26" fill="#F4F1EA"/><rect x="258" y="96" width="7" height="5" fill="#B5342A"/><path d="M256,88 l4.5,-7 l4.5,7 Z" fill="#3A3A3A"/>` + rglow(261, 84, 16, 12, '#FFF2C4', 0.6) +
+      if (k === 14) return frame(SKY.w1grey, seaW(120, '#7E949C', '#55707C') + `<path d="M0,120 Q90,104 180,112 Q250,106 330,120 L330,126 L0,126 Z" fill="#6E7E72"/><path d="M40,116 q60,-8 110,-2" stroke="#8E9A88" stroke-width="2" fill="none"/><rect x="258" y="88" width="7" height="26" fill="#F4F1EA"/><rect x="258" y="96" width="7" height="5" fill="#B5342A"/><path d="M256,88 l4.5,-7 l4.5,7 Z" fill="#3A3A3A"/>` + rglow(261, 84, 16, 12, '#FFF2C4', 0.6) +
         `<path d="M300,250 Q340,170 420,128 L470,128 Q380,176 380,250 Z" fill="#FFFFFF" opacity="0.2"/>` + [[120, 60], [170, 44], [420, 52], [470, 74], [520, 40]].map(([x, y], i) => `<g class="anim-fly" style="animation-delay:-${i * 5}s">${gullW(x - 300, y, 0.9 + (i % 2) * 0.3)}</g>`).join('') + [[96, 70, 1.2], [330, 56, 1], [500, 86, 1.3]].map(([x, y, s]) => gullW(x, y, s)).join('') + stage(o) + vignette(0.22), alt);
-      if (k === 16) return frame(SKY.w1grey, `<g data-tip="${W1TIP.sea}">` + seaW(128, '#6E848E', '#40586A') + '</g>' + `<g data-tip="${W1TIP.wake}"><path d="M150,250 Q230,214 190,196 Q150,180 250,168 Q330,160 318,150" stroke="#FFFFFF" stroke-width="7" fill="none" opacity="0.28"/><path d="M150,250 Q230,214 190,196 Q150,180 250,168 Q330,160 318,150" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.5"/></g>` +
+      if (k === 16) return frame(SKY.w1grey, seaW(128, '#6E848E', '#40586A') + `<g data-tip="${W1TIP.wake}"><path d="M150,250 Q230,214 190,196 Q150,180 250,168 Q330,160 318,150" stroke="#FFFFFF" stroke-width="7" fill="none" opacity="0.28"/><path d="M150,250 Q230,214 190,196 Q150,180 250,168 Q330,160 318,150" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.5"/></g>` +
         `<g data-tip="${W1TIP.warship}"><path d="M488,126 l44,0 l-3,5 l-38,0 Z" fill="#4A5258"/><rect x="500" y="118" width="12" height="8" fill="#4A5258"/><path d="M504,118 v-8 M512,118 v-6" stroke="#4A5258" stroke-width="2"/></g>` + wOlympic(330, 150, 0.52) + [[100, 60, 1], [140, 76, 0.8], [520, 50, 1]].map(([x, y, s]) => gullW(x, y, s)).join('') + vignette(0.22), alt);
-      if (k === 213) return frame(SKY.night, starsW(40, 3) + `<circle cx="470" cy="46" r="16" fill="#EDE8D4"/><circle cx="476" cy="42" r="15" fill="#18243A"/>` + `<g data-tip="${W1TIP.sea}">` + seaW(140, '#1E2E44', '#14202E') + '</g>' + `<path d="M440,146 q30,-3 60,0 M420,158 q40,-3 80,0" stroke="#EDE8D4" stroke-width="1.4" opacity="0.4" fill="none"/>` +
+      if (k === 213) return frame(SKY.night, starsW(40, 3) + `<circle cx="470" cy="46" r="16" fill="#EDE8D4"/><circle cx="476" cy="42" r="15" fill="#18243A"/>` + seaW(140, '#1E2E44', '#14202E') + `<path d="M440,146 q30,-3 60,0 M420,158 q40,-3 80,0" stroke="#EDE8D4" stroke-width="1.4" opacity="0.4" fill="none"/>` +
         `<rect y="186" width="600" height="64" fill="#4E4234"/>` + T(12, (i) => `<path d="M0,${192 + i * 5} H600" stroke="#3E3428" stroke-width="0.8"/>`) + `<path d="M0,150 H600 M0,164 H600" stroke="#8E979C" stroke-width="2.6"/>` + T(11, (i) => `<path d="M${i * 60 + 10},150 V186" stroke="#8E979C" stroke-width="2.6"/>`) +
         `<path d="M500,186 Q500,96 540,84" stroke="#6E7478" stroke-width="5" fill="none"/><path d="M468,128 Q520,112 572,128 L562,146 L478,146 Z" fill="#C9C4B4"/>` + rglow(60, 130, 60, 60, GLOW, 0.5) + `<rect x="54" y="120" width="12" height="16" rx="2" fill="#F6C56A"/>` + stage(o) + tint('#0E1A2E', 0.1) + vignette(0.38), alt);
       const t = dusk ? 0.12 : 0, sax = k === 212;
@@ -2857,7 +2831,7 @@ const ART = (() => {
         seaW(146, '#74888E', '#55707C', t) + (sax ? wSaxonia(300, 190, 1.05, { t }) : wOlympic(318, 192, 1.12, { t })) + `<rect y="198" width="600" height="52" fill="${dk('#8A7A62', t)}"/><rect y="194" width="600" height="6" fill="${dk('#5E5040', t)}"/>` + T(12, (i) => `<rect x="${i * 54 + 6}" y="198" width="6" height="52" fill="${dk('#6E5E48', t)}" opacity="0.5"/>`) +
         (sax ? '' : flagRE(34, 232, 0.8) + bunting(150)) + stage(o) + vignette(0.22), alt); },
     railway: (alt, o) => { lit(o, 'grey');
-      if (o.boxcars) return frame(SKY.winter, `<g data-tip="${W1TIP.vimy}"><path d="M0,128 Q100,118 220,104 Q340,96 470,104 Q560,110 600,120 L600,150 L0,150 Z" fill="#C2CCD2"/><path d="M60,124 Q220,104 330,102 Q460,104 560,118" stroke="#E8EEF0" stroke-width="4" fill="none"/></g>` + snowGround(140) + T(6, (i) => `<path d="M${40 + i * 104},${160 + (i % 2) * 6} l-4,-20 l4,6 l4,-10 l2,24 Z" fill="#5A5248"/>`) + T(9, (i) => `<path d="M${i * 70},178 h46" stroke="#C9D2D6" stroke-width="2"/>`) +
+      if (o.boxcars) return frame(SKY.winter, `<path d="M0,128 Q100,118 220,104 Q340,96 470,104 Q560,110 600,120 L600,150 L0,150 Z" fill="#C2CCD2"/><path d="M60,124 Q220,104 330,102 Q460,104 560,118" stroke="#E8EEF0" stroke-width="4" fill="none"/>` + snowGround(140) + T(6, (i) => `<path d="M${40 + i * 104},${160 + (i % 2) * 6} l-4,-20 l4,6 l4,-10 l2,24 Z" fill="#5A5248"/>`) + T(9, (i) => `<path d="M${i * 70},178 h46" stroke="#C9D2D6" stroke-width="2"/>`) +
         railsW(226) + steamLoco(84, 228, 1.1) + [150, 260, 370, 480].map((x) => boxcar(x, 230)).join('') + `<path d="M0,238 Q300,232 600,238 L600,250 L0,250 Z" fill="#EEF1F2"/>` + vignette(0.2), alt);
       if (o.engine) return frame(SKY.w1grey, ridgeLine(112, '#9AA69E') + `<path d="M0,128 Q300,116 600,130 L600,160 L0,160 Z" fill="#8A9480"/>` + mudGround(150, '#8A7A5E', '#5E4C36') + T(5, (i) => stumpT(60 + i * 124, 156 + (i % 2) * 5, 22 + (i % 3) * 8, '#3E3228')) + mudPatches(14, 166, 244, 14, '#4E3E2C', 0.4) +
         `<path d="M0,206 Q300,200 600,206 L600,216 Q300,210 0,216 Z" fill="#6E5E48"/>` + railsW(208).replace(/H600/g, 'H600') + wSimplex(250, 212, 1.25) + wTruck(340, 212, 1.15, 0) + wTruck(410, 212, 1.15, 1) + wTruck(480, 212, 1.15, 2) + `<path d="M0,224 Q300,218 600,224 L600,250 L0,250 Z" fill="#6B5A44"/>` + stage(o) + vignette(0.22), alt);
@@ -3024,10 +2998,10 @@ const ART = (() => {
     memorial: (alt, o) => { const k = o.k;
       if (o.gate) { lit(o, 'dusk'); return frame(SKY.dusk, band(40, 120, [[0, '#F0B878', 0], [1, '#F0B878', 0.45]]) + meninGate() + stage(o) + tint('#2A1E2E', 0.14) + vignette(0.34), alt); }
       if (o.caribou) { lit(o, 'grey'); return frame(SKY.w1blue, wMountain(120, '#9FB09A', { op: 0.8 }) + grassGround(140, '#9CB070', '#6E8A4A') + T(5, (i) => `<path d="M${-20 + i * 150},${196 + (i % 2) * 10} q40,-12 80,0 t80,0" stroke="#5E7A40" stroke-width="5" fill="none" opacity="0.55"/>`) + T(6, (i) => `<path d="M${20 + i * 110},168 l6,-34 l7,34 Z" fill="#4E6A4E"/>`) +
-          `<path d="M360,214 Q368,150 410,134 Q440,116 480,132 Q520,150 530,214 Z" fill="#8E8A7E"/><path d="M380,206 q20,-30 40,-40 M450,150 q30,10 50,50" stroke="#6E6A5E" stroke-width="2" fill="none"/>` + T(7, (i) => `<ellipse cx="${372 + i * 24}" cy="${206 - (i % 3) * 16}" rx="12" ry="7" fill="${i % 2 ? '#4E6A4E' : '#5E7A52'}"/>`) + caribou(448, 132, 1.5, { c: '#4E5E4A' }) + stage(o) + vignette(0.18), alt); }
+          `<path d="M360,214 Q368,150 410,134 Q440,116 480,132 Q520,150 530,214 Z" fill="#8E8A7E"/><path d="M380,206 q20,-30 40,-40 M450,150 q30,10 50,50" stroke="#6E6A5E" stroke-width="2" fill="none"/>` + T(7, (i) => `<ellipse cx="${372 + i * 24}" cy="${206 - (i % 3) * 16}" rx="12" ry="7" fill="${i % 2 ? '#4E6A4E' : '#5E7A52'}"/>`) + tipW(k === 255 ? W1TIP.caribouvac : W1TIP.caribou255, caribou(448, 132, 1.5, { c: '#4E5E4A' })) + stage(o) + vignette(0.18), alt); }
       lit(o, 'grey');
-      if (o.wall) return frame(SKY.w1blue, band(30, 180, [[0, '#F6F4EC'], [1, '#E2DED0']]) + T(11, (r) => T(9, (i) => `<path d="M${40 + i * 62},${48 + r * 13} h${46 - ((i + r) % 3) * 8}" stroke="#B0AA9A" stroke-width="2" stroke-dasharray="${5 + (i + r) % 4} 2"/>`)) + T(4, (i) => `<path d="M${150 + i * 150},30 V210" stroke="#D2CEC0" stroke-width="2"/>`) + `<rect y="206" width="600" height="8" fill="#D2CEC0"/>` + band(212, 38, [[0, '#B8B4A6'], [1, '#8E8A7E']]) +
-        `<circle cx="420" cy="214" r="15" fill="none" stroke="#B5342A" stroke-width="7"/><circle cx="420" cy="214" r="15" fill="none" stroke="#2A2A2A" stroke-width="1" stroke-dasharray="1 7"/>` + stage(o) + vignette(0.2), alt);
+      if (o.wall) return frame(SKY.w1blue, tipW(W1TIP.vimywall, band(30, 180, [[0, '#F6F4EC'], [1, '#E2DED0']]) + T(11, (r) => T(9, (i) => `<path d="M${40 + i * 62},${48 + r * 13} h${46 - ((i + r) % 3) * 8}" stroke="#B0AA9A" stroke-width="2" stroke-dasharray="${5 + (i + r) % 4} 2"/>`)) + T(4, (i) => `<path d="M${150 + i * 150},30 V210" stroke="#D2CEC0" stroke-width="2"/>`)) + `<rect y="206" width="600" height="8" fill="#D2CEC0"/>` + band(212, 38, [[0, '#B8B4A6'], [1, '#8E8A7E']]) +
+        tipW(W1TIP.wreath, `<circle cx="420" cy="214" r="15" fill="none" stroke="#B5342A" stroke-width="7"/><circle cx="420" cy="214" r="15" fill="none" stroke="#2A2A2A" stroke-width="1" stroke-dasharray="1 7"/>`) + stage(o) + vignette(0.2), alt);
       return frame(SKY.w1blue, wMountain(150, '#A9BE9A', { op: 0.9 }) + grassGround(170, '#93B068', '#6A8A44') + T(5, (i) => `<ellipse cx="${60 + i * 130}" cy="${216 + (i % 2) * 14}" rx="38" ry="6" fill="#5E7A40" opacity="0.5"/>`) + vimyMemorial(300, 200, 0.94) + flagRE(60, 200, 1) + `<path d="M540,200 v-60" stroke="#5A4636" stroke-width="2"/><g class="anim-flag"><rect x="540" y="140" width="11" height="20" fill="#2B3F73"/><rect x="551" y="140" width="11" height="20" fill="#F4F1EA"/><rect x="562" y="140" width="11" height="20" fill="#B5342A"/></g>` + stage(o) + vignette(0.16), alt); },
   });
   Object.assign(S, {
@@ -3075,7 +3049,7 @@ const ART = (() => {
     if (v === 'train') return `<rect y="150" width="600" height="100" fill="#2A2622"/>` + T(22, (i) => `<circle cx="${(i * 97) % 600}" cy="${10 + (i * 31) % 90}" r="${0.8 + (i % 3) * 0.4}" fill="#F4F1EA" opacity="0.8"/>`) + railsW(176, 0.5) + steamLoco(84, 184, 1.0) + T(3, (i) => `<rect x="${150 + i * 152}" y="128" width="144" height="52" rx="4" fill="#3E4A3A"/><rect x="${150 + i * 152}" y="128" width="144" height="8" fill="#2E3A2E"/>` + T(5, (j) => `<rect x="${160 + i * 152 + j * 22}" y="142" width="14" height="14" fill="#F6D58A"/>`) + `<circle cx="${270 + i * 152}" cy="158" r="12" fill="#F4F1EA"/><path d="M${270 + i * 152},150 v16 M${262 + i * 152},158 h16" stroke="#C8372D" stroke-width="4.4"/>`) + `<rect y="192" width="600" height="58" fill="#4A4238"/>` + T(9, (i) => `<path d="M${i * 70},192 l-30,58" stroke="#3A3228" stroke-width="1.2"/>`);
     if (v === 'huts') return `<path d="M0,128 Q150,116 300,124 T600,118 V160 H0 Z" fill="${o.snow ? '#C9D2D6' : '#A9B49A'}"/>` + T(7, (i) => `<path d="M${30 + i * 90},128 l3,-${40 + (i % 3) * 14} l5,${40 + (i % 3) * 14} Z" fill="${o.night ? '#1E2A22' : '#4E6A4E'}"/>`) + band(150, 100, o.snow ? [[0, '#E8ECEC'], [1, '#CDD6DA']] : [[0, '#A8A07C'], [1, '#7E7458']]) + hutLong(40, 190, 190, { snow: o.snow, lit: o.lit }) + hutLong(270, 182, 170, { snow: o.snow, lit: o.lit, c: '#9A8C70' }) + T(3, (i) => `<path d="M${470 + i * 44},192 l20,-34 l20,34 Z" fill="#D8D0BC"/><path d="M${486 + i * 44},192 l4,-16 l4,16 Z" fill="#5A4A30"/>`) + T(14, (i) => `<rect x="${i * 44 - 6}" y="${214 + (i % 2) * 2}" width="38" height="6" fill="#8A6A44"/>`) + rcFlagN(248, 190, 1);
     if (v === 'ccs') return `<path d="M0,132 Q150,126 300,131 T600,128 V160 H0 Z" fill="#6E6A5E"/>` + T(6, (i) => `<path d="M${50 + i * 104},132 l2,-${26 + (i % 3) * 10} l3,6 l2,${22 + (i % 3) * 10} Z" fill="#3A3228"/>`) + (o.dark ? '' : rglow(470, 128, 150, 30, '#F2A24C', 0.4)) + band(150, 100, [[0, '#6E5E4A'], [1, '#4A3E30']]) + T(9, (i) => `<ellipse cx="${(i * 131 + 40) % 600}" cy="${200 + (i % 3) * 14}" rx="${26 + (i % 4) * 8}" ry="5" fill="#5E7078" opacity="0.6"/>`) + marquee(30, 196, 170, { dark: o.dark }) + marquee(220, 188, 160, { dark: o.dark, c: '#BDB290' }) + marquee(400, 198, 180, { dark: o.dark }) + T(14, (i) => `<rect x="${i * 44 - 6}" y="${222 + (i % 2) * 2}" width="38" height="6" fill="#8A6A44"/>`) + rcFlagN(206, 196, 0.9) + (o.dark ? `<path d="M120,150 L60,0 L110,0 Z M430,150 L500,0 L560,0 Z" fill="#DCE6F0" opacity="0.16"/><path d="M300,40 l-12,3 l12,-8 l12,8 Z M294,38 h12" fill="#1E2430" stroke="#1E2430" stroke-width="2"/>` : '');
-    if (v === 'ship') return (o.harbour ? '' : `<g data-tip="${W1TIP.sea}">`) + seaW(124, o.night ? '#2E3E52' : '#6E8A96', o.night ? '#1E2A3A' : '#4A6470') + (o.harbour ? '' : '</g>') + (o.harbour ? `<path d="M0,124 Q120,96 260,112 Q420,92 600,116 V128 H0 Z" fill="#8E9A8A"/>` + T(9, (i) => `<path d="M${20 + i * 34},116 l3,-${8 + (i % 3) * 5} l2,${8 + (i % 3) * 5} Z" fill="#2A241C"/>`) : gullW(110, 60, 1) + gullW(470, 48, 0.8)) + whiteShip(310, 150, o.harbour ? 0.86 : 1.1, { night: o.night }) + (o.night ? T(24, (i) => `<circle cx="${(i * 97) % 600}" cy="${6 + (i * 31) % 70}" r="${0.8 + (i % 3) * 0.4}" fill="#F4F1EA" opacity="0.85"/>`) + rglow(310, 150, 240, 60, '#F6E7A0', 0.25) : '') + (o.harbour ? `<rect y="200" width="600" height="50" fill="#8A7456"/>` + T(6, (i) => `<path d="M0,${208 + i * 8} H600" stroke="#6E5C42" stroke-width="1.2"/>`) + T(8, (i) => `<rect x="${i * 80 + 20}" y="192" width="9" height="14" fill="#5A4636"/>`) : '');
+    if (v === 'ship') return seaW(124, o.night ? '#2E3E52' : '#6E8A96', o.night ? '#1E2A3A' : '#4A6470') + (o.harbour ? `<path d="M0,124 Q120,96 260,112 Q420,92 600,116 V128 H0 Z" fill="#8E9A8A"/>` + T(9, (i) => `<path d="M${20 + i * 34},116 l3,-${8 + (i % 3) * 5} l2,${8 + (i % 3) * 5} Z" fill="#2A241C"/>`) : gullW(110, 60, 1) + gullW(470, 48, 0.8)) + whiteShip(310, 150, o.harbour ? 0.86 : 1.1, { night: o.night }) + (o.night ? T(24, (i) => `<circle cx="${(i * 97) % 600}" cy="${6 + (i * 31) % 70}" r="${0.8 + (i % 3) * 0.4}" fill="#F4F1EA" opacity="0.85"/>`) + rglow(310, 150, 240, 60, '#F6E7A0', 0.25) : '') + (o.harbour ? `<rect y="200" width="600" height="50" fill="#8A7456"/>` + T(6, (i) => `<path d="M0,${208 + i * 8} H600" stroke="#6E5C42" stroke-width="1.2"/>`) + T(8, (i) => `<rect x="${i * 80 + 20}" y="192" width="9" height="14" fill="#5A4636"/>`) : '');
     if (v === 'hut') return gfill('M0,0 H600 V198 H0 Z', [[0, '#B8946A'], [1, '#9A7A54']]) + T(24, (i) => `<path d="M${i * 26 + 6},0 V198" stroke="#8A6A48" stroke-width="1.4"/>`) + band(196, 54, [[0, '#7A5E40'], [1, '#5A4630']]) + windowW(440, 34, 80, 70, { hills: false }) + `<rect x="60" y="120" width="44" height="76" rx="4" fill="#2E2A28"/><rect x="74" y="0" width="12" height="122" fill="#3A3636"/><rect x="68" y="150" width="28" height="18" fill="#F2A24C"/>` + rglow(82, 160, 80, 60, '#F2A24C', 0.5) + `<rect x="230" y="160" width="190" height="10" fill="#6B4A30"/><rect x="240" y="170" width="9" height="40" fill="#5A4030"/><rect x="402" y="170" width="9" height="40" fill="#5A4030"/>` + lampN(325, 54);
     if (v === 'road') return seaW(118, '#7E949C', '#55707C') + `<path d="M0,132 Q200,112 600,134 V250 H0 Z" fill="${o.snow ? '#E8ECEC' : '#93A870'}"/>` + T(9, (i) => `<path d="M${20 + i * 70},${134 - (i % 3) * 4} l6,-${30 + (i % 2) * 10} l7,${30 + (i % 2) * 10} Z" fill="#3E5A40"/>`) + `<path d="M-20,250 Q260,180 640,196 L640,216 Q300,206 100,250 Z" fill="${o.snow ? '#D6DEE0' : '#B8A88A'}"/><path d="M360,140 Q468,78 580,140 Z" fill="${o.snow ? '#E8ECEC' : '#93A870'}"/><rect x="420" y="128" width="96" height="52" fill="#C9C2AE"/><path d="M412,130 L468,96 L524,130 Z" fill="${o.snow ? '#F4F6F6' : '#5A4A44'}"/><rect x="434" y="142" width="14" height="16" fill="#F6D58A"/><rect x="488" y="142" width="14" height="16" fill="#3A4A5A"/><rect x="460" y="150" width="14" height="30" fill="#6B4A2E"/><rect x="492" y="88" width="8" height="18" fill="#6E5A4E"/>`;
     return wardW({});   // 'ward'
@@ -3302,7 +3276,7 @@ const ART = (() => {
   // ---------- secret locations for the two new stories ----------
   Object.assign(S, {
     sN1: () => frame(SKY.room, roomW('#D9D2C0', '#C8C0AC', '#A89C84', '#7A705C', { dado: 150, dadoC: '#B9A98C' }) + `<rect x="150" y="24" width="330" height="116" fill="#3A2A1C" stroke="#8A6A3A" stroke-width="5"/><path d="M150,46 h330" stroke="#8A6A3A" stroke-width="2"/>` + T(6, (c) => `<rect x="${166 + c * 52}" y="31" width="30" height="8" fill="#C9A44A"/>` + T(8, (r) => `<path d="M${164 + c * 52},${56 + r * 10} h${26 + ((c + r) % 3) * 7}" stroke="#C9A44A" stroke-width="2"/>`)) + `<rect x="60" y="150" width="50" height="46" fill="#6B4A30"/>` + nsF(300, 240, 104) + vignette(0.2), 'A nurse standing in a hospital hall, reading a long board of names painted in gold'),
-    sN2: () => frame(SKY.room, nsBack('tent') + bedW(30, 222, { blanket: '#7C8778', hair: '#C9A45C' }) + bedW(450, 222, { blanket: '#7C8778' }) + `<rect x="196" y="200" width="210" height="38" fill="#6B4A30"/><path d="M206,206 L296,196 L300,62 L212,72 Z" fill="#F7F3E6" stroke="#8A7A5A" stroke-width="2"/><path d="M300,62 L392,72 L398,206 L296,196 Z" fill="#FBF8EE" stroke="#8A7A5A" stroke-width="2"/><path d="M222,92 h60 M222,100 h54 M222,108 h58" stroke="#B8B0A0" stroke-width="1.6"/>` + T(3, (i) => `<path d="M${312 + i * 26},${150 - i * 2} h20 v-10 h-20 Z M${312 + i * 26},${140 - i * 2} q4,-8 8,0" stroke="#3A3A3A" stroke-width="1.6" fill="none"/>`) + `<path d="M306,96 L346,78 L388,98 M346,78 V160" stroke="#3A3A3A" stroke-width="1.4" fill="none"/><path d="M360,186 l34,-22" stroke="#C9A44A" stroke-width="5" stroke-linecap="round"/><path d="M360,186 l5,-3" stroke="#2A2A2A" stroke-width="5" stroke-linecap="round"/>` + vignette(0.2), 'An open sketchbook on a box in a tent ward, with a pencil drawing of beds under a canvas roof'),
+    sN2: () => frame(SKY.room, nsBack('tent') + bedW(30, 222, { blanket: '#7C8778', hair: '#C9A45C' }) + bedW(450, 222, { blanket: '#7C8778' }) + tipW(W1TIP.warart, `<rect x="196" y="200" width="210" height="38" fill="#6B4A30"/><path d="M206,206 L296,196 L300,62 L212,72 Z" fill="#F7F3E6" stroke="#8A7A5A" stroke-width="2"/><path d="M300,62 L392,72 L398,206 L296,196 Z" fill="#FBF8EE" stroke="#8A7A5A" stroke-width="2"/><path d="M222,92 h60 M222,100 h54 M222,108 h58" stroke="#B8B0A0" stroke-width="1.6"/>` + T(3, (i) => `<path d="M${312 + i * 26},${150 - i * 2} h20 v-10 h-20 Z M${312 + i * 26},${140 - i * 2} q4,-8 8,0" stroke="#3A3A3A" stroke-width="1.6" fill="none"/>`) + `<path d="M306,96 L346,78 L388,98 M346,78 V160" stroke="#3A3A3A" stroke-width="1.4" fill="none"/><path d="M360,186 l34,-22" stroke="#C9A44A" stroke-width="5" stroke-linecap="round"/><path d="M360,186 l5,-3" stroke="#2A2A2A" stroke-width="5" stroke-linecap="round"/>`) + vignette(0.2), 'An open sketchbook on a box in a tent ward, with a pencil drawing of beds under a canvas roof'),
     sH1: () => frame(SKY.morning, gfill('M0,0 H600 V198 H0 Z', [[0, '#8E6A54'], [1, '#7A5A46']]) + `<rect x="130" y="18" width="340" height="26" fill="#2E3A44"/><text x="300" y="37" font-family="Georgia, serif" font-size="16" fill="#EDE6D6" text-anchor="middle" letter-spacing="3">POST OFFICE</text><rect x="170" y="56" width="260" height="130" fill="#DCE6EA" stroke="#3A2A1C" stroke-width="5"/><rect x="236" y="64" width="128" height="114" fill="#F2E6C8" stroke="#8A2E22" stroke-width="3"/><circle cx="286" cy="96" r="9" fill="#C9A66B"/><path d="M274,108 h24 l4,44 h-32 Z" fill="#7A7A4A"/><rect x="276" y="84" width="20" height="6" fill="#5A5A3A"/><circle cx="302" cy="112" r="5" fill="#E0B48C"/><circle cx="326" cy="100" r="8" fill="#E0B48C"/><path d="M316,110 h20 l6,42 h-32 Z" fill="#3E6A8A"/><path d="M246,160 h108 M252,168 h96" stroke="#8A2E22" stroke-width="3"/>` + band(196, 54, [[0, '#A8A08C'], [1, '#7E7868']]) + hw(470, 244, 100, { out: 1, flip: true }) + vignette(0.2), 'A woman looking at a poster in a post office window: a soldier holding a baby, with his wife beside him'),
     sH2: () => frame(SKY.room, roomW('#B79E78', '#A08A66', '#7A5E40', '#5A4630', { dado: 150, dadoC: '#8A6A48' }) + `<rect x="60" y="30" width="90" height="80" fill="#1E2A3A" stroke="#5A4030" stroke-width="5"/>` + T(14, (i) => `<circle cx="${66 + (i * 37) % 80}" cy="${36 + (i * 23) % 70}" r="1.6" fill="#FFFFFF"/>`) + `<circle cx="470" cy="56" r="22" fill="#F4F1EA" stroke="#3A2A1C" stroke-width="4"/><path d="M470,56 V42 M470,56 l9,6" stroke="#2A2A2A" stroke-width="2.4"/>` + tableH(210, 214, 220) + `<rect x="250" y="168" width="44" height="8" fill="#5A4030"/><path d="M256,166 h30 l6,-8" stroke="#C9A44A" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="262" cy="164" r="4" fill="#2A2A2A"/><rect x="330" y="160" width="60" height="16" fill="#F7F3E6" stroke="#8A7A5A"/><path d="M336,166 h46 M336,171 h30" stroke="#5A5A5A" stroke-width="1.4"/>` + lampN(300, 60) + wP('SLUMP', 420, 232, 96, { civ: 'm', flip: true, noShadow: true }) + hw(160, 240, 100, { out: 1 }) + vignette(0.24), 'A telegraph operator sitting beside his telegraph key at night, with a woman standing in the doorway'),
   });
@@ -3319,7 +3293,7 @@ const ART = (() => {
   const rifleLean = (...a) => tipW('Rifle|Every infantry soldier carried one, and cleaned it every day.', rifleLean__(...a));
   const flagRE = (...a) => tipW('The Red Ensign|The flag Canada used during the First World War.', flagRE__(...a));
   const stretcher = (...a) => tipW('Stretcher|In deep mud, it could take hours to carry one wounded man to help.', stretcher__(...a));
-  const wApple = (...a) => tipW('Apple tree|The Annapolis Valley is known for its apple orchards.', wApple__(...a));
+  const wApple = (...a) => tipW(`Apple tree|${W1TIP.apples}`, wApple__(...a));
   const railFence = (...a) => tipW('Rail fence|Split cedar or spruce rails, stacked without nails.', railFence__(...a));
   const bellTent = (...a) => tipW('Bell tent|A round canvas army tent, held up by one centre pole.', bellTent__(...a));
   const armyHut = (...a) => tipW('Army hut|Wooden huts replaced tents in the bigger camps.', armyHut__(...a));
@@ -3354,7 +3328,7 @@ const ART = (() => {
   const w1Wire = (...a) => tipW('Barbed wire|Strung in thick belts in front of the trenches.', w1Wire__(...a));
   const w1Holes = (...a) => tipW('Shell craters|Holes blown by exploding shells. Many filled with water.', w1Holes__(...a));
   const w1Stumps2 = (...a) => tipW('Shattered trees|Shellfire stripped the woods down to bare stumps.', w1Stumps2__(...a));
-  const w1AppleTree = (...a) => tipW('Apple tree|The Annapolis Valley is known for its apple orchards.', w1AppleTree__(...a));
+  const w1AppleTree = (...a) => tipW(`Apple tree|${W1TIP.apples}`, w1AppleTree__(...a));
   const w1LocoSmall = (...a) => tipW('Light railway engine|Small engines pulled supplies up to the front at night.', w1LocoSmall__(...a));
   const w1RuinWall = (...a) => tipW('Ruined wall|Shellfire destroyed whole towns and villages along the front.', w1RuinWall__(...a));
   const w1PosterW = (...a) => tipW('Recruiting poster|Posters like these urged men to join the army.', w1PosterW__(...a));
@@ -10484,20 +10458,13 @@ const LOOK_PLANT = {
   bluebell: ['Bluebells', 'They carpet English woods in spring.', `<path d="M0,0 q-1,-8 3,-14" stroke="#3E6A3A" stroke-width="1.3" fill="none"/>` + [0, 1, 2].map((i) => `<path d="M${1 + i},${-7 - i * 3} q4,0 4,4 q-2,1 -4,0 Z" fill="#5A6EC8"/>`).join('')],
 };
 const LOOK_SPOT = {
-  303: [[300, 110, 130, 60, 'Dalhousie University|The hospital formed up on the college grounds in December 1915.']],
-  410: [[445, 100, 50, 14, 'Truro station|Truro was a busy railway junction in the middle of Nova Scotia.']],
-  426: [[445, 100, 50, 14, 'Truro station|A train of injured people reached Truro on the night of December 6, 1917.']],
-  411: [[150, 160, 150, 20, 'Camp Aldershot|The Highland Brigade trained here in the summer of 1916.']],
   417: [[300, 118, 150, 50, 'Casualty lists|Newspapers posted the names of the dead, wounded and missing.']],
   418: [[300, 118, 150, 50, 'Casualty lists|Newspapers posted the names of the dead, wounded and missing.']],
-  327: [[300, 116, 300, 8, 'Halifax Harbour|Much of the north end was destroyed by the explosion of December 6, 1917.']],
-  438: [[300, 116, 300, 8, 'Halifax Harbour|Most Canadian soldiers sailed from here, and came home here.']],
   302: [[273, 70, 26, 32, 'Notice board|Orders, duty lists and the names of nurses going overseas.']], 320: [[273, 70, 26, 32, 'Notice board|Orders, duty lists and new postings.']], 336: [[115, 205, 60, 26, 'Packing crates|The hospital packed up in the spring of 1919.']],
   328: [[505, 150, 34, 36, 'Ventilator|It carries fresh air to the decks below.'], [300, 40, 280, 34, 'A dark ship|Troopships sailed without lights. Hospital ships were lit from end to end.']],
   338: [[325, 172, 34, 10, 'Instrument tray|Scissors, forceps and probes, boiled clean before every use.']],
   403: [[273, 70, 26, 32, 'Notice|The mill’s hours and rules.']], 415: [[273, 70, 26, 32, 'Notice|The mill’s hours and rules.']],
   443: [[155, 78, 128, 58, 'Wool and yarn|Sold by the skein, in every colour.'], [470, 128, 80, 18, 'Hats|Three good ones, in the window.']],
-  444: [[300, 200, 180, 14, 'The platform|Nova Scotia trained its teachers at the Normal College in Truro.']],
   321: [[300, 170, 280, 26, 'Casualty clearing station|A tent hospital a few kilometres behind the front.']],
 };
 const LOOK_FLOCK = /<g class="anim-fly"[^>]*>(?:<g transform="[^"]*"><path class="anim-flap"[^>]*\/><\/g>)+<\/g>/;
@@ -10564,7 +10531,7 @@ function lookAdd(svg, n) {
   } catch (e) { return svg; }
 }
 { const fp = ART.forPassage; ART.forPassage = (n) => lookAdd(fp(n), Number(n)); }
-{ const fp2 = ART.forPassage; ART.forPassage = (n) => { w1Cur = Number(n); return w1Bg(fp2(n), Number(n)); }; }
+{ const fp2 = ART.forPassage; ART.forPassage = (n) => { w1Cur = Number(n); return fp2(n); }; }
 const LOOK_RM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 function lookFlyStart(el) {
   if (el.dataset.flying) return; el.dataset.flying = '1';
@@ -10608,7 +10575,7 @@ try { new MutationObserver(() => document.querySelectorAll('.art .anim-fly, .art
   const hide = () => { if (tip) tip.hidden = true; pinned = null; };
   const show = (g, x, y) => {
     if (!tip) { tip = el('div', { id: 'looktip', role: 'tooltip' }); document.body.appendChild(tip); }
-    const [name, note] = (g.getAttribute('data-tip') || g.getAttribute('data-bgtip') || '').split('|');
+    const [name, note] = (g.getAttribute('data-tip') || '').split('|');
     tip.replaceChildren(el('strong', { text: name }), ...(note ? [el('span', { text: note })] : []));
     tip.hidden = false;
     if (g.dataset.call && typeof SND !== 'undefined') SND.call(g.dataset.call);
@@ -10616,7 +10583,7 @@ try { new MutationObserver(() => document.querySelectorAll('.art .anim-fly, .art
     tip.style.left = Math.max(8, Math.min(x - w / 2, window.innerWidth - w - 8)) + 'px';
     tip.style.top = (y - h - 16 > 6 ? y - h - 16 : y + 22) + 'px';
   };
-  const find = (e) => (e.target && e.target.closest ? (e.target.closest('.art [data-tip]') || e.target.closest('svg[data-bgtip]')) : null);
+  const find = (e) => (e.target && e.target.closest ? e.target.closest('.art [data-tip]') : null);
   let over = null;
   document.addEventListener('pointerover', (e) => { if (e.pointerType === 'touch' || pinned) return; const g = find(e); if (g === over) return; over = g; if (g) show(g, e.clientX, e.clientY); else hide(); });
   
@@ -11297,6 +11264,8 @@ const SRC_LIST = [
     ['Bruce Museum: Fashion Over Function', 'Flat caps were a staple of working men in the late 1800s and early 1900s.', 'https://www.brucemuseum.ca/exhibit/fashion-over-function-digital-exhibition-2/'],
     ['Toronto Metropolitan University Fashion Research Collection: Of Hats and History', 'Felt is made from animal hair; the best felt hats were beaver.', 'https://www.torontomu.ca/content/dam/fashionresearchcollection/research-articles/Of_Hats_and_History.pdf'],
     ['Canadian Food Studies: the Nova Scotia apple industry', 'From the 1860s until the Second World War, apples were a booming cross-Atlantic export.', 'https://canadianfoodstudies.uwaterloo.ca/index.php/cfs/article/download/165/160/912'],
+    ['Veterans Affairs Canada: Beaumont-Hamel learning station 2', 'The caribou, emblem of the Royal Newfoundland Regiment and its cap badge, and the five caribou memorials.', 'https://veterans.gc.ca/eng/remembrance/information-for/educators/learning-modules/beaumont-hamel/learning-stations/station-2'],
+    ['Canadian War Museum: the Canadian War Memorials Fund', 'Lord Beaverbrook’s official war art program, close to 120 artists and nearly 1,000 works of art.', 'https://www.warmuseum.ca/firstworldwar/?p=504'],
     ['Statistics Canada: Canada Year Book (apples)', 'Barrels of apples packed in the Annapolis Valley.', 'https://publications.gc.ca/collections/collection_2018/statcan/22-203/CS22-203-1921-24-eng.pdf'],
   ] },
   { g: '🏛️ Government and museum sources', intro: 'Start here. These are the most reliable places to check a fact about the First World War.', items: [
