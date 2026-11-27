@@ -455,6 +455,7 @@
   .art .chick { cursor: pointer; }
   .art [data-tip] { cursor: help; }
   .art [data-tip]:hover { filter: drop-shadow(0 0 1.5px #FFFFFF) drop-shadow(0 0 3px #FFF3C4); }
+  .art [data-tip]:has([data-tip]:hover) { filter: none; }
   #looktip { position: fixed; z-index: 80; max-width: 250px; background: #1E2430; color: #FFFFFF; border-radius: 10px; padding: 0.45rem 0.7rem; font: 600 0.92rem/1.3 system-ui, -apple-system, 'Segoe UI', sans-serif; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); pointer-events: none; }
   #looktip span { display: block; font-weight: 400; font-size: 0.84rem; margin-top: 0.15rem; }
   @media print { #looktip { display: none; } }
@@ -993,7 +994,156 @@
 <div class="termbar" id="termbar" role="status" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script>const ART = (() => {
+<script>
+// ================= MORE HOVER BOXES =================
+// Every person in the pictures has up to three boxes: the hat, the clothes and the boots. Every picture also has a box
+// for the place itself (hover the sky, the ground or the water). Sources: the Sources page, "Clothing and gear in the
+// pictures"; facts that were already in the game are reused word for word.
+const W1TIP = {
+  helmet: 'Steel helmet|In February 1916 there were only enough steel helmets for one Canadian soldier in five, so men coming out of the front line handed theirs to the men going in.',
+  peaked: 'Service cap|Made of khaki wool serge, with a badge that showed the soldier’s regiment or battalion. Some soldiers pulled out the wire that kept the peak stiff, which was against the rules.',
+  bonnet: 'Highland Brigade|The Nova Scotia Highland Brigade was made up of four battalions: the 85th, the 185th, the 193rd and the 219th.',
+  feld: 'German field cap|A soft wool cap with no peak, part of the grey field uniform the German army began to adopt in 1910. Soldiers wore it when they were not wearing a helmet.',
+  gashood: 'Gas helmet|After the gas attacks of 1915, soldiers were given cloth gas helmets, and from 1916, gas masks with filters called box respirators.',
+  tunic: 'Uniform|A private was paid $1.10 a day. Sewn inside his tunic was a first field dressing, a small packet of bandages, so that a wound could be treated right away.',
+  kilt: 'Kilt|Highland soldiers were allowed to wear the kilt all through the war. In the trenches, a khaki apron covered its bright tartan.',
+  puttees: 'Puttees and boots|Puttees were strips of khaki wool wound around the leg from the ankle to below the knee, to keep out mud and water. Boots made in Canada early in the war fell apart in the wet, so by 1916 they were replaced with British ones.',
+  jack: 'Marching boots|German soldiers wore tall leather boots with metal hobnails hammered into the soles.',
+  veil: 'Veil|Soldiers nicknamed Canadian nursing sisters “bluebirds” because of their blue dresses and white veils.',
+  nsrank: 'Lieutenant|Canadian nursing sisters were officers, with the rank of lieutenant. In all, 2,845 nursing sisters served with the Canadian Army Medical Corps in the First World War.',
+  sea: 'North Atlantic|Troopships crossed the Atlantic with their lights out at night, because German submarines were hunting ships. The crossing took about a week.',
+  warship: 'Warship|Troopships were often guarded by warships.',
+  wake: 'Zigzag wake|Troopships zigzagged across the Atlantic. Very few troopships carrying Canadian soldiers were ever sunk.',
+  greenband: 'Green band|Under the rules of war agreed in 1907, hospital ships run by a country’s armed forces were painted white with a broad green band. Hospital ships paid for by charities had a red band.',
+  vimy: 'Vimy Ridge|Hill 145 was the highest and most heavily defended part of Vimy Ridge.',
+  hommes: 'French words|HOMMES 40 · CHEVAUX 8: hommes means “men” and chevaux means “horses.”',
+  rifle: 'Rifle|Every infantry soldier carried one, and cleaned it every day.',
+  matron: 'Matron|The nurse in charge of all the other nurses in a hospital.',
+  wide: 'Wide hat|Women’s hats grew bigger and bigger, reaching an enormous size by about 1910. Many were made by hand by a milliner, a hat maker found in almost every town.',
+  blouse: 'Blouse and skirt|During the war, women began to wear shorter skirts and looser, less tight clothes, and many of the changes lasted after the war.',
+  wboots: 'Button boots|When skirts got shorter in 1915, women’s boots grew taller, up to the middle of the calf. Many fastened with a row of small buttons.',
+  flatcap: 'Flat cap|In the late 1800s and early 1900s, the cloth flat cap was a staple for working men, especially labourers and factory workers.',
+  felt: 'Felt hat|Felt is made of animal hair, pressed and matted together. The finest felt hats were made from beaver fur.',
+  jacket: 'Wool cloth|During the war, the Stanfield’s mill in Truro made wool blankets, knitting yarn and cloth, and war orders helped the company grow.',
+  mboots: 'Work boots|When men joined the army, they traded in their business shoes, farming boots, lumberjack boots and fishing boots for army boots.',
+  school: 'Schoolchildren|Schoolchildren all over Canada knitted socks and scarves for soldiers. Dry wool socks helped to prevent trench foot.',
+  patient: 'Wounded soldier|Every wounded soldier carried a label, filled in by the first doctor who treated him, so that the next doctor or nurse would know what had been done.',
+  apples: 'From the 1860s until the Second World War, apples from the Annapolis Valley were shipped across the Atlantic to Britain, packed in wooden barrels.',
+};
+// the picture being drawn (set just before each story picture is made); the pictures where the nurse is not yet, or no
+// longer, an army nursing sister (a Halifax hospital in 1915, and public health nursing in the 1920s); and the pictures
+// where the older nurse is the matron
+let w1Cur = 0;
+const W1CIVNURSE = [301, 302, 340], W1MATRON = [302, 320];
+// how high each piece of a drawing sits (its smallest and largest y), from its own numbers
+function w1Ys(tag) {
+  const num = (a) => { const m = tag.match(new RegExp('\\s' + a + '="(-?[\\d.]+)"')); return m ? Number(m[1]) : null; };
+  const nm = (tag.match(/^<(\w+)/) || [])[1];
+  if (nm === 'circle') { const cy = num('cy'), r = num('r') || 0; return cy === null ? null : [cy - r, cy + r]; }
+  if (nm === 'ellipse') { const cy = num('cy'), r = num('ry') || 0; return cy === null ? null : [cy - r, cy + r]; }
+  if (nm === 'rect') { const y = num('y'), h = num('height') || 0; return y === null ? null : [y, y + h]; }
+  if (nm === 'line') { const a = num('y1'), b = num('y2'); return a === null ? null : [Math.min(a, b), Math.max(a, b)]; }
+  if (nm === 'polygon' || nm === 'polyline') { const m = tag.match(/points="([^"]+)"/); if (!m) return null; const n = m[1].trim().split(/[\s,]+/).map(Number); const ys = n.filter((v, i) => i % 2 === 1); return ys.length ? [Math.min(...ys), Math.max(...ys)] : null; }
+  if (nm === 'path') {
+    const m = tag.match(/\sd="([^"]+)"/); if (!m) return null;
+    const tk = m[1].match(/[a-zA-Z]|-?\d*\.?\d+(?:e-?\d+)?/g) || [];
+    let i = 0, cmd = '', x = 0, y = 0; const ys = [];
+    const N = () => Number(tk[i++]);
+    while (i < tk.length) {
+      if (/[a-zA-Z]/.test(tk[i])) { cmd = tk[i++]; if (cmd === 'Z' || cmd === 'z') continue; }
+      else if (!cmd || cmd === 'Z' || cmd === 'z') { i++; continue; }
+      const rel = cmd === cmd.toLowerCase(), C = cmd.toUpperCase();
+      if (i >= tk.length || /[a-zA-Z]/.test(tk[i])) continue;
+      if (C === 'M' || C === 'L' || C === 'T') { const nx = N(), ny = N(); x = rel ? x + nx : nx; y = rel ? y + ny : ny; ys.push(y); }
+      else if (C === 'H') { const nx = N(); x = rel ? x + nx : nx; }
+      else if (C === 'V') { const ny = N(); y = rel ? y + ny : ny; ys.push(y); }
+      else if (C === 'Q' || C === 'S') { const ax = N(), ay = N(), nx = N(), ny = N(); ys.push(rel ? y + ay : ay); x = rel ? x + nx : nx; y = rel ? y + ny : ny; ys.push(y); }
+      else if (C === 'C') { N(); const a1 = N(); N(); const a2 = N(), nx = N(), ny = N(); ys.push(rel ? y + a1 : a1, rel ? y + a2 : a2); x = rel ? x + nx : nx; y = rel ? y + ny : ny; ys.push(y); }
+      else if (C === 'A') { const rx = N(), ry = N(); N(); N(); N(); const nx = N(), ny = N(); void rx; x = rel ? x + nx : nx; y = rel ? y + ny : ny; ys.push(y, y - ry, y + ry); }
+      else i++;
+    }
+    const fy = ys.filter(Number.isFinite);
+    return fy.length ? [Math.min(...fy), Math.max(...fy)] : null;
+  }
+  return null;
+}
+// Splits one person's drawing into the hat, the clothes and the boots, and gives each part its own hover box.
+// Pieces keep their drawing order: neighbouring pieces of the same part share one group.
+function w1Split(inner, L) {
+  try {
+    const k = L.kind;
+    if (!inner || /^(LIE|CRAWL|NSB)$/.test(k)) return inner;
+    let head = '', body = '', feet = '';
+    if (L.era === 'army') {
+      head = W1TIP[L.hat] && /^(helmet|peaked|bonnet|feld|gashood)$/.test(L.hat) ? W1TIP[L.hat] : '';
+      if (L.role === 'german') feet = L.bt === 'jack' ? W1TIP.jack : '';
+      else { body = L.bt === 'kilt' ? W1TIP.kilt : W1TIP.tunic; feet = L.bt === 'puttees' ? W1TIP.puttees : L.bt === 'jack' ? W1TIP.jack : ''; }
+    } else if (L.outfit === 'nurse') { head = W1TIP.veil; body = L.old && W1MATRON.includes(w1Cur) ? W1TIP.matron : W1CIVNURSE.includes(w1Cur) ? '' : W1TIP.nsrank; }
+    else if (L.kid) body = W1TIP.school;
+    else if (L.sex === 'f') { head = L.hat === 'wide' ? W1TIP.wide : ''; body = W1TIP.blouse; feet = W1TIP.wboots; }
+    else { head = /^(flatcap|felt)$/.test(L.hat || '') ? W1TIP[L.hat] : ''; body = L.outfit === 'porter' ? '' : W1TIP.jacket; feet = W1TIP.mboots; }
+    if (!head && !body && !feet) return inner;
+    // the pieces, one by one (a group counts as one piece)
+    const parts = []; let i = 0;
+    while (i < inner.length) {
+      if (inner[i] !== '<') { const j = inner.indexOf('<', i); parts.push({ html: inner.slice(i, j < 0 ? inner.length : j), ys: null }); if (j < 0) break; i = j; continue; }
+      const nm = (inner.slice(i, i + 20).match(/^<(\w+)/) || [])[1];
+      if (!nm) return inner;
+      const close = inner.indexOf('>', i); if (close < 0) return inner;
+      let end;
+      if (inner[close - 1] === '/') end = close + 1;
+      else {
+        let depth = 1, p = close + 1; const open = new RegExp('<' + nm + '\\b|</' + nm + '>', 'g'); open.lastIndex = p;
+        let m; while (depth && (m = open.exec(inner))) { depth += m[0][1] === '/' ? -1 : 1; p = m.index + m[0].length; }
+        if (depth) return inner; end = p;
+      }
+      const html = inner.slice(i, end);
+      parts.push({ html, ys: nm === 'g' ? null : w1Ys(inner.slice(i, close + 1)) });
+      i = end;
+    }
+    const known = parts.filter((p) => p.ys);
+    if (known.length < 3) return inner;
+    const T = Math.min(...known.map((p) => p.ys[0])), B = Math.max(...known.map((p) => p.ys[1])), Hh = B - T;
+    if (!(Hh > 10)) return inner;
+    const cat = (p) => { if (!p.ys) return 'body'; const c = (p.ys[0] + p.ys[1]) / 2; return c < T + 0.24 * Hh ? 'head' : p.ys[0] > B - 0.26 * Hh ? 'feet' : 'body'; };
+    const tipOf = { head, body, feet };
+    let out = '', run = '', rc = null;
+    const flush = () => { if (!run) return; out += tipOf[rc] ? `<g data-tip="${tipOf[rc]}">${run}</g>` : run; run = ''; };
+    parts.forEach((p) => { const c = cat(p); if (c !== rc) { flush(); rc = c; } run += p.html; });
+    flush();
+    return out;
+  } catch (e) { return inner; }
+}
+// the place itself: a box for the sky, the ground or the water, with a fact that suits it (never the scene's own fact)
+const W1BG = {
+  trench: ['220', '217', '26', '27'], nml: ['242', '222', '40', '322'], field: ['256', '32'], railway: ['60', '227'], tunnel: ['252', '22', '37'],
+  ridgetop: ['45', '34'], tank: ['232', '234'], memorial: ['59', '58', '255'], town16: ['202', '208', '3'], ruins: ['50', '234', '232'],
+  home: ['420', '403', '412', '422', '407'], nurse: ['321', '336', '56', '306'], ward: ['321', '56', '336'], harbour: ['15', '413'],
+};
+function w1First2(t) { const p = String(t || '').trim().split(/(?<=[.!?”])\s+(?=[A-Z“])/); return p.slice(0, 2).join(' '); }
+function w1BgTip(n) {
+  try {
+    const k = String(n), sp = ART.SPEC[k], set = sp ? sp[0] : '', st = STORY[k] || {}, place = st.place || '', opt = (sp && sp[2]) || {};
+    if (!place) return '';
+    let ids = W1BG[set] || ['15', '208'];
+    if (set === 'camp') ids = /Aldershot/.test(place) ? ['9', '410'] : /England|Sandling|Witley/.test(place) ? ['17', '216', '15'] : ['256', '32'];
+    if (set === 'valley') ids = /orchard|Annapolis/i.test(place) ? ['apples'] : /Aldershot/.test(place) ? ['9', '410'] : ['217', '256'];
+    if (set === 'room16') ids = opt.kind === 'kitchen' ? ['420', '7', '225'] : opt.kind === 'hall' ? ['3', '208'] : ['15', '227', '4'];
+    const own = [st.fact, st.hnote, st.note].filter(Boolean).join(' ');
+    const start = Number(k) % ids.length;
+    for (let j = 0; j < ids.length; j++) {
+      const id = ids[(start + j) % ids.length];
+      if (id === k) continue;
+      const src = W1TIP[id] ? null : STORY[id];
+      const t = W1TIP[id] || (src ? w1First2(src.fact || src.hnote || src.note) : '');
+      if (!t || own.includes(t.slice(0, 50))) continue;
+      return (place + '|' + t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  } catch (e) { /* no box for this place */ }
+  return '';
+}
+function w1Bg(svg, n) { const t = w1BgTip(n); return t && svg && svg.indexOf('<svg ') >= 0 ? svg.replace('<svg ', `<svg data-bgtip="${t}" `) : svg; }
+const ART = (() => {
   // The Milling Table: a hand-cut print look. Flat bands of colour, carved lines, a paper border.
   const INK = '#1E2430', MID = '#3F4A5A', FAR = '#7D8A99', SAIL = '#EFE7D3', SAILN = '#7A848C';
   const GRASS2 = '#4F5F3A';
@@ -1790,7 +1940,7 @@
       const L = look(kind, o, spec);
       if (spec.role) L.role = spec.role;
       if (spec.role && ROLE[spec.role] && ROLE[spec.role].mik) L.mik = true;
-      const inner = draw(L.kind, L);
+      const inner = w1Split(draw(L.kind, L), L);
       ctx.i++;
       if (!inner) return `<g class="anim-breathe" style="animation-delay:-${((x * 13) % 42 / 10).toFixed(1)}s">${g(x, y, h / 100, FIG[kind], o)}</g>`;
       const oo = Object.assign({}, o); delete oo.c; delete oo.spec;
@@ -2316,9 +2466,10 @@
   const wPP = (list) => list.map((a) => wP(a[0], a[1], a[2], a[3], a[4] || {})).join('');
   // a soldier seen from behind, from the waist up (watching, waiting)
   const backSol = (x, y, s = 1, o = {}) => { const t = o.t || 0, k = dk(o.c || '#857650', t), k2 = dk('#6E6240', t), sk = dk('#D9B08C', t);
-    return g(x, y, s, `<path d="M-17,0 L-15,-33 Q0,-41 15,-33 L17,0 Z" fill="${k}"/>` + (o.pack ? `<rect x="-9" y="-31" width="18" height="21" rx="3" fill="${dk('#9A8C5E', t)}"/><path d="M-9,-22 H9" stroke="${k2}" stroke-width="1"/>` : `<path d="M-7,-34 L-4,0 M7,-34 L4,0" stroke="${dk('#A89A6A', t)}" stroke-width="1.6"/>`) +
-      `<rect x="-3.2" y="-44" width="6.4" height="7" fill="${sk}"/>` + (o.hat === 'cap' ? `<circle cx="0" cy="-50" r="8.4" fill="${dk('#5A3E2A', t)}"/><path d="M-9,-51 Q0,-62 9,-51 L9,-49 L-9,-49 Z" fill="${k}"/>` : o.hat === 'none' ? `<circle cx="0" cy="-50" r="8.4" fill="${dk(o.hair || '#5A3E2A', t)}"/>` :
-        `<circle cx="0" cy="-49" r="7.6" fill="${dk('#5A3E2A', t)}"/><ellipse cx="0" cy="-51" rx="14.5" ry="4" fill="${k2}"/><path d="M-9.4,-51.4 Q-9,-59.6 0,-60 Q9,-59.6 9.4,-51.4 Z" fill="${k}"/>`) + (o.rifle ? `<path d="M12,-4 L15,-64" stroke="${dk('#4A3524', t)}" stroke-width="2.4"/><path d="M14.8,-60 L15.4,-70" stroke="${dk('#2B2B2B', t)}" stroke-width="1.3"/>` : ''), {}); };
+    const hatTip = o.hat === 'cap' ? W1TIP.peaked : o.hat === 'none' ? '' : W1TIP.helmet;
+    return g(x, y, s, `<g data-tip="${W1TIP.tunic}">` + `<path d="M-17,0 L-15,-33 Q0,-41 15,-33 L17,0 Z" fill="${k}"/>` + (o.pack ? `<rect x="-9" y="-31" width="18" height="21" rx="3" fill="${dk('#9A8C5E', t)}"/><path d="M-9,-22 H9" stroke="${k2}" stroke-width="1"/>` : `<path d="M-7,-34 L-4,0 M7,-34 L4,0" stroke="${dk('#A89A6A', t)}" stroke-width="1.6"/>`) +
+      `<rect x="-3.2" y="-44" width="6.4" height="7" fill="${sk}"/></g>` + (hatTip ? `<g data-tip="${hatTip}">` : '') + (o.hat === 'cap' ? `<circle cx="0" cy="-50" r="8.4" fill="${dk('#5A3E2A', t)}"/><path d="M-9,-51 Q0,-62 9,-51 L9,-49 L-9,-49 Z" fill="${k}"/>` : o.hat === 'none' ? `<circle cx="0" cy="-50" r="8.4" fill="${dk(o.hair || '#5A3E2A', t)}"/>` :
+        `<circle cx="0" cy="-49" r="7.6" fill="${dk('#5A3E2A', t)}"/><ellipse cx="0" cy="-51" rx="14.5" ry="4" fill="${k2}"/><path d="M-9.4,-51.4 Q-9,-59.6 0,-60 Q9,-59.6 9.4,-51.4 Z" fill="${k}"/>`) + (hatTip ? '</g>' : '') + (o.rifle ? `<g data-tip="${W1TIP.rifle}"><path d="M12,-4 L15,-64" stroke="${dk('#4A3524', t)}" stroke-width="2.4"/><path d="M14.8,-60 L15.4,-70" stroke="${dk('#2B2B2B', t)}" stroke-width="1.3"/></g>` : ''), {}); };
   // a stretcher carried level between two bearers; the person on it is covered with a blanket
   const stretcher__ = (x0, x1, y, o = {}) => `<path d="M${x0 - 7},${y} L${x1 + 7},${y}" stroke="#5A4636" stroke-width="2.4" stroke-linecap="round"/><path d="M${x0 + 5},${y - 1.4} L${x1 - 5},${y - 1.4} L${x1 - 7},${y + 2.4} L${x0 + 7},${y + 2.4} Z" fill="#CDBE94"/>` +
     (o.empty ? '' : `<path d="M${x0 + 15},${y - 1.6} Q${x0 + 17},${y - 11} ${x0 + 30},${y - 9.4} L${x1 - 16},${y - 7.4} Q${x1 - 8},${y - 6.6} ${x1 - 7},${y - 1.6} Z" fill="${o.blanket || '#7E6E5C'}"/><path d="M${x0 + 30},${y - 9.2} L${x1 - 16},${y - 7.2}" stroke="#93826E" stroke-width="1"/><circle cx="${x0 + 13.4}" cy="${y - 5.6}" r="4.3" fill="${o.skin || '#E3B795'}"/><path d="M${x0 + 9.6},${y - 7.4} Q${x0 + 13.4},${y - 11.4} ${x0 + 17.2},${y - 7.4}" stroke="#F4F1EA" stroke-width="2.2" fill="none"/>`);
@@ -2614,8 +2765,8 @@
   const seaW = (y, c1, c2, t = 0) => band(y, 250 - y, [[0, dk(c1, t)], [1, dk(c2, t)]]) + T(22, (i) => { const yy = y + 6 + ((i * 53) % (240 - y)), w = 8 + (yy - y) * 0.16; return `<path d="M${(i * 97) % 600},${yy} q${w / 2},-2.4 ${w},0" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.3"/>`; });
   const gullW__ = (x, y, s = 1) => `<path d="M${x - 9 * s},${y} Q${x - 4 * s},${y - 6 * s} ${x},${y} Q${x + 4 * s},${y - 6 * s} ${x + 9 * s},${y}" stroke="#F4F1EA" stroke-width="${1.8 * s}" fill="none" stroke-linecap="round"/>`;
   const boxcar__ = (x, y, o = {}) => `<rect x="${x}" y="${y - 44}" width="100" height="38" fill="#7A4A36"/><path d="M${x - 2},${y - 46} h104 l-3,-5 h-98 Z" fill="#4A3A34"/>` + T(9, (i) => `<path d="M${x + 5 + i * 11.4},${y - 44} v38" stroke="#5E3626" stroke-width="0.9"/>`) + `<rect x="${x + 32}" y="${y - 40}" width="36" height="34" fill="#2A1E18"/>` +
-    T(3, (i) => `<circle cx="${x + 40 + i * 10}" cy="${y - 26 - (i % 2) * 3}" r="4.6" fill="#D9B08C"/><path d="M${x + 35 + i * 10},${y - 27 - (i % 2) * 3} q5,-7 10,0 l1,-2 q-6,-7 -12,0 Z" fill="#857650"/><rect x="${x + 35.4 + i * 10}" y="${y - 21 - (i % 2) * 3}" width="9.4" height="15" fill="#857650"/>`) +
-    `<text x="${x + 16}" y="${y - 31}" font-family="Georgia, serif" font-size="5.2" font-weight="700" fill="#EFE7D3" text-anchor="middle">HOMMES</text><text x="${x + 16}" y="${y - 24}" font-family="Georgia, serif" font-size="5.2" font-weight="700" fill="#EFE7D3" text-anchor="middle">40</text><text x="${x + 84}" y="${y - 31}" font-family="Georgia, serif" font-size="5.2" font-weight="700" fill="#EFE7D3" text-anchor="middle">CHEVAUX</text><text x="${x + 84}" y="${y - 24}" font-family="Georgia, serif" font-size="5.2" font-weight="700" fill="#EFE7D3" text-anchor="middle">8</text>` +
+    T(3, (i) => `<g data-tip="${W1TIP.tunic}"><circle cx="${x + 40 + i * 10}" cy="${y - 26 - (i % 2) * 3}" r="4.6" fill="#D9B08C"/><g data-tip="${W1TIP.peaked}"><path d="M${x + 35 + i * 10},${y - 27 - (i % 2) * 3} q5,-7 10,0 l1,-2 q-6,-7 -12,0 Z" fill="#857650"/></g><rect x="${x + 35.4 + i * 10}" y="${y - 21 - (i % 2) * 3}" width="9.4" height="15" fill="#857650"/></g>`) +
+    `<g data-tip="${W1TIP.hommes}"><rect x="${x + 4}" y="${y - 37}" width="24" height="15" fill="transparent"/><text x="${x + 16}" y="${y - 31}" font-family="Georgia, serif" font-size="5.2" font-weight="700" fill="#EFE7D3" text-anchor="middle">HOMMES</text><text x="${x + 16}" y="${y - 24}" font-family="Georgia, serif" font-size="5.2" font-weight="700" fill="#EFE7D3" text-anchor="middle">40</text><rect x="${x + 70}" y="${y - 37}" width="28" height="15" fill="transparent"/><text x="${x + 84}" y="${y - 31}" font-family="Georgia, serif" font-size="5.2" font-weight="700" fill="#EFE7D3" text-anchor="middle">CHEVAUX</text><text x="${x + 84}" y="${y - 24}" font-family="Georgia, serif" font-size="5.2" font-weight="700" fill="#EFE7D3" text-anchor="middle">8</text></g>` +
     `<circle cx="${x + 20}" cy="${y - 2}" r="7" fill="#2A2A2A"/><circle cx="${x + 80}" cy="${y - 2}" r="7" fill="#2A2A2A"/><rect x="${x - 6}" y="${y - 10}" width="112" height="4" fill="#3A2E28"/>`;
   const steamLoco__ = (x, y, s = 1) => g(x, y, s, `<rect x="-52" y="-36" width="62" height="26" rx="6" fill="#26282A"/><rect x="10" y="-52" width="34" height="42" fill="#2E3032"/><rect x="16" y="-46" width="14" height="12" fill="#C8D2D4"/><path d="M-44,-36 L-48,-58 L-34,-58 L-38,-36 Z" fill="#26282A"/><rect x="-22" y="-44" width="10" height="8" rx="3" fill="#3A3C3E"/><rect x="-58" y="-12" width="110" height="6" fill="#3A2E28"/><path d="M-58,-6 l-10,6 h14 Z" fill="#3A2E28"/>` + [-38, -12, 14, 36].map((cx, i) => `<circle cx="${cx}" cy="-2" r="${i < 3 ? 9 : 7}" fill="#1E1E1E"/><circle cx="${cx}" cy="-2" r="3" fill="#6E3A2E"/>`).join('') + `<path d="M-38,-2 L14,-2" stroke="#8A8A8A" stroke-width="2.4"/>`, {}) +
     `<g class="anim-cloud" style="animation-duration:30s">${wPuff(x - 42 * s, y - 70 * s, 9 * s, '#E6E6E2', 0.8)}${wPuff(x - 54 * s, y - 86 * s, 13 * s, '#DCDCD8', 0.7)}${wPuff(x - 76 * s, y - 100 * s, 17 * s, '#D2D2CE', 0.55)}${wPuff(x - 104 * s, y - 110 * s, 20 * s, '#C8C8C4', 0.4)}</g>`;
@@ -2659,11 +2810,11 @@
   });
   Object.assign(SET, {
     harbour: (alt, o) => { const k = o.k, night = !!o.night, dusk = !!o.dusk; lit(o, night ? 'night' : dusk ? 'dusk' : 'grey');
-      if (k === 14) return frame(SKY.w1grey, seaW(120, '#7E949C', '#55707C') + `<path d="M0,120 Q90,104 180,112 Q250,106 330,120 L330,126 L0,126 Z" fill="#6E7E72"/><path d="M40,116 q60,-8 110,-2" stroke="#8E9A88" stroke-width="2" fill="none"/><rect x="258" y="88" width="7" height="26" fill="#F4F1EA"/><rect x="258" y="96" width="7" height="5" fill="#B5342A"/><path d="M256,88 l4.5,-7 l4.5,7 Z" fill="#3A3A3A"/>` + rglow(261, 84, 16, 12, '#FFF2C4', 0.6) +
+      if (k === 14) return frame(SKY.w1grey, `<g data-tip="${W1TIP.sea}">` + seaW(120, '#7E949C', '#55707C') + '</g>' + `<path d="M0,120 Q90,104 180,112 Q250,106 330,120 L330,126 L0,126 Z" fill="#6E7E72"/><path d="M40,116 q60,-8 110,-2" stroke="#8E9A88" stroke-width="2" fill="none"/><rect x="258" y="88" width="7" height="26" fill="#F4F1EA"/><rect x="258" y="96" width="7" height="5" fill="#B5342A"/><path d="M256,88 l4.5,-7 l4.5,7 Z" fill="#3A3A3A"/>` + rglow(261, 84, 16, 12, '#FFF2C4', 0.6) +
         `<path d="M300,250 Q340,170 420,128 L470,128 Q380,176 380,250 Z" fill="#FFFFFF" opacity="0.2"/>` + [[120, 60], [170, 44], [420, 52], [470, 74], [520, 40]].map(([x, y], i) => `<g class="anim-fly" style="animation-delay:-${i * 5}s">${gullW(x - 300, y, 0.9 + (i % 2) * 0.3)}</g>`).join('') + [[96, 70, 1.2], [330, 56, 1], [500, 86, 1.3]].map(([x, y, s]) => gullW(x, y, s)).join('') + stage(o) + vignette(0.22), alt);
-      if (k === 16) return frame(SKY.w1grey, seaW(128, '#6E848E', '#40586A') + `<path d="M150,250 Q230,214 190,196 Q150,180 250,168 Q330,160 318,150" stroke="#FFFFFF" stroke-width="7" fill="none" opacity="0.28"/><path d="M150,250 Q230,214 190,196 Q150,180 250,168 Q330,160 318,150" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.5"/>` +
-        `<path d="M488,126 l44,0 l-3,5 l-38,0 Z" fill="#4A5258"/><rect x="500" y="118" width="12" height="8" fill="#4A5258"/><path d="M504,118 v-8 M512,118 v-6" stroke="#4A5258" stroke-width="2"/>` + wOlympic(330, 150, 0.52) + [[100, 60, 1], [140, 76, 0.8], [520, 50, 1]].map(([x, y, s]) => gullW(x, y, s)).join('') + vignette(0.22), alt);
-      if (k === 213) return frame(SKY.night, starsW(40, 3) + `<circle cx="470" cy="46" r="16" fill="#EDE8D4"/><circle cx="476" cy="42" r="15" fill="#18243A"/>` + seaW(140, '#1E2E44', '#14202E') + `<path d="M440,146 q30,-3 60,0 M420,158 q40,-3 80,0" stroke="#EDE8D4" stroke-width="1.4" opacity="0.4" fill="none"/>` +
+      if (k === 16) return frame(SKY.w1grey, `<g data-tip="${W1TIP.sea}">` + seaW(128, '#6E848E', '#40586A') + '</g>' + `<g data-tip="${W1TIP.wake}"><path d="M150,250 Q230,214 190,196 Q150,180 250,168 Q330,160 318,150" stroke="#FFFFFF" stroke-width="7" fill="none" opacity="0.28"/><path d="M150,250 Q230,214 190,196 Q150,180 250,168 Q330,160 318,150" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.5"/></g>` +
+        `<g data-tip="${W1TIP.warship}"><path d="M488,126 l44,0 l-3,5 l-38,0 Z" fill="#4A5258"/><rect x="500" y="118" width="12" height="8" fill="#4A5258"/><path d="M504,118 v-8 M512,118 v-6" stroke="#4A5258" stroke-width="2"/></g>` + wOlympic(330, 150, 0.52) + [[100, 60, 1], [140, 76, 0.8], [520, 50, 1]].map(([x, y, s]) => gullW(x, y, s)).join('') + vignette(0.22), alt);
+      if (k === 213) return frame(SKY.night, starsW(40, 3) + `<circle cx="470" cy="46" r="16" fill="#EDE8D4"/><circle cx="476" cy="42" r="15" fill="#18243A"/>` + `<g data-tip="${W1TIP.sea}">` + seaW(140, '#1E2E44', '#14202E') + '</g>' + `<path d="M440,146 q30,-3 60,0 M420,158 q40,-3 80,0" stroke="#EDE8D4" stroke-width="1.4" opacity="0.4" fill="none"/>` +
         `<rect y="186" width="600" height="64" fill="#4E4234"/>` + T(12, (i) => `<path d="M0,${192 + i * 5} H600" stroke="#3E3428" stroke-width="0.8"/>`) + `<path d="M0,150 H600 M0,164 H600" stroke="#8E979C" stroke-width="2.6"/>` + T(11, (i) => `<path d="M${i * 60 + 10},150 V186" stroke="#8E979C" stroke-width="2.6"/>`) +
         `<path d="M500,186 Q500,96 540,84" stroke="#6E7478" stroke-width="5" fill="none"/><path d="M468,128 Q520,112 572,128 L562,146 L478,146 Z" fill="#C9C4B4"/>` + rglow(60, 130, 60, 60, GLOW, 0.5) + `<rect x="54" y="120" width="12" height="16" rx="2" fill="#F6C56A"/>` + stage(o) + tint('#0E1A2E', 0.1) + vignette(0.38), alt);
       const t = dusk ? 0.12 : 0, sax = k === 212;
@@ -2671,7 +2822,7 @@
         seaW(146, '#74888E', '#55707C', t) + (sax ? wSaxonia(300, 190, 1.05, { t }) : wOlympic(318, 192, 1.12, { t })) + `<rect y="198" width="600" height="52" fill="${dk('#8A7A62', t)}"/><rect y="194" width="600" height="6" fill="${dk('#5E5040', t)}"/>` + T(12, (i) => `<rect x="${i * 54 + 6}" y="198" width="6" height="52" fill="${dk('#6E5E48', t)}" opacity="0.5"/>`) +
         (sax ? '' : flagRE(34, 232, 0.8) + bunting(150)) + stage(o) + vignette(0.22), alt); },
     railway: (alt, o) => { lit(o, 'grey');
-      if (o.boxcars) return frame(SKY.winter, `<path d="M0,128 Q100,118 220,104 Q340,96 470,104 Q560,110 600,120 L600,150 L0,150 Z" fill="#C2CCD2"/><path d="M60,124 Q220,104 330,102 Q460,104 560,118" stroke="#E8EEF0" stroke-width="4" fill="none"/>` + snowGround(140) + T(6, (i) => `<path d="M${40 + i * 104},${160 + (i % 2) * 6} l-4,-20 l4,6 l4,-10 l2,24 Z" fill="#5A5248"/>`) + T(9, (i) => `<path d="M${i * 70},178 h46" stroke="#C9D2D6" stroke-width="2"/>`) +
+      if (o.boxcars) return frame(SKY.winter, `<g data-tip="${W1TIP.vimy}"><path d="M0,128 Q100,118 220,104 Q340,96 470,104 Q560,110 600,120 L600,150 L0,150 Z" fill="#C2CCD2"/><path d="M60,124 Q220,104 330,102 Q460,104 560,118" stroke="#E8EEF0" stroke-width="4" fill="none"/></g>` + snowGround(140) + T(6, (i) => `<path d="M${40 + i * 104},${160 + (i % 2) * 6} l-4,-20 l4,6 l4,-10 l2,24 Z" fill="#5A5248"/>`) + T(9, (i) => `<path d="M${i * 70},178 h46" stroke="#C9D2D6" stroke-width="2"/>`) +
         railsW(226) + steamLoco(84, 228, 1.1) + [150, 260, 370, 480].map((x) => boxcar(x, 230)).join('') + `<path d="M0,238 Q300,232 600,238 L600,250 L0,250 Z" fill="#EEF1F2"/>` + vignette(0.2), alt);
       if (o.engine) return frame(SKY.w1grey, ridgeLine(112, '#9AA69E') + `<path d="M0,128 Q300,116 600,130 L600,160 L0,160 Z" fill="#8A9480"/>` + mudGround(150, '#8A7A5E', '#5E4C36') + T(5, (i) => stumpT(60 + i * 124, 156 + (i % 2) * 5, 22 + (i % 3) * 8, '#3E3228')) + mudPatches(14, 166, 244, 14, '#4E3E2C', 0.4) +
         `<path d="M0,206 Q300,200 600,206 L600,216 Q300,210 0,216 Z" fill="#6E5E48"/>` + railsW(208).replace(/H600/g, 'H600') + wSimplex(250, 212, 1.25) + wTruck(340, 212, 1.15, 0) + wTruck(410, 212, 1.15, 1) + wTruck(480, 212, 1.15, 2) + `<path d="M0,224 Q300,218 600,224 L600,250 L0,250 Z" fill="#6B5A44"/>` + stage(o) + vignette(0.22), alt);
@@ -2780,8 +2931,8 @@
       band(176, 74, [[0, snow ? '#E8ECEC' : '#A8987C'], [1, snow ? '#CDD6DA' : '#7A6A54']]) + (snow ? '' : `<path d="M-20,250 Q300,186 640,196 L640,214 Q320,206 80,250 Z" fill="#B8A88A" opacity="0.6"/>`); };
   const stationW = (name, o = {}) => band(196, 54, [[0, '#B0A48C'], [1, '#7E7260']]) + T(14, (i) => `<path d="M${i * 46},196 L${i * 46 - 30},250" stroke="#8E826C" stroke-width="1"/>`) + g(440, 196, 1, `<rect x="-110" y="-70" width="220" height="70" fill="#C9B48A"/><path d="M-130,-66 L-100,-104 L100,-104 L130,-66 Z" fill="#5A4A44"/><path d="M-134,-66 h268 v6 h-268 Z" fill="#4A3C36"/><rect x="-90" y="-50" width="28" height="34" fill="#3A4A5A"/><rect x="62" y="-50" width="28" height="34" fill="#3A4A5A"/><rect x="-16" y="-52" width="32" height="52" fill="#6B4A2E"/><rect x="-52" y="-88" width="104" height="16" fill="#F2EEE4" stroke="#3A2E24"/><text x="0" y="-76" font-family="Georgia, serif" font-size="11" font-weight="700" fill="#2A2A2A" text-anchor="middle" letter-spacing="1.5">${name}</text>` + T(4, (i) => `<rect x="${-126 + i * 84}" y="-66" width="4" height="66" fill="#4A3C36"/>`), {});
   const bedW__ = (x, y, o = {}) => `<path d="M${x},${y - 44} V${y} M${x + 112},${y - 30} V${y}" stroke="#5E666A" stroke-width="3.4"/><path d="M${x},${y - 44} Q${x + 3},${y - 52} ${x + 6},${y - 44}" stroke="#5E666A" stroke-width="2.4" fill="none"/><rect x="${x}" y="${y - 24}" width="112" height="9" fill="#F4F1EA"/><rect x="${x}" y="${y - 15}" width="112" height="5" fill="#C9C4B4"/>` +
-    (o.empty ? `<ellipse cx="${x + 18}" cy="${y - 28}" rx="14" ry="5" fill="#FBFAF6"/>` : `<ellipse cx="${x + 18}" cy="${y - 28}" rx="15" ry="5.4" fill="#FBFAF6"/><circle cx="${x + 20}" cy="${y - 33}" r="7.4" fill="${o.skin || '#E3B795'}"/><path d="M${x + 13},${y - 35} q7,-9 14,-1 q-6,-4 -14,1 Z" fill="${o.hair || '#5A3E2A'}"/><circle cx="${x + 23.4}" cy="${y - 33.6}" r="0.9" fill="#17100C"/>` +
-      `<path d="M${x + 28},${y - 30} Q${x + 60},${y - 40} ${x + 94},${y - (o.raise ? 42 : 34)} Q${x + 110},${y - (o.raise ? 46 : 34)} ${x + 112},${y - 24} L${x + 28},${y - 24} Z" fill="${o.blanket || '#8E9AA0'}"/><path d="M${x + 28},${y - 28} h40" stroke="#F4F1EA" stroke-width="4"/>` + (o.raise ? `<ellipse cx="${x + 102}" cy="${y - 44}" rx="11" ry="6" fill="#FBFAF6"/><ellipse cx="${x + 102}" cy="${y - 50}" rx="8" ry="5" fill="#F0ECE0"/>` : '') + (o.plaster ? `<path d="M${x + 70},${y - 40} L${x + 112},${y - 58}" stroke="#F4F1EA" stroke-width="9" stroke-linecap="round"/><path d="M${x + 112},${y - 58} V${y - 92} M${x + 96},${y - 92} h30" stroke="#5E666A" stroke-width="2.4"/>` : ''));
+    (o.empty ? `<ellipse cx="${x + 18}" cy="${y - 28}" rx="14" ry="5" fill="#FBFAF6"/>` : `<g data-tip="${W1TIP.patient}">` + `<ellipse cx="${x + 18}" cy="${y - 28}" rx="15" ry="5.4" fill="#FBFAF6"/><circle cx="${x + 20}" cy="${y - 33}" r="7.4" fill="${o.skin || '#E3B795'}"/><path d="M${x + 13},${y - 35} q7,-9 14,-1 q-6,-4 -14,1 Z" fill="${o.hair || '#5A3E2A'}"/><circle cx="${x + 23.4}" cy="${y - 33.6}" r="0.9" fill="#17100C"/>` +
+      `<path d="M${x + 28},${y - 30} Q${x + 60},${y - 40} ${x + 94},${y - (o.raise ? 42 : 34)} Q${x + 110},${y - (o.raise ? 46 : 34)} ${x + 112},${y - 24} L${x + 28},${y - 24} Z" fill="${o.blanket || '#8E9AA0'}"/><path d="M${x + 28},${y - 28} h40" stroke="#F4F1EA" stroke-width="4"/>` + (o.raise ? `<ellipse cx="${x + 102}" cy="${y - 44}" rx="11" ry="6" fill="#FBFAF6"/><ellipse cx="${x + 102}" cy="${y - 50}" rx="8" ry="5" fill="#F0ECE0"/>` : '') + (o.plaster ? `<path d="M${x + 70},${y - 40} L${x + 112},${y - 58}" stroke="#F4F1EA" stroke-width="9" stroke-linecap="round"/><path d="M${x + 112},${y - 58} V${y - 92} M${x + 96},${y - 92} h30" stroke="#5E666A" stroke-width="2.4"/>` : '') + '</g>');
   const wardW = (o = {}) => o.tent ? gfill('M0,0 H600 V198 H0 Z', [[0, '#D8CEB0'], [1, '#C4B894']]) + `<path d="M0,40 L300,-20 L600,40" stroke="#B0A480" stroke-width="3" fill="none"/>` + T(7, (i) => `<path d="M${i * 100},${40 - Math.abs(i - 3) * -20 - 60 + Math.abs(i - 3) * 20} V198" stroke="#B0A480" stroke-width="1.4"/>`) + `<rect x="296" y="0" width="8" height="198" fill="#7A5E3E"/>` + band(196, 54, [[0, '#9A8C70'], [1, '#6E624C']]) + rglow(300, 80, 260, 120, '#FFF6D8', 0.3)
     : roomW('#E4DED0', '#D0C8B6', '#A89C84', '#7A705C', { dado: 150, dadoC: '#B9C4BC' }) + [60, 250, 440].map((x) => windowW(x, 26, 90, 96, { hills: true })).join('');
   const vimyMemorial__ = (x, y, s = 1, o = {}) => { const c = o.c || '#F4F1EA', d = o.d || '#D8D4C8';
@@ -2879,7 +3030,7 @@
   const lampN__ = (x, y) => rglow(x, y, 120, 80, '#F6D58A', 0.55) + `<path d="M${x},${y - 30} v18" stroke="#2A2A2A" stroke-width="1.6"/><path d="M${x - 8},${y} h16 l-3,-13 h-10 Z" fill="#F6D36B" stroke="#2A2A2A" stroke-width="1.4"/>`;
   const hutLong__ = (x, y, w, o = {}) => `<rect x="${x}" y="${y - 34}" width="${w}" height="34" fill="${o.c || '#A8987C'}"/><path d="M${x - 6},${y - 34} L${x + 10},${y - 52} H${x + w - 10} L${x + w + 6},${y - 34} Z" fill="${o.roof || '#5E5248'}"/>` + T(Math.floor(w / 34), (i) => `<rect x="${x + 12 + i * 34}" y="${y - 26}" width="14" height="12" fill="${o.lit ? '#F6D58A' : '#3A4A5A'}"/>`) + `<rect x="${x + w - 22}" y="${y - 24}" width="12" height="24" fill="#4A3828"/>` + (o.snow ? `<path d="M${x - 6},${y - 34} L${x + 10},${y - 52} H${x + w - 10} L${x + w + 6},${y - 34} l-8,-2 L${x + w - 12},${y - 49} H${x + 12} L${x + 2},${y - 36} Z" fill="#F4F6F6"/>` : '');
   const marquee__ = (x, y, w, o = {}) => `<path d="M${x},${y} L${x + 8},${y - 34} L${x + w / 2},${y - 58} L${x + w - 8},${y - 34} L${x + w},${y} Z" fill="${o.c || '#C9BE9C'}"/><path d="M${x + 8},${y - 34} H${x + w - 8}" stroke="#A89C78" stroke-width="1.6"/><path d="M${x + w / 2 - 13},${y} V${y - 30} L${x + w / 2},${y - 38} L${x + w / 2 + 13},${y - 30} V${y} Z" fill="${o.dark ? '#2A241C' : '#5A4A30'}"/>` + (o.dark ? '' : rglow(x + w / 2, y - 14, 20, 20, '#F6D58A', 0.6)) + `<path d="M${x},${y} l-10,6 M${x + w},${y} l10,6" stroke="#5A4636" stroke-width="1.4"/>`;
-  const whiteShip__ = (x, y, s = 1, o = {}) => g(x, y, s, `<path d="M-170,-6 L-150,-34 H150 L176,-12 L160,14 H-150 Z" fill="#F4F1EA"/><path d="M-158,-22 H164 L172,-12 H-164 Z" fill="#3E7A4E"/>` + [-90, 0, 90].map((cx) => `<path d="M${cx},-10 v18 M${cx - 9},-1 h18" stroke="#C8372D" stroke-width="6"/>`).join('') + `<rect x="-110" y="-52" width="220" height="18" fill="#E6E2D6"/>` + T(13, (i) => `<rect x="${-102 + i * 16}" y="-47" width="8" height="8" fill="${o.night ? '#F6D58A' : '#5E7480'}"/>`) + `<rect x="-14" y="-92" width="28" height="42" fill="#C9A66B"/><rect x="-14" y="-92" width="28" height="8" fill="#3A3A3A"/><path d="M-120,-52 V-110 M120,-52 V-104" stroke="#3A3A3A" stroke-width="2.4"/>` + (o.night ? T(11, (i) => `<circle cx="${-150 + i * 30}" cy="-36" r="2.4" fill="#F6E7A0"/>`) : ''), {});
+  const whiteShip__ = (x, y, s = 1, o = {}) => g(x, y, s, `<path d="M-170,-6 L-150,-34 H150 L176,-12 L160,14 H-150 Z" fill="#F4F1EA"/><g data-tip="${W1TIP.greenband}"><path d="M-158,-22 H164 L172,-12 H-164 Z" fill="#3E7A4E"/></g>` + [-90, 0, 90].map((cx) => `<path d="M${cx},-10 v18 M${cx - 9},-1 h18" stroke="#C8372D" stroke-width="6"/>`).join('') + `<rect x="-110" y="-52" width="220" height="18" fill="#E6E2D6"/>` + T(13, (i) => `<rect x="${-102 + i * 16}" y="-47" width="8" height="8" fill="${o.night ? '#F6D58A' : '#5E7480'}"/>`) + `<rect x="-14" y="-92" width="28" height="42" fill="#C9A66B"/><rect x="-14" y="-92" width="28" height="8" fill="#3A3A3A"/><path d="M-120,-52 V-110 M120,-52 V-104" stroke="#3A3A3A" stroke-width="2.4"/>` + (o.night ? T(11, (i) => `<circle cx="${-150 + i * 30}" cy="-36" r="2.4" fill="#F6E7A0"/>`) : ''), {});
   const nsBack = (v, o = {}) => {
     if (v === 'tent') return wardW({ tent: true });
     if (v === 'office') return roomW('#D9D2C0', '#C8C0AC', '#A89C84', '#7A705C', { dado: 150, dadoC: '#B9A98C' }) + windowW(60, 30, 84, 90, { hills: true }) + `<rect x="330" y="150" width="200" height="12" fill="#6B4A30"/><rect x="340" y="162" width="10" height="44" fill="#5A4030"/><rect x="510" y="162" width="10" height="44" fill="#5A4030"/><rect x="352" y="143" width="26" height="7" fill="#F4F1EA"/><rect x="386" y="143" width="26" height="7" fill="#F4F1EA"/><rect x="420" y="143" width="26" height="7" fill="#F4F1EA"/><rect x="250" y="40" width="46" height="60" fill="#F2EAD2" stroke="#8A7A5A"/><path d="M256,52 h34 M256,62 h34 M256,72 h26" stroke="#8A7A5A" stroke-width="1.6"/>`;
@@ -2889,7 +3040,7 @@
     if (v === 'train') return `<rect y="150" width="600" height="100" fill="#2A2622"/>` + T(22, (i) => `<circle cx="${(i * 97) % 600}" cy="${10 + (i * 31) % 90}" r="${0.8 + (i % 3) * 0.4}" fill="#F4F1EA" opacity="0.8"/>`) + railsW(176, 0.5) + steamLoco(84, 184, 1.0) + T(3, (i) => `<rect x="${150 + i * 152}" y="128" width="144" height="52" rx="4" fill="#3E4A3A"/><rect x="${150 + i * 152}" y="128" width="144" height="8" fill="#2E3A2E"/>` + T(5, (j) => `<rect x="${160 + i * 152 + j * 22}" y="142" width="14" height="14" fill="#F6D58A"/>`) + `<circle cx="${270 + i * 152}" cy="158" r="12" fill="#F4F1EA"/><path d="M${270 + i * 152},150 v16 M${262 + i * 152},158 h16" stroke="#C8372D" stroke-width="4.4"/>`) + `<rect y="192" width="600" height="58" fill="#4A4238"/>` + T(9, (i) => `<path d="M${i * 70},192 l-30,58" stroke="#3A3228" stroke-width="1.2"/>`);
     if (v === 'huts') return `<path d="M0,128 Q150,116 300,124 T600,118 V160 H0 Z" fill="${o.snow ? '#C9D2D6' : '#A9B49A'}"/>` + T(7, (i) => `<path d="M${30 + i * 90},128 l3,-${40 + (i % 3) * 14} l5,${40 + (i % 3) * 14} Z" fill="${o.night ? '#1E2A22' : '#4E6A4E'}"/>`) + band(150, 100, o.snow ? [[0, '#E8ECEC'], [1, '#CDD6DA']] : [[0, '#A8A07C'], [1, '#7E7458']]) + hutLong(40, 190, 190, { snow: o.snow, lit: o.lit }) + hutLong(270, 182, 170, { snow: o.snow, lit: o.lit, c: '#9A8C70' }) + T(3, (i) => `<path d="M${470 + i * 44},192 l20,-34 l20,34 Z" fill="#D8D0BC"/><path d="M${486 + i * 44},192 l4,-16 l4,16 Z" fill="#5A4A30"/>`) + T(14, (i) => `<rect x="${i * 44 - 6}" y="${214 + (i % 2) * 2}" width="38" height="6" fill="#8A6A44"/>`) + rcFlagN(248, 190, 1);
     if (v === 'ccs') return `<path d="M0,132 Q150,126 300,131 T600,128 V160 H0 Z" fill="#6E6A5E"/>` + T(6, (i) => `<path d="M${50 + i * 104},132 l2,-${26 + (i % 3) * 10} l3,6 l2,${22 + (i % 3) * 10} Z" fill="#3A3228"/>`) + (o.dark ? '' : rglow(470, 128, 150, 30, '#F2A24C', 0.4)) + band(150, 100, [[0, '#6E5E4A'], [1, '#4A3E30']]) + T(9, (i) => `<ellipse cx="${(i * 131 + 40) % 600}" cy="${200 + (i % 3) * 14}" rx="${26 + (i % 4) * 8}" ry="5" fill="#5E7078" opacity="0.6"/>`) + marquee(30, 196, 170, { dark: o.dark }) + marquee(220, 188, 160, { dark: o.dark, c: '#BDB290' }) + marquee(400, 198, 180, { dark: o.dark }) + T(14, (i) => `<rect x="${i * 44 - 6}" y="${222 + (i % 2) * 2}" width="38" height="6" fill="#8A6A44"/>`) + rcFlagN(206, 196, 0.9) + (o.dark ? `<path d="M120,150 L60,0 L110,0 Z M430,150 L500,0 L560,0 Z" fill="#DCE6F0" opacity="0.16"/><path d="M300,40 l-12,3 l12,-8 l12,8 Z M294,38 h12" fill="#1E2430" stroke="#1E2430" stroke-width="2"/>` : '');
-    if (v === 'ship') return seaW(124, o.night ? '#2E3E52' : '#6E8A96', o.night ? '#1E2A3A' : '#4A6470') + (o.harbour ? `<path d="M0,124 Q120,96 260,112 Q420,92 600,116 V128 H0 Z" fill="#8E9A8A"/>` + T(9, (i) => `<path d="M${20 + i * 34},116 l3,-${8 + (i % 3) * 5} l2,${8 + (i % 3) * 5} Z" fill="#2A241C"/>`) : gullW(110, 60, 1) + gullW(470, 48, 0.8)) + whiteShip(310, 150, o.harbour ? 0.86 : 1.1, { night: o.night }) + (o.night ? T(24, (i) => `<circle cx="${(i * 97) % 600}" cy="${6 + (i * 31) % 70}" r="${0.8 + (i % 3) * 0.4}" fill="#F4F1EA" opacity="0.85"/>`) + rglow(310, 150, 240, 60, '#F6E7A0', 0.25) : '') + (o.harbour ? `<rect y="200" width="600" height="50" fill="#8A7456"/>` + T(6, (i) => `<path d="M0,${208 + i * 8} H600" stroke="#6E5C42" stroke-width="1.2"/>`) + T(8, (i) => `<rect x="${i * 80 + 20}" y="192" width="9" height="14" fill="#5A4636"/>`) : '');
+    if (v === 'ship') return (o.harbour ? '' : `<g data-tip="${W1TIP.sea}">`) + seaW(124, o.night ? '#2E3E52' : '#6E8A96', o.night ? '#1E2A3A' : '#4A6470') + (o.harbour ? '' : '</g>') + (o.harbour ? `<path d="M0,124 Q120,96 260,112 Q420,92 600,116 V128 H0 Z" fill="#8E9A8A"/>` + T(9, (i) => `<path d="M${20 + i * 34},116 l3,-${8 + (i % 3) * 5} l2,${8 + (i % 3) * 5} Z" fill="#2A241C"/>`) : gullW(110, 60, 1) + gullW(470, 48, 0.8)) + whiteShip(310, 150, o.harbour ? 0.86 : 1.1, { night: o.night }) + (o.night ? T(24, (i) => `<circle cx="${(i * 97) % 600}" cy="${6 + (i * 31) % 70}" r="${0.8 + (i % 3) * 0.4}" fill="#F4F1EA" opacity="0.85"/>`) + rglow(310, 150, 240, 60, '#F6E7A0', 0.25) : '') + (o.harbour ? `<rect y="200" width="600" height="50" fill="#8A7456"/>` + T(6, (i) => `<path d="M0,${208 + i * 8} H600" stroke="#6E5C42" stroke-width="1.2"/>`) + T(8, (i) => `<rect x="${i * 80 + 20}" y="192" width="9" height="14" fill="#5A4636"/>`) : '');
     if (v === 'hut') return gfill('M0,0 H600 V198 H0 Z', [[0, '#B8946A'], [1, '#9A7A54']]) + T(24, (i) => `<path d="M${i * 26 + 6},0 V198" stroke="#8A6A48" stroke-width="1.4"/>`) + band(196, 54, [[0, '#7A5E40'], [1, '#5A4630']]) + windowW(440, 34, 80, 70, { hills: false }) + `<rect x="60" y="120" width="44" height="76" rx="4" fill="#2E2A28"/><rect x="74" y="0" width="12" height="122" fill="#3A3636"/><rect x="68" y="150" width="28" height="18" fill="#F2A24C"/>` + rglow(82, 160, 80, 60, '#F2A24C', 0.5) + `<rect x="230" y="160" width="190" height="10" fill="#6B4A30"/><rect x="240" y="170" width="9" height="40" fill="#5A4030"/><rect x="402" y="170" width="9" height="40" fill="#5A4030"/>` + lampN(325, 54);
     if (v === 'road') return seaW(118, '#7E949C', '#55707C') + `<path d="M0,132 Q200,112 600,134 V250 H0 Z" fill="${o.snow ? '#E8ECEC' : '#93A870'}"/>` + T(9, (i) => `<path d="M${20 + i * 70},${134 - (i % 3) * 4} l6,-${30 + (i % 2) * 10} l7,${30 + (i % 2) * 10} Z" fill="#3E5A40"/>`) + `<path d="M-20,250 Q260,180 640,196 L640,216 Q300,206 100,250 Z" fill="${o.snow ? '#D6DEE0' : '#B8A88A'}"/><path d="M360,140 Q468,78 580,140 Z" fill="${o.snow ? '#E8ECEC' : '#93A870'}"/><rect x="420" y="128" width="96" height="52" fill="#C9C2AE"/><path d="M412,130 L468,96 L524,130 Z" fill="${o.snow ? '#F4F6F6' : '#5A4A44'}"/><rect x="434" y="142" width="14" height="16" fill="#F6D58A"/><rect x="488" y="142" width="14" height="16" fill="#3A4A5A"/><rect x="460" y="150" width="14" height="30" fill="#6B4A2E"/><rect x="492" y="88" width="8" height="18" fill="#6E5A4E"/>`;
     return wardW({});   // 'ward'
@@ -10237,6 +10388,7 @@ function lookAdd(svg, n) {
   } catch (e) { return svg; }
 }
 { const fp = ART.forPassage; ART.forPassage = (n) => lookAdd(fp(n), Number(n)); }
+{ const fp2 = ART.forPassage; ART.forPassage = (n) => { w1Cur = Number(n); return w1Bg(fp2(n), Number(n)); }; }
 const LOOK_RM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 function lookFlyStart(el) {
   if (el.dataset.flying) return; el.dataset.flying = '1';
@@ -10280,7 +10432,7 @@ try { new MutationObserver(() => document.querySelectorAll('.art .anim-fly, .art
   const hide = () => { if (tip) tip.hidden = true; pinned = null; };
   const show = (g, x, y) => {
     if (!tip) { tip = el('div', { id: 'looktip', role: 'tooltip' }); document.body.appendChild(tip); }
-    const [name, note] = g.getAttribute('data-tip').split('|');
+    const [name, note] = (g.getAttribute('data-tip') || g.getAttribute('data-bgtip') || '').split('|');
     tip.replaceChildren(el('strong', { text: name }), ...(note ? [el('span', { text: note })] : []));
     tip.hidden = false;
     if (g.dataset.call && typeof SND !== 'undefined') SND.call(g.dataset.call);
@@ -10288,7 +10440,7 @@ try { new MutationObserver(() => document.querySelectorAll('.art .anim-fly, .art
     tip.style.left = Math.max(8, Math.min(x - w / 2, window.innerWidth - w - 8)) + 'px';
     tip.style.top = (y - h - 16 > 6 ? y - h - 16 : y + 22) + 'px';
   };
-  const find = (e) => (e.target && e.target.closest ? e.target.closest('.art [data-tip]') : null);
+  const find = (e) => (e.target && e.target.closest ? (e.target.closest('.art [data-tip]') || e.target.closest('svg[data-bgtip]')) : null);
   let over = null;
   document.addEventListener('pointerover', (e) => { if (e.pointerType === 'touch' || pinned) return; const g = find(e); if (g === over) return; over = g; if (g) show(g, e.clientX, e.clientY); else hide(); });
   
@@ -10951,6 +11103,27 @@ function todayPage(back) {
   ]);
 }
 const SRC_LIST = [
+  { g: '👕 Clothing, gear and ships in the pictures', intro: 'Hover over (or tap) things in the pictures: people’s hats, clothes and boots, the ships and more each have a box. Most boxes reuse facts from the story; these are the sources for the new ones.', items: [
+    ['The Hospital (April 17, 1915): The Legal Status of the Hospital Ship in War-Time', 'Military hospital ships were painted white with a broad green band; other hospital ships were white with a red band.', 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5230225/'],
+    ['University of Wisconsin Digital Collections: Hague Convention X (1907), Article V', 'The treaty text: military hospital ships were to be painted white outside.', 'https://search.library.wisc.edu/digital/ACFDJVAAOYYDFX8M/text/AFPAISHVAVWEHN8Q'],
+    ['Canadian War Museum: Puttees (Supply Line)', 'Strips of wool wound around the lower leg, worn with ankle boots.', 'https://www.warmuseum.ca/wp-content/uploads/2023/08/CWM_SupplyLine_Puttees_EN_FINAL_20140922.pdf'],
+    ['Canadian War Museum: Mark I Helmet (Supply Line)', 'In February 1916 there were only enough helmets for about one Canadian soldier in five, so they were shared.', 'https://warmuseum.ca/wp-content/uploads/2023/08/CWM_SupplyLine_MarkIHelmet_EN_FINAL_20140922.pdf'],
+    ['Canadian War Museum: Service Dress Cap (Supply Line)', 'The khaki wool serge cap and its badge.', 'https://www.warmuseum.ca/wp-content/uploads/2023/08/CWM_SupplyLine_ServiceDressCap_EN_FINAL_20140922.pdf'],
+    ['Canadian War Museum: Cap', 'Soldiers sometimes removed the wire stiffener in the peak, against regulations.', 'https://www.warmuseum.ca/firstworldwar/?p=614'],
+    ['Veterans Affairs Canada: Life in combat boots', 'Canadian-made boots fell apart in the wet; by 1916 they were replaced with British boots. Soldiers traded in their civilian footwear.', 'https://www.veterans.gc.ca/en/remembrance/classroom-materials/lesson-plans/combat-boots/handout-life-combat-boots'],
+    ['Imperial War Museums: German field cap (Feldmütze)', 'Part of the field-grey uniform adopted from 1910, worn instead of the helmet.', 'https://www.iwm.org.uk/collections/item/object/30098510'],
+    ['Australian War Memorial: German infantry boots', 'Leather jackboots with hobnails driven into the soles.', 'https://www.awm.gov.au/collection/C109863'],
+    ['Australian War Memorial: Khaki apron for a kilt', 'Highland regiments covered the bright tartan of the kilt with a khaki apron.', 'https://www.awm.gov.au/collection/C253383'],
+    ['48th Highlanders Museum: First World War kilt apron', 'Canadian Highlanders were entitled to wear the kilt all through the war.', 'https://museum.48thhighlanders.ca/item/world-war-1-kilt-apron-replica-2'],
+    ['Canadian Museum of History: Fashion Hats, 1890-1920', 'Women’s hats reached an enormous size by about 1910.', 'https://historymuseum.ca/cmc/exhibitions/hist/hats/473_29be.html'],
+    ['Christina Bates, “Wearing Two Hats” (Material History Review)', 'The heyday of the handmade hat, 1890 to 1920, and the milliner in almost every town.', 'https://journals.lib.unb.ca/index.php/MCR/article/download/17834/22120?inline=1'],
+    ['Kent State University Museum: The Great War: Women and Fashion in a World at War', 'Women adopted shorter skirts and looser clothes, and the changes lasted.', 'https://fashionexhibitionmaking.arts.ac.uk/the-great-war-women-and-fashion-in-a-world-at-war/'],
+    ['The Metropolitan Museum of Art: Boots, about 1917', 'Shorter skirts from 1915 meant taller boots, often buttoned.', 'https://www.metmuseum.org/art/collection/search/158433'],
+    ['Bruce Museum: Fashion Over Function', 'Flat caps were a staple of working men in the late 1800s and early 1900s.', 'https://www.brucemuseum.ca/exhibit/fashion-over-function-digital-exhibition-2/'],
+    ['Toronto Metropolitan University Fashion Research Collection: Of Hats and History', 'Felt is made from animal hair; the best felt hats were beaver.', 'https://www.torontomu.ca/content/dam/fashionresearchcollection/research-articles/Of_Hats_and_History.pdf'],
+    ['Canadian Food Studies: the Nova Scotia apple industry', 'From the 1860s until the Second World War, apples were a booming cross-Atlantic export.', 'https://canadianfoodstudies.uwaterloo.ca/index.php/cfs/article/download/165/160/912'],
+    ['Statistics Canada: Canada Year Book (apples)', 'Barrels of apples packed in the Annapolis Valley.', 'https://publications.gc.ca/collections/collection_2018/statcan/22-203/CS22-203-1921-24-eng.pdf'],
+  ] },
   { g: '🏛️ Government and museum sources', intro: 'Start here. These are the most reliable places to check a fact about the First World War.', items: [
     ['Veterans Affairs Canada: the First World War', 'Battles, people, numbers and classroom materials, including Vimy Ridge, the Somme and Beaumont-Hamel.', 'https://www.veterans.gc.ca/en/remembrance/history/first-world-war'],
     ['Canadian War Museum: Canada and the First World War', 'The history of the war, with photographs and objects from the museum.', 'https://www.warmuseum.ca/firstworldwar/'],
