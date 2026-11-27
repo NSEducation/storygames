@@ -3676,7 +3676,7 @@ const GAME = {
   badges: {
     threelives: { icon: '🌿', name: 'Four Lives', text: 'Reach an ending as Anne, Pierre, Muin and Émile.' },
     archivist: { icon: '📜', name: 'Archivist', text: 'Read every real document in the stories.' },
-    gamemaster: { icon: '🎮', name: 'Game Master', text: 'Finish all 15 mini-games.' },
+    gamemaster: { icon: '🎮', name: 'Game Master', text: 'Finish all 16 mini-games.' },
     pathfinder: { icon: '🔓', name: 'Pathfinder', text: 'Open all 9 hidden paths with what you learned.' },
     wordcarrier: { icon: '🗣️', name: 'Word Carrier', text: 'Learn all 16 Mi’kmaw and Acadian French words to carry.' },
     inkkeeper: { icon: '🔦', name: 'Keeper of Hidden History', text: 'Find all eight Hidden Ink words around the school.' },
@@ -11449,6 +11449,1293 @@ function mapBigButtons() {
 }
 try { new MutationObserver(mapBigButtons).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) { /* no bigger-map button on very old browsers */ }
 
+const SNARE = {
+  heroes: {
+    anne: {
+      me: 'anne', bud: 'kloqoej', teach: 'bud', budName: 'Kloqoej', demo: true,
+      intro: 'It is the winter of 1755. Grand-Pré is gone, and you live with Kitpu’s family. Kloqoej is teaching you to set snares, so there is food for everyone.',
+      day1: 'Kloqoej’s snares', day1tag: 'Kloqoej sets the first one while you watch. Then you set two.',
+      ready: 'Ready? Kloqoej is waiting by the wikuom.',
+      bag: 'Kloqoej lifts it into her bag.',
+      thin: 'The stew is thin tonight. Kloqoej shows you how to find food under the snow, and everyone shares what there is.',
+      neta: 'Kloqoej’s family calls this netukulimk: take what you need, use all of it, and leave enough for the ones who come after.',
+      thanks: 'You say Wela’lin, the first word Kloqoej taught you.',
+    },
+    qalipu: {
+      me: 'muin', bud: 'anne', teach: 'me', budName: 'Anne', demo: false,
+      intro: 'It is the winter of 1755. Your family is hiding eleven Acadians near Grand-Pré, and there is never enough food. You set snares every day. Today Anne comes with you to learn.',
+      day1: 'Anne’s first snares', day1tag: 'Show Anne how. Set three snares, and tell her what you do.',
+      ready: 'Ready? Anne is waiting by the wikuom.',
+      bag: 'You lift it into your bag.',
+      thin: 'The stew is thin tonight. You fish through the ice, and everyone shares what there is.',
+      neta: 'Nukumi calls this netukulimk: take what you need, use all of it, and leave enough for the ones who come after.',
+      thanks: 'Anne says Wela’lin, the word Kloqoej taught her.',
+    },
+  },
+  how: 'How to read the snow: snowshoe hares follow the same paths, called runs, every night. A run is packed snow with many fresh tracks. A hare’s tracks come in groups of four: two big hind prints land in front of two small front prints. The best place for a snare is where a run squeezes between two bushes, so the hare has to go through your loop.',
+  how2: 'Make the loop just big enough for your fist to fit through, and set its bottom four fingers above the snow. Then go home for the night, and check every snare at first light.',
+  keys: 'Click or tap a ring on the snow to look closely, then press “Set a snare here”. With the keyboard, ← and → choose a place and Space sets a snare. At the snare, ↑ and ↓ raise and lower the loop, ← and → make it smaller or bigger, M measures with your hand, T adds twigs, and Enter ties it. P pauses.',
+  facts: [
+    'A snowshoe hare uses the same trails night after night. They are called runways, and the hare nips off stems that start to block them.',
+    'Snowshoe hares are busiest between sundown and dawn, and they stay busy all winter.',
+    'In a hare’s tracks, the big hind prints land in front of the small front prints.',
+    'A snowshoe hare’s hind prints are four to five times as big as its front prints.',
+    'A snowshoe hare changes its coat twice a year: dark brown in spring and white in fall. The tips of its ears are black.',
+    'The snowshoe hare is named for its large hind feet.',
+    'In summer, snowshoe hares eat green plants. In winter, they eat twigs, buds and bark.',
+    'In 1672, Nicolas Denys wrote that Acadia’s hares were red in summer and all white in winter.',
+  ],
+  today: [
+    'Snaring is still taught today. At the Mi’kmawey School in Potlotek First Nation, Cape Breton, Grade 7 and 8 students learned to set snares from Terry Denny, a traditional trapper. He showed them the old kind, made of moose sinew, and modern brass ones, and how to skin and cook the rabbits. “This is sharing, and utilizing almost all the rabbit,” he said.',
+    'Nova Scotia’s rules say you need a licence to snare rabbits, even if you are under 18. Mi’kmaw people also have treaty rights: in 1985, the Supreme Court of Canada ruled that the Treaty of 1752 was still valid. The case began when a Mi’kmaw man was charged for hunting.',
+  ],
+  sources: 'Where this comes from: Hinterland Who’s Who, “Snowshoe Hare”; U.S. Fish and Wildlife Service, “Snow Tracks”; U.S. National Park Service, “Patterns in the Snow”; Outdoor Canada, “How to snare a rabbit or hare”; Government of Newfoundland and Labrador, Hunting and Trapping Guide; CBC News, “First Nations students learn art of snaring rabbits”; Nova Scotia Department of Natural Resources, Base Licence. The story’s own words come from scenes 11, 83, 513, 519 and 522.',
+};
+// ================= SET THE SNARES =================
+// Anne (scene 11: "Kloqoej teaches you to set snares") and Muin (scene 513: "You set snares, fish
+// through the ice and boil the bones twice") in the winter of 1755. Read the snow for the hares'
+// runs, set each loop the right size and height, go home for the night, and check every snare at
+// first light. On the third day the camp moves, so every snare is taken up. No animal is ever shown
+// hurt: a catch is a closed loop, a full bag and a fuller kettle. There is no way to lose: a thin
+// night is shared, and the snares are set again tomorrow. People wear the story pictures' colours.
+function gSnare(box, win) {
+  const CFG = SNARE, H = 420, SF = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+  const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const mulb = (a) => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join(''); };
+  const rgba = (h, a) => { const [r, gg, b] = rgb(h); return `rgba(${r},${gg},${b},${a})`; };
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const timeUp = () => typeof gtLeft === 'function' && gtLeft() <= 0;
+  let stopRun = null;
+  const HK = Object.keys(CFG.heroes).filter((k) => typeof HEROES === 'undefined' || HEROES[k]);
+  let nowKey = null; try { if (typeof current !== 'undefined' && current && typeof heroOf === 'function') nowKey = Object.keys(HEROES).find((k) => HEROES[k] === heroOf(current)) || null; } catch (e) { nowKey = null; }
+  let heroKey = nowKey && CFG.heroes[nowKey] ? nowKey : CFG.heroes[PROG.snareHero] ? PROG.snareHero : HK[0];
+  const nameOf = (k) => (typeof HEROES !== 'undefined' && HEROES[k] && HEROES[k].name) || (k === 'qalipu' ? 'Muin' : 'Anne');
+
+  // quiet sound effects: only when the Sound button at the top is on
+  const sfx = (() => {
+    let nb = null;
+    const A = () => { try { if (typeof SND === 'undefined' || !SND.on) return null; const a = SND._audio(); return a && a.ctx && a.master ? a : null; } catch (e) { return null; } };
+    const tone = (a, type, f0, f1, dur, vol, delay) => {
+      const t = a.ctx.currentTime + (delay || 0), o = a.ctx.createOscillator(), g = a.ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(a.master); o.start(t); o.stop(t + dur + 0.03);
+    };
+    const noise = (a, dur, vol, f, delay) => {
+      const ctx = a.ctx, t = ctx.currentTime + (delay || 0);
+      if (!nb || nb.sampleRate !== ctx.sampleRate) { nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.4), ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      const src = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+      src.buffer = nb; bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = 0.9;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(bp); bp.connect(g); g.connect(a.master); src.start(t); src.stop(t + dur + 0.05);
+    };
+    return (kind) => {
+      const a = A(); if (!a) return;
+      try {
+        if (kind === 'step') noise(a, 0.08, 0.04, 800 + Math.random() * 500);
+        else if (kind === 'tick') tone(a, 'triangle', 700, 740, 0.035, 0.018);
+        else if (kind === 'twig') { noise(a, 0.03, 0.05, 2600); noise(a, 0.03, 0.04, 2100, 0.07); }
+        else if (kind === 'tie') { tone(a, 'triangle', 440, 520, 0.08, 0.03); tone(a, 'triangle', 520, 660, 0.09, 0.03, 0.09); }
+        else if (kind === 'owl') { tone(a, 'sine', 392, 370, 0.32, 0.03); tone(a, 'sine', 392, 360, 0.42, 0.03, 0.5); }
+        else if (kind === 'catch') [523, 659, 784].forEach((f, i) => tone(a, 'triangle', f, f, 0.26, 0.045, i * 0.12));
+        else if (kind === 'empty') tone(a, 'sine', 300, 240, 0.25, 0.035);
+        else if (kind === 'note') tone(a, 'triangle', 600, 600, 0.12, 0.028);
+        else if (kind === 'take') { noise(a, 0.05, 0.04, 1500); tone(a, 'sine', 330, 300, 0.1, 0.025, 0.04); }
+        else if (kind === 'done') [392, 523, 659, 784].forEach((f, i) => tone(a, 'triangle', f, f, 0.3, 0.04, i * 0.13));
+      } catch (e) { /* sound is a nicety; never let it stop the game */ }
+    };
+  })();
+
+  const DAYS = [
+    { n: 1, icon: '🌲', map: 'camp', total: 3, need: 2, mult: 1, seed: 11 },
+    { n: 2, icon: '🧊', name: 'Along the frozen brook', tag: 'Alders, willows and a lot of tracks. Set four snares.', map: 'brook', total: 4, need: 3, mult: 1.25, seed: 23 },
+    { n: 3, icon: '❄️', name: 'After the snowfall', tag: 'New snow hides the old runs. Set four snares, then take every one up: tomorrow you move camp.', map: 'fresh', total: 4, need: 3, mult: 1.5, seed: 37, takeUp: true },
+  ];
+  const dayName = (L) => (L.n === 1 ? CFG.heroes[heroKey].day1 : L.name);
+  const dayTag = (L) => (L.n === 1 ? CFG.heroes[heroKey].day1tag : L.tag);
+
+  // ---------- the three places, in picture fractions: u across (0 left, 1 right), v away (0 near, 1 far) ----------
+  const MAPS = {
+    camp: () => ({
+      start: [0.17, 0.6], camp: [0.1, 0.8],
+      trees: [
+        ['spruce', 0.04, 1.02, 210], ['spruce', 0.22, 0.99, 190], ['spruce', 0.31, 1.03, 170], ['birch', 0.4, 0.98, 130], ['spruce', 0.47, 1.0, 180], ['spruce', 0.56, 1.04, 160],
+        ['spruce', 0.64, 0.97, 175], ['spruce', 0.73, 0.94, 200], ['spruce', 0.83, 0.95, 215], ['spruce', 0.93, 0.92, 205], ['spruce', 1.0, 0.86, 190],
+        ['young', 0.7, 0.8, 95], ['young', 0.86, 0.76, 105], ['young', 0.97, 0.68, 120], ['young', 0.78, 0.68, 70], ['young', 0.02, 0.58, 85],
+        ['alder', 0.07, 0.43, 66], ['stump', 0.42, 0.56, 1], ['rock', 0.1, 0.24, 24], ['alder', 0.95, 0.13, 78], ['log', 0.58, 0.63, 62],
+      ],
+      birches: [[0.43, 0.05, 80], [0.53, 0.03, 92], [0.5, 0.15, 70]],
+      runs: [
+        { id: 'A', pts: [[0.8, 0.74], [0.71, 0.6], [0.61, 0.46], [0.55, 0.33], [0.5, 0.21], [0.47, 0.11]] },
+        { id: 'B', pts: [[0.97, 0.6], [0.9, 0.45], [0.83, 0.31], [0.76, 0.19], [0.71, 0.09], [0.68, -0.04]] },
+        { id: 'O', old: 1, pts: [[0.02, 0.38], [0.12, 0.33], [0.21, 0.3], [0.28, 0.22], [0.3, 0.13]] },
+      ],
+      fox: [[[0.27, 0.03], [0.47, 0.68]]],
+      path: [[[0.12, 0.76], [0.17, 0.6], [0.24, 0.46], [0.33, 0.33], [0.37, 0.17], [0.38, -0.04]]],
+      scatter: [[[0.03, 0.1], [0.12, 0.13], [0.2, 0.07]]],
+      browse: [[0.48, 0.1]],
+      spots: [
+        { kind: 'gate', run: 'A', at: [0.61, 0.46], bush: 'alder', demo: true },
+        { kind: 'gate', run: 'B', at: [0.83, 0.31], bush: 'young' },
+        { kind: 'gate', run: 'B', at: [0.71, 0.09], bush: 'alder' },
+        { kind: 'run', run: 'A', at: [0.53, 0.27] },
+        { kind: 'old', run: 'O', at: [0.21, 0.3] },
+        { kind: 'fox', at: [0.37, 0.34] },
+        { kind: 'path', at: [0.24, 0.46] },
+        { kind: 'browse', at: [0.48, 0.1] },
+        { kind: 'open', at: [0.12, 0.13] },
+      ],
+    }),
+    brook: () => ({
+      start: [0.11, 0.07],
+      trees: [
+        ['spruce', 0.03, 0.98, 200], ['spruce', 0.12, 1.02, 185], ['spruce', 0.2, 0.96, 210], ['spruce', 0.3, 1.0, 175], ['spruce', 0.4, 1.04, 165], ['birch', 0.47, 0.97, 140],
+        ['spruce', 0.54, 1.0, 190], ['spruce', 0.63, 0.95, 205], ['spruce', 0.72, 0.99, 180], ['spruce', 0.81, 1.02, 200], ['spruce', 0.9, 0.96, 190], ['spruce', 0.99, 0.99, 210],
+        ['young', 0.08, 0.8, 95], ['young', 0.58, 0.82, 90], ['young', 0.92, 0.8, 100],
+        ['willow', 0.04, 0.56, 78], ['alder', 0.24, 0.59, 72], ['willow', 0.42, 0.57, 68], ['alder', 0.55, 0.47, 70], ['willow', 0.75, 0.28, 82], ['alder', 0.8, 0.12, 88], ['willow', 0.96, 0.1, 84],
+        ['log', 0.22, 0.71, 70], ['stump', 0.9, 0.58, 1], ['rock', 0.6, 0.71, 22],
+      ],
+      willows: [[0.09, 0.26, 70], [0.16, 0.18, 82]],
+      brook: [[-0.02, 0.64], [0.16, 0.54], [0.34, 0.51], [0.48, 0.42], [0.58, 0.28], [0.7, 0.17], [0.84, 0.08], [1.02, 0.03]],
+      runs: [
+        { id: 'A', pts: [[0.02, 0.42], [0.14, 0.38], [0.27, 0.35], [0.38, 0.31], [0.46, 0.24], [0.52, 0.14], [0.56, 0.02]] },
+        { id: 'B', pts: [[0.66, 0.88], [0.645, 0.68], [0.645, 0.52], [0.655, 0.38], [0.66, 0.27], [0.675, 0.16], [0.69, 0.06], [0.7, -0.04]] },
+        { id: 'C', pts: [[0.99, 0.52], [0.93, 0.42], [0.88, 0.34], [0.82, 0.26], [0.76, 0.21]] },
+        { id: 'D', old: 1, pts: [[0.16, 0.74], [0.27, 0.66], [0.38, 0.64], [0.48, 0.6]] },
+      ],
+      moose: [[[0.02, 0.22], [0.2, 0.17], [0.38, 0.12], [0.5, 0.06], [0.58, -0.04]]],
+      fox: [[[0.36, 0.505], [0.48, 0.42], [0.56, 0.31]]],
+      scatter: [[[0.8, 0.62], [0.88, 0.66], [0.96, 0.72]]],
+      browse: [[0.12, 0.22]],
+      spots: [
+        { kind: 'gate', run: 'A', at: [0.27, 0.35], bush: 'willow' },
+        { kind: 'gate', run: 'B', at: [0.645, 0.52], bush: 'alder' },
+        { kind: 'gate', run: 'B', at: [0.69, 0.06], bush: 'alder' },
+        { kind: 'run', run: 'A', at: [0.46, 0.24] },
+        { kind: 'run', run: 'C', at: [0.88, 0.34] },
+        { kind: 'old', run: 'D', at: [0.38, 0.64] },
+        { kind: 'moose', at: [0.3, 0.15] },
+        { kind: 'fox', at: [0.48, 0.42] },
+        { kind: 'browse', at: [0.12, 0.22] },
+        { kind: 'open', at: [0.88, 0.66] },
+      ],
+    }),
+    fresh: () => ({
+      start: [0.52, 0.04], fresh: true,
+      trees: [
+        ['spruce', 0.02, 1.0, 205], ['spruce', 0.1, 0.96, 190], ['spruce', 0.18, 1.02, 200], ['spruce', 0.27, 0.98, 170], ['birch', 0.36, 1.0, 130], ['spruce', 0.44, 1.03, 185],
+        ['spruce', 0.53, 0.97, 195], ['spruce', 0.62, 1.01, 175], ['spruce', 0.71, 0.97, 210], ['spruce', 0.8, 1.0, 190], ['spruce', 0.89, 0.95, 205], ['spruce', 0.98, 0.99, 195],
+        ['young', 0.06, 0.78, 100], ['young', 0.26, 0.74, 85], ['young', 0.86, 0.79, 95], ['young', 0.97, 0.66, 110],
+        ['log', 0.5, 0.68, 80], ['alder', 0.02, 0.47, 70], ['rock', 0.64, 0.57, 24], ['stump', 0.3, 0.64, 1], ['birch', 0.9, 0.12, 95], ['birch', 0.96, 0.21, 80],
+      ],
+      runs: [
+        { id: 'A', pts: [[0.1, 0.72], [0.17, 0.58], [0.24, 0.47], [0.31, 0.37], [0.37, 0.25], [0.41, 0.13], [0.44, -0.02]] },
+        { id: 'B', pts: [[0.94, 0.7], [0.86, 0.56], [0.79, 0.45], [0.73, 0.34], [0.66, 0.23], [0.61, 0.12], [0.58, -0.02]] },
+        { id: 'C', buried: 1, pts: [[0.46, 0.78], [0.5, 0.58], [0.53, 0.46], [0.56, 0.36]] },
+        { id: 'D', buried: 1, pts: [[0.04, 0.32], [0.12, 0.26], [0.2, 0.19], [0.26, 0.1]] },
+      ],
+      fox: [[[0.99, 0.62], [0.9, 0.05]]],
+      scatter: [[[0.1, 0.07], [0.2, 0.04], [0.3, 0.02]]],
+      spots: [
+        { kind: 'gate', run: 'A', at: [0.31, 0.37], bush: 'alder' },
+        { kind: 'gate', run: 'A', at: [0.17, 0.58], bush: 'young' },
+        { kind: 'gate', run: 'B', at: [0.73, 0.34], bush: 'young' },
+        { kind: 'run', run: 'A', at: [0.4, 0.17] },
+        { kind: 'run', run: 'B', at: [0.82, 0.5] },
+        { kind: 'buried', run: 'C', at: [0.53, 0.46] },
+        { kind: 'buried', run: 'D', at: [0.16, 0.22] },
+        { kind: 'fox', at: [0.945, 0.28] },
+        { kind: 'open', at: [0.2, 0.04] },
+      ],
+    }),
+  };
+  // what each place is good for, and what you see when you kneel and look
+  const PLACE = { gate: 1, run: 0.6, old: 0.05, buried: 0.05, fox: 0, moose: 0, path: 0, open: 0.15, browse: 0.2 };
+  const BUSH = { alder: 'alder bushes', willow: 'willow bushes', young: 'young spruce trees' };
+  const DESC = (sp, fresh) => ({
+    gate: `Packed snow squeezes between two ${BUSH[sp.bush] || 'bushes'}. Many fresh tracks${fresh ? ' on the new snow' : ''}, in groups of four.`,
+    run: `Packed snow across open ground. Many fresh tracks${fresh ? ' on the new snow' : ''}, in groups of four. There is room on both sides.`,
+    old: 'An old trail, smoothed over by blowing snow. No fresh tracks.',
+    buried: 'Fresh, smooth snow over an old trail. No tracks cross it yet.',
+    fox: 'Small prints, one after another, in a straight line.',
+    moose: 'Huge, deep prints, each one split in two.',
+    path: 'Wide, flat prints, side by side: your own snowshoe trail from camp.',
+    open: 'Open snow. One line of tracks crosses here, far apart.',
+    browse: 'Young trees with their twig ends nipped off. Tracks wander everywhere.',
+  })[sp.kind];
+  const LOOKHINT = { fox: 'Are these prints in groups of four?', moose: 'Look at the size of these prints.', path: 'Who made these wide, flat prints?', old: 'Are there any fresh tracks here?', buried: 'Are there any fresh tracks here?', open: 'How many hares came this way?', browse: 'Do the tracks here go one way, or everywhere?', run: 'There is room on both sides. How could you guide the hare in?' };
+
+  // ---------- light ----------
+  const PAL = {
+    day: { skyTop: '#9DB6CE', skyBot: '#E6EAEC', hill: '#9AAAB6', snowFar: '#D8E1E9', snowNear: '#F8FAFC', shade: '#B4C4D6', shadeDk: '#8DA2B9', run: '#D5DFE9', print: '#8597AF', printDk: '#62778F', needle: '#2C4636', needle2: '#3B5B45', needleDk: '#1E3127', trunk: '#5A4535', stem: '#6E4B3A', stemHi: '#8C6650', birch: '#EEEBE3', birchMk: '#3A3430', ice: '#BCD0DD', iceHi: '#E2EDF3', bark: '#8E7C64', barkDk: '#6E5E4A', snowOn: '#F4F7FA', ink: '#24313A' },
+    dawn: { skyTop: '#7C8FBE', skyBot: '#F3C3A8', hill: '#A496A8', snowFar: '#D6CBD6', snowNear: '#F6EEEF', shade: '#B7AEC8', shadeDk: '#9187A8', run: '#D3CBDC', print: '#8D86A8', printDk: '#6C648A', needle: '#2C3D3A', needle2: '#3A4E48', needleDk: '#1F2B2A', trunk: '#54413A', stem: '#6A4840', stemHi: '#86625A', birch: '#EDE4E2', birchMk: '#3A3034', ice: '#C4C6DA', iceHi: '#EAE6F0', bark: '#8A7468', barkDk: '#6A5850', snowOn: '#F6EFF1', ink: '#2A2C3A' },
+    night: { skyTop: '#0B1630', skyBot: '#273A5F', hill: '#1D2B46', snowFar: '#4C5F82', snowNear: '#7E91B3', shade: '#3C4E72', shadeDk: '#2E3D5C', run: '#6B7DA0', print: '#53658A', printDk: '#425274', needle: '#0F1C1B', needle2: '#152522', needleDk: '#091211', trunk: '#1C1818', stem: '#2A2228', stemHi: '#3A3036', birch: '#97A3B8', birchMk: '#1E2230', ice: '#52698E', iceHi: '#6C82A8', bark: '#35302E', barkDk: '#272322', snowOn: '#8EA0C0', ink: '#0E1420' },
+  };
+  // the people, in the story pictures' colours
+  const LOOK = {
+    anne: { skin: '#EFCDAE', hair: '#6B4A2E', gown: '#3E5570', apron: '#EFE7D3', kerchief: '#E8DCC0', cap: '#F4EFE4', cape: '#2F4560', k: 0.9 },
+    kloqoej: { skin: '#B98455', hair: '#17110D', dress: '#5E3A4A', shawl: '#4A5240', legs: '#6B4A2E', moc: '#5A3E28', k: 0.88 },
+    muin: { skin: '#A9714B', hair: '#17110D', coat: '#2E4A6E', sash: '#A8322B', legs: '#6B4A2E', moc: '#5A3E28', k: 0.96 },
+    nukumi: { skin: '#9A6644', hair: '#C4C2BC', dress: '#3E5A4A', shawl: '#7A2E2A', legs: '#6B4A2E', moc: '#5A3E28', k: 0.9 },
+  };
+
+  function menu(focusKey) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const HR = CFG.heroes[heroKey], best = PROG.snareBest || 0, bs = PROG.snareStars || {};
+    const heroRow = el('div', { class: 'trail-opts', role: 'group', 'aria-label': 'Who is setting the snares?' }, HK.map((k) => {
+      const b = el('button', { type: 'button', class: 'seg', text: nameOf(k), onclick: () => { heroKey = k; PROG.snareHero = k; saveProg(); menu(k); } });
+      b.setAttribute('aria-pressed', String(k === heroKey)); if (k === focusKey) setTimeout(() => b.focus({ preventScroll: true }), 0); return b;
+    }));
+    box.append(
+      el('h2', { class: 'readable', text: 'Who is setting the snares?' }), heroRow,
+      el('p', { class: 'readable', text: HR.intro }),
+      el('p', { class: 'readable', text: CFG.how }),
+      el('p', { class: 'readable', text: CFG.how2 }),
+      el('p', { class: 'hint', text: CFG.keys }),
+      el('h2', { class: 'readable', text: 'Choose a day' }),
+      el('div', { class: 'trail-courses' }, DAYS.map((L) => el('button', { type: 'button', class: 'ghcard' + (bs[L.n] ? ' done' : ''), onclick: () => play(L) }, [
+        el('span', { class: 'ghicon', text: L.icon }), el('strong', { text: dayName(L) }), el('span', { text: dayTag(L) }),
+        el('span', { class: 'ghwhere', text: bs[L.n] ? `Best: ${stars(bs[L.n])}` : 'Not tried yet' }),
+      ]))),
+      el('label', { class: 'grelax' }, [
+        el('input', { type: 'checkbox', checked: RELAXED ? 'checked' : null, onchange: (e) => { RELAXED = e.target.checked; } }),
+        document.createTextNode(' Relaxed mode (your hand measures for you, with more tips, and it scores a little less)'),
+      ]),
+      el('p', { class: 'hint', text: best ? `Your best score: ${best}` : 'Check your snares to set your first score.' }),
+    );
+  }
+
+  function play(L) {
+    if (stopRun) stopRun();
+    box.innerHTML = '';
+    box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '0';
+    if (timeUp()) { gtOver(box); return; }
+    const HR = CFG.heroes[heroKey];
+    const W = (box.clientWidth || 720) < 520 ? 520 : 720, small = W < 700, FZ = small ? 1.3 : 1;
+    const relaxed = !!RELAXED, coach = relaxed || L.n === 1, demoOn = L.n === 1 && HR.demo;
+    const nMine = L.total - (demoOn ? 1 : 0);
+    const HB = relaxed ? [5, 10.5] : [6, 9.5], HO = relaxed ? [3.8, 12.5] : [4.5, 11.5];
+    const DB = relaxed ? [9, 13.5] : [9.5, 12.5], DO = relaxed ? [8.2, 15] : [8.6, 14];
+    const FIST = 9, FINGER = 1.9;
+    const ME = HR.me, BUD = HR.bud, TEACH = HR.teach === 'me' ? 'me' : 'bud';
+    const RNG = mulb((L.seed * 7919 + Date.now()) | 0);
+
+    // ---------- the picture: a clearing seen from above and in front ----------
+    const D1 = 2.15, YH = -58, KZ = 470, Q = 0.5, SZ = small ? 0.86 : 1;
+    const P = (u, v) => { const d = 1 + v * (D1 - 1); return { x: u * W, y: YH + KZ / d, s: 1 / d }; };
+    const UV = (x, y) => { const d = KZ / Math.max(1, y - YH); return { u: x / W, v: (d - 1) / (D1 - 1) }; };
+    const yFar = P(0, 1).y;
+
+    const cv = document.createElement('canvas'); cv.className = 'trailcv'; cv.tabIndex = 0; cv.style.aspectRatio = `${W} / ${H}`;
+    cv.setAttribute('role', 'img');
+    let dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const bar = el('div', { class: 'row tight snarebar' });
+    const live = el('p', { class: 'hint', 'aria-live': 'polite', text: '' });
+    box.append(el('div', { class: 'trailwrap' }, [cv]), bar, live);
+
+    // ---------- shapes ----------
+    function curve(pts) {
+      const p = pts.map(([u, v]) => P(u, v)), raw = [];
+      for (let i = 0; i < p.length - 1; i++) {
+        const a = p[Math.max(0, i - 1)], b = p[i], d2 = p[i + 1], e = p[Math.min(p.length - 1, i + 2)];
+        for (let k = 0; k < 20; k++) {
+          const t = k / 20, t2 = t * t, t3 = t2 * t;
+          const f = (A, B, C, D) => 0.5 * (2 * B + (-A + C) * t + (2 * A - 5 * B + 4 * C - D) * t2 + (-A + 3 * B - 3 * C + D) * t3);
+          raw.push({ x: f(a.x, b.x, d2.x, e.x), y: f(a.y, b.y, d2.y, e.y), s: f(a.s, b.s, d2.s, e.s) });
+        }
+      }
+      raw.push(p[p.length - 1]);
+      const out = [raw[0]];
+      for (let i = 1; i < raw.length; i++) {
+        let A = out[out.length - 1]; const B = raw[i];
+        let dx = B.x - A.x, dy = B.y - A.y, dl = Math.hypot(dx, dy);
+        while (dl >= 3) { const t = 3 / dl, Pt = { x: A.x + dx * t, y: A.y + dy * t, s: A.s + (B.s - A.s) * t }; out.push(Pt); A = Pt; dx = B.x - A.x; dy = B.y - A.y; dl = Math.hypot(dx, dy); }
+      }
+      for (let i = 0; i < out.length; i++) {
+        const a = out[Math.max(0, i - 2)], b = out[Math.min(out.length - 1, i + 2)];
+        let tx = b.x - a.x, ty = (b.y - a.y) / Q; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+        const o = out[i]; o.ax = tx; o.ay = ty * Q; o.nx = -ty; o.ny = tx * Q;
+      }
+      return out;
+    }
+    const at = (o, a, b, k) => ({ x: o.x + (a * o.ax + b * o.nx) * o.s * k, y: o.y + (a * o.ay + b * o.ny) * o.s * k });
+    const ell = (g, x, y, rx, ry, rot) => { g.beginPath(); g.ellipse(x, y, Math.max(0.15, rx), Math.max(0.15, ry), rot || 0, 0, Math.PI * 2); };
+    const rr = (g, x, y, w, h, r) => { r = Math.min(r, w / 2, h / 2); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+    // one print on the ground, at a place along (a) and across (b) a line, in near-picture pixels
+    const print = (g, o, a, b, ra, rb, col, k) => {
+      k = k || 1; const q = at(o, a, b, k), rot = Math.atan2(o.ay, o.ax);
+      ell(g, q.x, q.y, ra * o.s * k * Math.hypot(o.ax, o.ay), rb * o.s * k * Math.hypot(o.nx, o.ny), rot); g.fillStyle = col; g.fill();
+    };
+    // a hare's four prints: two big hind prints in front of two small front prints
+    const hareGroup = (g, o, dir, off, p, k) => {
+      const d = dir || 1;
+      print(g, o, 4.6 * d, off - 2.9, 3.9, 2.0, p.print, k); print(g, o, 4.6 * d, off + 2.9, 3.9, 2.0, p.print, k);
+      print(g, o, -3.8 * d, off - 0.5, 1.9, 1.5, p.print, k); print(g, o, -8.2 * d, off + 0.6, 1.9, 1.5, p.print, k);
+      if (o.s > 0.6) { print(g, o, 5.4 * d, off - 2.9, 2.4, 1.1, p.printDk, k); print(g, o, 5.4 * d, off + 2.9, 2.4, 1.1, p.printDk, k); }
+    };
+
+    // ---------- the place ----------
+    const M = (() => {
+      const D = MAPS[L.map]();
+      const m = { fresh: !!D.fresh, objs: [], runs: {}, lines: [], spots: [], start: D.start, camp: D.camp || null, brook: D.brook ? curve(D.brook) : null, browse: [] };
+      (D.trees || []).forEach(([k, u, v, h], i) => m.objs.push({ k, u, v, h, seed: L.seed * 31 + i * 17 }));
+      (D.birches || []).forEach(([u, v, h], i) => m.objs.push({ k: 'birch', u, v, h, nipped: true, seed: L.seed * 13 + i * 7 }));
+      (D.willows || []).forEach(([u, v, h], i) => m.objs.push({ k: 'willow', u, v, h, nipped: true, seed: L.seed * 19 + i * 7 }));
+      if (D.camp) m.objs.push({ k: 'wikuom', u: D.camp[0], v: D.camp[1], h: 104, seed: 5 });
+      (D.runs || []).forEach((r) => { m.runs[r.id] = Object.assign({}, r, { c: curve(r.pts) }); });
+      ['fox', 'moose', 'path', 'scatter'].forEach((k) => (D[k] || []).forEach((pts) => m.lines.push({ k, c: curve(pts) })));
+      m.browse = (D.browse || []).map(([u, v]) => P(u, v));
+      D.spots.forEach((sp, i) => {
+        let q = P(sp.at[0], sp.at[1]), o = null;
+        const lk = sp.kind === 'open' ? 'scatter' : sp.kind;
+        const line = sp.run ? m.runs[sp.run].c : (m.lines.find((l) => l.k === lk) || {}).c;
+        if (line) { o = line.reduce((b, w) => (!b || Math.hypot(w.x - q.x, w.y - q.y) < Math.hypot(b.x - q.x, b.y - q.y) ? w : b), null); q = o; }
+        const uv = UV(q.x, q.y);
+        const spot = { i, kind: sp.kind, run: sp.run || null, bush: sp.bush || null, demo: !!sp.demo, x: q.x, y: q.y, s: q.s || P(uv.u, uv.v).s, u: uv.u, v: uv.v, o, seed: L.seed * 101 + i * 37, snare: null };
+        if (sp.kind === 'gate' && o) {
+          // a bush on each side of the run, so the hare has to go between them
+          [-1, 1].forEach((side) => { const gx = o.x + o.nx * 17 * side * o.s, gy = o.y + o.ny * 17 * side * o.s, w = UV(gx, gy); m.objs.push({ k: sp.bush || 'alder', u: w.u, v: w.v, h: sp.bush === 'young' ? 62 : 56, seed: spot.seed + side * 5, gate: true }); });
+        }
+        m.spots.push(spot);
+      });
+      m.objs.sort((a, b) => b.v - a.v);
+      return m;
+    })();
+    const S = M.spots;
+
+    // ---------- drawing the land ----------
+    function spruce(g, x, y, h, p, seed, fresh, far) {
+      const R = mulb(seed), w = h * (0.34 + R() * 0.07), tiers = far ? 6 : 8;
+      g.fillStyle = p.trunk; g.fillRect(x - h * 0.022, y - h * 0.1, h * 0.044, h * 0.11);
+      for (let i = 0; i < tiers; i++) {
+        const t = i / tiers, ty = y - h * (0.07 + t * 0.84), tw = w * (1 - t * 0.86) * (0.9 + R() * 0.2), th = h * (0.2 - t * 0.04);
+        const L1 = x - tw / 2, R1 = x + tw / 2, top = ty - th;
+        g.fillStyle = p.needle2; g.beginPath(); g.moveTo(x, top); g.lineTo(L1, ty);
+        for (let k = 0; k <= 6; k++) g.lineTo(L1 + (tw / 2) * k / 6, ty + (k % 2 ? th * 0.1 : -th * 0.05) + Math.sin(k + i) * 0.6);
+        g.closePath(); g.fill();
+        g.fillStyle = p.needle; g.beginPath(); g.moveTo(x, top); g.lineTo(R1, ty);
+        for (let k = 0; k <= 6; k++) g.lineTo(R1 - (tw / 2) * k / 6, ty + (k % 2 ? th * 0.1 : -th * 0.05) + Math.cos(k + i) * 0.6);
+        g.closePath(); g.fill();
+        // snow lying on the tier
+        const sn = fresh ? 0.95 : far ? 0.55 : 0.82;
+        g.fillStyle = rgba(p.snowOn, sn); g.beginPath();
+        g.moveTo(L1 + tw * 0.08, ty - th * 0.12); g.quadraticCurveTo(x - tw * 0.18, top + th * 0.42, x, top + th * 0.18);
+        g.quadraticCurveTo(x + tw * 0.2, top + th * 0.5, R1 - tw * 0.14, ty - th * 0.16);
+        g.quadraticCurveTo(x + tw * 0.1, ty - th * (fresh ? 0.42 : 0.3), x, top + th * (fresh ? 0.5 : 0.42));
+        g.quadraticCurveTo(x - tw * 0.12, ty - th * 0.3, L1 + tw * 0.08, ty - th * 0.12); g.fill();
+      }
+      g.fillStyle = p.needle; g.beginPath(); g.moveTo(x, y - h); g.lineTo(x - h * 0.03, y - h * 0.88); g.lineTo(x + h * 0.03, y - h * 0.88); g.closePath(); g.fill();
+      // a little snow heaped at the foot
+      g.fillStyle = rgba(p.snowNear, 0.9); ell(g, x, y + 1, w * 0.42, h * 0.025 + 1); g.fill();
+    }
+    function bushes(g, x, y, h, p, seed, willow, nipped) {
+      const R = mulb(seed), n = willow ? 9 : 6, lw = Math.max(0.8, h * (willow ? 0.028 : 0.036));
+      g.lineCap = 'round';
+      for (let i = 0; i < n; i++) {
+        const a = (i / (n - 1) - 0.5) * (willow ? 1.05 : 0.85) + (R() - 0.5) * 0.25, len = h * (0.68 + R() * 0.36);
+        const x0 = x + (R() - 0.5) * h * 0.08, x1 = x + Math.sin(a) * len * 0.6, y1 = y - Math.cos(a) * len;
+        g.strokeStyle = i % 2 ? p.stem : p.stemHi; g.lineWidth = lw;
+        g.beginPath(); g.moveTo(x0, y); g.quadraticCurveTo(x + Math.sin(a) * len * 0.18, y - len * 0.55, x1, y1); g.stroke();
+        g.lineWidth = lw * 0.55;
+        for (let k = 0; k < 3; k++) {
+          const t = 0.42 + k * 0.19, tx = lerp(x0, x1, t) + Math.sin(a) * len * 0.05, ty = lerp(y, y1, t), sd = R() < 0.5 ? -1 : 1, tl = h * (0.1 + R() * 0.06);
+          g.beginPath(); g.moveTo(tx, ty); g.lineTo(tx + sd * tl, ty - tl * 0.85); g.stroke();
+        }
+        if (!willow) { g.strokeStyle = rgba(p.ink, 0.75); g.lineWidth = Math.max(0.7, lw * 0.9); g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 + 0.6, y1 + h * 0.06); g.stroke(); }
+        g.fillStyle = rgba(p.snowOn, 0.85); ell(g, x1, y1 - 0.4, lw * 1.2, lw * 0.6); g.fill();
+      }
+      if (nipped) {   // twig ends nipped off at the height a hare can reach
+        g.strokeStyle = p.stemHi; g.lineWidth = lw * 0.6;
+        for (let k = 0; k < 4; k++) { const tx = x + (R() - 0.5) * h * 0.5, ty = y - h * (0.08 + R() * 0.12); g.beginPath(); g.moveTo(tx, ty); g.lineTo(tx + (R() - 0.5) * 3, ty - 3); g.stroke(); }
+      }
+      g.fillStyle = rgba(p.snowNear, 0.95); ell(g, x, y + 0.5, h * 0.2, h * 0.04 + 1); g.fill();
+    }
+    function birch(g, x, y, h, p, seed, nipped) {
+      const R = mulb(seed), lw = Math.max(1.4, h * 0.055), tx = x + (R() - 0.5) * h * 0.1, mx = lerp(x, tx, 0.5) + (R() - 0.5) * h * 0.05;
+      const at2 = (t) => ({ x: t < 0.7 ? lerp(x, lerp(x, tx, 0.7), t / 0.7) : lerp(lerp(x, tx, 0.7), tx, (t - 0.7) / 0.3), y: y - h * t });
+      g.lineCap = 'round';
+      g.strokeStyle = rgba(p.stem, 0.5); g.lineWidth = Math.max(0.5, lw * 0.2);
+      for (let k = 0; k < 16; k++) { const t = 0.6 + R() * 0.4, b = at2(t), a = -Math.PI / 2 + (R() - 0.5) * 1.9, l = h * (0.07 + R() * 0.15); g.beginPath(); g.moveTo(b.x, b.y); g.lineTo(b.x + Math.cos(a) * l, b.y + Math.sin(a) * l); g.stroke(); }
+      g.strokeStyle = p.stem; g.lineWidth = Math.max(0.6, lw * 0.34);
+      for (let k = 0; k < 5; k++) { const t = 0.42 + k * 0.1, b = at2(t), sd = k % 2 ? -1 : 1, l = h * (0.27 - k * 0.035) * (0.8 + R() * 0.4), a = -Math.PI / 2 + sd * (0.62 + R() * 0.25); g.beginPath(); g.moveTo(b.x, b.y); g.quadraticCurveTo(b.x + Math.cos(a) * l * 0.55, b.y + Math.sin(a) * l * 0.3, b.x + Math.cos(a) * l, b.y + Math.sin(a) * l); g.stroke(); }
+      g.strokeStyle = p.birch; g.lineWidth = lw; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(mx, y - h * 0.4, lerp(x, tx, 0.7), y - h * 0.7); g.stroke();
+      g.lineWidth = lw * 0.6; g.beginPath(); g.moveTo(lerp(x, tx, 0.7), y - h * 0.7); g.lineTo(tx, y - h); g.stroke();
+      g.strokeStyle = p.birchMk; g.lineWidth = Math.max(0.6, lw * 0.28);
+      for (let k = 0; k < 6; k++) { const t = 0.08 + k * 0.1 + R() * 0.03, b = at2(t); g.beginPath(); g.moveTo(b.x - lw * 0.45, b.y); g.lineTo(b.x + lw * R() * 0.4, b.y - 0.5); g.stroke(); }
+      if (nipped) { g.strokeStyle = p.stemHi; g.lineWidth = Math.max(0.6, lw * 0.3); for (let k = 0; k < 4; k++) { const sd = k % 2 ? -1 : 1, my = y - h * (0.12 + k * 0.05); g.beginPath(); g.moveTo(x, my); g.lineTo(x + sd * h * 0.08, my - h * 0.04); g.stroke(); } }
+      g.fillStyle = rgba(p.snowNear, 0.95); ell(g, x, y + 0.5, h * 0.09, h * 0.03 + 1); g.fill();
+    }
+    // a bush up close: thin stems, twigs, alder catkins and a little snow
+    const qb = (a, b, c2, t) => (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t * c2;
+    function closeBush(g, x, y, h, p, seed, willow) {
+      const R = mulb(seed), n = willow ? 11 : 8;
+      g.lineCap = 'round';
+      for (let i = 0; i < n; i++) {
+        const a = (i / (n - 1) - 0.5) * 0.95 + (R() - 0.5) * 0.3, len = h * (0.58 + R() * 0.45);
+        const x0 = x + (R() - 0.5) * h * 0.12, x1 = x0 + Math.sin(a) * len * 0.55, y1 = y - Math.cos(a) * len, cxp = x0 + Math.sin(a) * len * 0.12, cyp = y - len * 0.5;
+        const lw = (willow ? 3 : 4.2) * (0.7 + R() * 0.5);
+        g.strokeStyle = i % 3 === 0 ? p.stemHi : p.stem; g.lineWidth = lw;
+        g.beginPath(); g.moveTo(x0, y); g.quadraticCurveTo(cxp, cyp, x1, y1); g.stroke();
+        g.strokeStyle = rgba(p.snowOn, 0.7); g.lineWidth = lw * 0.35; g.beginPath(); g.moveTo(qb(x0, cxp, x1, 0.3) - lw * 0.3, qb(y, cyp, y1, 0.3) - lw * 0.3); g.quadraticCurveTo(qb(x0, cxp, x1, 0.5) - lw * 0.3, qb(y, cyp, y1, 0.5) - lw * 0.3, qb(x0, cxp, x1, 0.62) - lw * 0.3, qb(y, cyp, y1, 0.62) - lw * 0.3); g.stroke();
+        for (let k = 0; k < 5; k++) {
+          const t = 0.34 + k * 0.13 + R() * 0.05, bx = qb(x0, cxp, x1, t), by = qb(y, cyp, y1, t), sd = R() < 0.5 ? -1 : 1, tl = h * (0.07 + R() * 0.08), ang = -Math.PI / 2 + sd * (0.5 + R() * 0.5) + a * 0.5;
+          const ex = bx + Math.cos(ang) * tl, ey = by + Math.sin(ang) * tl;
+          g.strokeStyle = willow ? '#9A4E32' : p.stem; g.lineWidth = lw * 0.42; g.beginPath(); g.moveTo(bx, by); g.lineTo(ex, ey); g.stroke();
+          if (!willow && R() < 0.55) { g.strokeStyle = '#4E3328'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(ex, ey); g.lineTo(ex + 1.2, ey + 8); g.stroke(); }
+        }
+        g.fillStyle = rgba(p.snowOn, 0.9); ell(g, x1, y1 - 0.5, lw * 0.75, lw * 0.4); g.fill();
+      }
+      g.fillStyle = rgba(p.snowNear, 0.96); ell(g, x, y + 2, h * 0.22, h * 0.035); g.fill();
+    }
+    function wikuom(g, x, y, h, p) {
+      const w = h * 0.92;
+      g.strokeStyle = p.barkDk; g.lineWidth = Math.max(1, h * 0.018); g.lineCap = 'round';
+      [[-0.1, -1.16], [0.05, -1.2], [0.14, -1.14]].forEach(([dx, dy]) => { g.beginPath(); g.moveTo(x, y - h * 0.97); g.lineTo(x + dx * h, y + dy * h * 0.86 - h * 0.02); g.stroke(); });
+      g.fillStyle = p.bark; g.beginPath(); g.moveTo(x - w / 2, y); g.quadraticCurveTo(x - w * 0.24, y - h * 0.62, x - h * 0.05, y - h * 0.97); g.lineTo(x + h * 0.05, y - h * 0.97); g.quadraticCurveTo(x + w * 0.24, y - h * 0.62, x + w / 2, y); g.closePath(); g.fill();
+      g.fillStyle = rgba(p.barkDk, 0.55); g.beginPath(); g.moveTo(x, y - h * 0.97); g.quadraticCurveTo(x + w * 0.24, y - h * 0.62, x + w / 2, y); g.lineTo(x + w * 0.12, y); g.closePath(); g.fill();
+      g.strokeStyle = rgba(p.barkDk, 0.9); g.lineWidth = Math.max(0.6, h * 0.008);
+      [0.3, 0.55, 0.78].forEach((t) => { const yy = y - h * 0.97 * (1 - t), hw = w * 0.5 * t * 0.98; g.beginPath(); g.moveTo(x - hw, yy); g.quadraticCurveTo(x, yy + h * 0.03, x + hw, yy); g.stroke(); });
+      g.fillStyle = '#2A1E18'; g.beginPath(); g.moveTo(x - h * 0.09, y); g.lineTo(x - h * 0.06, y - h * 0.28); g.quadraticCurveTo(x, y - h * 0.33, x + h * 0.06, y - h * 0.28); g.lineTo(x + h * 0.09, y); g.closePath(); g.fill();
+      g.fillStyle = '#8C6A48'; g.beginPath(); g.moveTo(x + h * 0.01, y); g.lineTo(x + h * 0.02, y - h * 0.3); g.lineTo(x + h * 0.075, y - h * 0.27); g.lineTo(x + h * 0.1, y); g.closePath(); g.fill();
+      // banked with snow to keep the heat in (scene 522)
+      g.fillStyle = rgba(p.snowNear, 0.97); g.beginPath(); g.moveTo(x - w * 0.6, y + 2); g.quadraticCurveTo(x - w * 0.5, y - h * 0.17, x - w * 0.3, y - h * 0.12); g.lineTo(x - h * 0.1, y - h * 0.03); g.lineTo(x + h * 0.1, y - h * 0.03); g.lineTo(x + w * 0.3, y - h * 0.12); g.quadraticCurveTo(x + w * 0.5, y - h * 0.17, x + w * 0.6, y + 2); g.closePath(); g.fill();
+    }
+    function drawObj(g, o, p) {
+      const q = P(o.u, o.v), h = o.h * q.s * SZ;
+      if (o.k === 'spruce') spruce(g, q.x, q.y, h, p, o.seed, M.fresh, false);
+      else if (o.k === 'young') spruce(g, q.x, q.y, h, p, o.seed, M.fresh, false);
+      else if (o.k === 'alder') bushes(g, q.x, q.y, h, p, o.seed, false, o.nipped);
+      else if (o.k === 'willow') bushes(g, q.x, q.y, h, p, o.seed, true, o.nipped);
+      else if (o.k === 'birch') birch(g, q.x, q.y, h, p, o.seed, o.nipped);
+      else if (o.k === 'wikuom') wikuom(g, q.x, q.y, h, p);
+      else if (o.k === 'stump') { const r = 9 * q.s * SZ; g.fillStyle = p.trunk; g.fillRect(q.x - r, q.y - r * 1.5, r * 2, r * 1.5); g.fillStyle = rgba(p.snowOn, 0.98); ell(g, q.x, q.y - r * 1.5, r * 1.15, r * 0.5); g.fill(); g.fillStyle = rgba(p.snowNear, 0.9); ell(g, q.x, q.y, r * 1.6, r * 0.45); g.fill(); }
+      else if (o.k === 'log') { const len = o.h * q.s * SZ, r = 6 * q.s * SZ; g.fillStyle = p.trunk; rr(g, q.x - len / 2, q.y - r * 2, len, r * 2, r); g.fill(); g.fillStyle = p.barkDk; ell(g, q.x - len / 2 + r * 0.4, q.y - r, r * 0.6, r); g.fill(); g.fillStyle = rgba(p.snowOn, 0.98); rr(g, q.x - len / 2 + r * 0.3, q.y - r * 2.5, len - r * 0.6, r * 1.1, r * 0.55); g.fill(); }
+      else if (o.k === 'rock') { const r = o.h * q.s * SZ; g.fillStyle = rgba(p.shade, 0.55); ell(g, q.x + r * 0.15, q.y, r * 1.05, r * 0.42); g.fill(); g.fillStyle = p.snowNear; ell(g, q.x, q.y - r * 0.2, r, r * 0.5); g.fill(); }
+    }
+    function drawRun(g, r, p) {
+      const cc = r.c, hw = 7.5;
+      g.beginPath();
+      cc.forEach((o, i) => { const x = o.x + o.nx * hw * o.s, y = o.y + o.ny * hw * o.s; if (i) g.lineTo(x, y); else g.moveTo(x, y); });
+      for (let i = cc.length - 1; i >= 0; i--) { const o = cc[i]; g.lineTo(o.x - o.nx * hw * o.s, o.y - o.ny * hw * o.s); }
+      g.closePath();
+      g.fillStyle = r.buried ? rgba(p.shade, 0.13) : r.old ? rgba(p.shade, 0.24) : p.run; g.fill();
+      if (r.old || r.buried) return;
+      g.strokeStyle = rgba(p.shadeDk, 0.22); g.lineWidth = 1; g.beginPath();
+      cc.forEach((o, i) => { const x = o.x - o.nx * hw * o.s, y = o.y - o.ny * hw * o.s; if (i) g.lineTo(x, y); else g.moveTo(x, y); }); g.stroke();
+      const RN = mulb(r.id.charCodeAt(0) * 97 + L.seed); let acc = 0;
+      for (let i = 1; i < cc.length; i++) {
+        const o = cc[i]; acc += 3;
+        if (acc < 12 * o.s + 3) continue; acc = 0;
+        if (o.y < yFar + 6) continue;
+        hareGroup(g, o, RN() < 0.5 ? 1 : -1, (RN() - 0.5) * hw * 0.8, p, 1);
+      }
+    }
+    function drawLine(g, l, p) {
+      const cc = l.c; let acc = 0, side = 1;
+      const gap = { fox: 9, moose: 24, path: 17, scatter: 46 }[l.k];
+      for (let i = 1; i < cc.length; i++) {
+        const o = cc[i]; acc += 3; if (acc < gap * o.s + 2) continue; acc = 0; side = -side;
+        if (l.k === 'fox') print(g, o, 0, side * 0.7, 1.9, 1.5, p.printDk);
+        else if (l.k === 'moose') { print(g, o, 0, side * 4 - 1.3, 4.4, 1.6, rgba(p.shadeDk, 0.9)); print(g, o, 0, side * 4 + 1.3, 4.4, 1.6, rgba(p.shadeDk, 0.9)); print(g, o, -1.4, side * 4, 2.2, 2.4, rgba(p.ink, 0.25)); }
+        else if (l.k === 'path') { print(g, o, 0, side * 5.4, 7.6, 3.3, rgba(p.shade, 0.75)); print(g, o, -6.5, side * 5.4, 2.2, 0.8, rgba(p.shade, 0.75)); }
+        else if (l.k === 'scatter') hareGroup(g, o, 1, 0, p, 1);
+      }
+    }
+    function drawBrowse(g, b, p) {
+      const R = mulb(L.seed * 7 + 3), base = { x: b.x, y: b.y, s: b.s, ax: 1, ay: 0, nx: 0, ny: Q };
+      for (let i = 0; i < 7; i++) {
+        const a = R() * Math.PI * 2, d = 10 + R() * 26, o = { x: b.x + Math.cos(a) * d * b.s, y: b.y + Math.sin(a) * d * b.s * Q, s: b.s, ax: Math.cos(a + 1.6), ay: Math.sin(a + 1.6) * Q, nx: -Math.sin(a + 1.6), ny: Math.cos(a + 1.6) * Q };
+        hareGroup(g, o, 1, 0, p, 1);
+      }
+      g.strokeStyle = p.stemHi; g.lineWidth = 0.9; g.lineCap = 'round';
+      for (let i = 0; i < 12; i++) { const x = b.x + (R() - 0.5) * 52 * b.s, y = b.y + (R() - 0.5) * 22 * b.s; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (R() - 0.5) * 5, y + (R() - 0.5) * 2); g.stroke(); }
+      void base;
+    }
+    function drawBrook(g, cc, p) {
+      const hw = 16;
+      const band = (w) => { g.beginPath(); cc.forEach((o, i) => { const x = o.x + o.nx * w * o.s, y = o.y + o.ny * w * o.s; if (i) g.lineTo(x, y); else g.moveTo(x, y); }); for (let i = cc.length - 1; i >= 0; i--) { const o = cc[i]; g.lineTo(o.x - o.nx * w * o.s, o.y - o.ny * w * o.s); } g.closePath(); };
+      band(hw + 5); g.fillStyle = rgba(p.shade, 0.35); g.fill();
+      band(hw); g.fillStyle = p.ice; g.fill();
+      g.strokeStyle = rgba(p.iceHi, 0.9); g.lineWidth = 1.2;
+      for (let k = -1; k <= 1; k++) { g.beginPath(); let on = false; cc.forEach((o, i) => { if (i % 9 > 4) { on = false; return; } const x = o.x + o.nx * k * 6 * o.s, y = o.y + o.ny * k * 6 * o.s; if (on) g.lineTo(x, y); else { g.moveTo(x, y); on = true; } }); g.stroke(); }
+      band(hw * 0.35); g.fillStyle = rgba(p.snowNear, 0.35); g.fill();
+    }
+    function drawWorld(g, ph) {
+      const p = PAL[ph];
+      const sg = g.createLinearGradient(0, 0, 0, yFar + 10); sg.addColorStop(0, p.skyTop); sg.addColorStop(1, p.skyBot); g.fillStyle = sg; g.fillRect(0, 0, W, yFar + 40);
+      if (ph === 'night') {
+        const R = mulb(77); for (let i = 0; i < 90; i++) { const x = R() * W, y = R() * (yFar - 40), r = R() < 0.1 ? 1.4 : 0.8; g.fillStyle = `rgba(255,255,255,${0.35 + R() * 0.5})`; g.fillRect(x, y, r, r); }
+        g.fillStyle = 'rgba(240,240,225,0.95)'; g.beginPath(); g.arc(W * 0.82, 44, 15, 0, 7); g.fill();
+        g.fillStyle = 'rgba(240,240,225,0.12)'; g.beginPath(); g.arc(W * 0.82, 44, 34, 0, 7); g.fill();
+      } else if (ph === 'dawn') {
+        const hg = g.createRadialGradient(W * 0.3, yFar, 10, W * 0.3, yFar, W * 0.6); hg.addColorStop(0, 'rgba(255,214,170,0.75)'); hg.addColorStop(1, 'rgba(255,214,170,0)'); g.fillStyle = hg; g.fillRect(0, 0, W, yFar + 20);
+      } else {
+        const hg = g.createRadialGradient(W * 0.7, 40, 6, W * 0.7, 40, 120); hg.addColorStop(0, 'rgba(255,252,236,0.9)'); hg.addColorStop(0.15, 'rgba(255,250,230,0.5)'); hg.addColorStop(1, 'rgba(255,250,230,0)'); g.fillStyle = hg; g.fillRect(0, 0, W, yFar + 20);
+      }
+      g.fillStyle = p.hill; g.beginPath(); g.moveTo(0, yFar - 22); for (let x = 0; x <= W; x += 30) g.lineTo(x, yFar - 26 - Math.sin(x * 0.011 + 1.3) * 9 - Math.sin(x * 0.031) * 4); g.lineTo(W, yFar + 10); g.lineTo(0, yFar + 10); g.closePath(); g.fill();
+      const top = P(0, 1.13).y;
+      const gg = g.createLinearGradient(0, top, 0, H); gg.addColorStop(0, p.snowFar); gg.addColorStop(1, p.snowNear); g.fillStyle = gg; g.fillRect(0, top, W, H - top);
+      const RB = mulb(L.seed + 999);
+      for (let u = -0.04; u < 1.06; u += 0.026 + RB() * 0.022) { const v = 1.03 + RB() * 0.1, q = P(u, v); spruce(g, q.x, q.y, (120 + RB() * 90) * q.s * SZ, p, (RB() * 1e6) | 0, M.fresh, true); }
+      // soft drifts
+      const RD = mulb(L.seed + 5);
+      for (let i = 0; i < 14; i++) { const v = RD() * 0.95, q = P(RD(), v), w = (60 + RD() * 120) * q.s; g.fillStyle = rgba(p.shade, 0.16); ell(g, q.x, q.y, w, w * 0.08); g.fill(); g.fillStyle = rgba(p.snowNear, 0.55); ell(g, q.x - w * 0.1, q.y - w * 0.04, w * 0.8, w * 0.05); g.fill(); }
+      if (M.brook) drawBrook(g, M.brook, p);
+      Object.values(M.runs).forEach((r) => drawRun(g, r, p));
+      M.lines.forEach((l) => drawLine(g, l, p));
+      M.browse.forEach((b) => drawBrowse(g, b, p));
+      M.objs.forEach((o) => drawObj(g, o, p));
+      if (M.fresh && ph !== 'night') { const R = mulb(91); g.fillStyle = 'rgba(255,255,255,0.85)'; for (let i = 0; i < 120; i++) { const q = P(R(), R()); g.fillRect(q.x, q.y, 1, 1); } }
+    }
+    let layers = {};
+    function layer(ph) {
+      if (layers[ph]) return layers[ph];
+      layers = {};
+      const cvs = document.createElement('canvas'); cvs.width = W * dpr; cvs.height = H * dpr;
+      const g = cvs.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); drawWorld(g, ph);
+      return (layers[ph] = cvs);
+    }
+
+    // ---------- people ----------
+    function snowshoes(g, sw) {
+      [-1, 1].forEach((sd) => {
+        const y = 1.5 + (sd > 0 ? sw : -sw) * 1.6;
+        g.fillStyle = 'rgba(214,196,160,0.35)'; ell(g, sd * 6.6, y, 6.4, 4.4); g.fill();
+        g.strokeStyle = '#7A5A3A'; g.lineWidth = 1.4; ell(g, sd * 6.6, y, 6.4, 4.4); g.stroke();
+        g.strokeStyle = 'rgba(122,90,58,0.7)'; g.lineWidth = 0.6; g.beginPath(); g.moveTo(sd * 6.6 - 5, y); g.lineTo(sd * 6.6 + 5, y); g.moveTo(sd * 6.6, y - 3.8); g.lineTo(sd * 6.6, y + 3.8); g.stroke();
+      });
+    }
+    function head(g, L2, hy, long) {
+      if (long) { g.fillStyle = L2.hair; g.beginPath(); g.moveTo(-8.8, hy - 1); g.quadraticCurveTo(-11, hy + 14, -9.5, hy + 25); g.lineTo(9.5, hy + 25); g.quadraticCurveTo(11, hy + 14, 8.8, hy - 1); g.closePath(); g.fill(); }
+      g.fillStyle = L2.skin; g.fillRect(-3, hy + 5, 6, 6);
+      g.fillStyle = L2.hair; g.beginPath(); g.arc(0, hy, 8.6, Math.PI * 0.92, Math.PI * 2.08); g.closePath(); g.fill();
+      g.fillStyle = L2.skin; g.beginPath(); g.arc(0, hy + 0.6, 7.7, 0, 7); g.fill();
+      g.fillStyle = L2.hair; g.beginPath(); g.arc(0, hy, 8.2, Math.PI * 1.08, Math.PI * 1.92); g.closePath(); g.fill();
+      if (long) { g.fillStyle = L2.hair; g.beginPath(); g.moveTo(-0.6, hy - 8.2); g.quadraticCurveTo(-6, hy - 6, -8, hy + 1); g.lineTo(-7.4, hy - 5); g.closePath(); g.fill(); }
+      g.fillStyle = '#17100C'; g.beginPath(); g.arc(-2.9, hy + 0.6, 0.95, 0, 7); g.arc(2.9, hy + 0.6, 0.95, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(90,50,30,.75)'; g.lineWidth = 0.8; g.lineCap = 'round'; g.beginPath(); g.arc(0, hy + 2.6, 2.6, Math.PI * 0.2, Math.PI * 0.8); g.stroke();
+    }
+    function arms(g, col, skin, sw, reach) {
+      g.lineCap = 'round';
+      [-1, 1].forEach((sd) => {
+        const fwd = sd === 1 && reach ? 1 : 0, swing = (sd > 0 ? sw : -sw) * 2;
+        g.strokeStyle = col; g.lineWidth = 5.2; g.beginPath(); g.moveTo(sd * 10, -77); g.lineTo(sd * (13 + fwd * 6), -60 - fwd * 8 + swing); g.lineTo(sd * (13 + fwd * 13), -47 - fwd * 18 + swing); g.stroke();
+        g.fillStyle = skin; g.beginPath(); g.arc(sd * (13 + fwd * 13), -45.5 - fwd * 18 + swing, 2.5, 0, 7); g.fill();
+      });
+    }
+    function person(g, x, y, k, who, o) {
+      const L2 = LOOK[who], sw = (o && o.sw) || 0, kk = k * L2.k;
+      g.save(); g.translate(x, y); g.scale(kk, kk);
+      g.fillStyle = 'rgba(40,55,80,0.18)'; ell(g, 0, 2.5, 17, 5.5); g.fill();
+      snowshoes(g, sw);
+      if (who === 'anne') {
+        const poly = (pts, col) => { g.fillStyle = col; g.beginPath(); pts.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); g.fill(); };
+        poly([[-12, -80], [12, -80], [19, -30], [-19, -30]], L2.cape);
+        if (typeof MGFIG === 'function') MGFIG(g, 'W', 'anne', sw); else poly([[-12, -80], [12, -80], [20, 0], [-20, 0]], L2.gown);
+        poly([[-12, -80], [-5, -80], [-9, -30], [-19, -30]], L2.cape); poly([[12, -80], [5, -80], [9, -30], [19, -30]], L2.cape);
+        arms(g, L2.cape, L2.skin, sw, o && o.reach);
+      } else {
+        const coat = who === 'muin';
+        g.fillStyle = L2.legs; g.fillRect(-7.6, -40, 5.4, 37 + sw * 1.2); g.fillRect(2.2, -40, 5.4, 37 - sw * 1.2);
+        g.fillStyle = L2.moc; ell(g, -5, -2 + sw, 4.4, 2.4); g.fill(); ell(g, 5, -2 - sw, 4.4, 2.4); g.fill();
+        head(g, L2, -90, true);
+        g.fillStyle = coat ? L2.coat : L2.dress; g.beginPath(); g.moveTo(-10.5, -81); g.lineTo(10.5, -81); g.lineTo(coat ? 14.5 : 16.5, coat ? -34 : -24); g.lineTo(coat ? -14.5 : -16.5, coat ? -34 : -24); g.closePath(); g.fill();
+        if (coat) { g.strokeStyle = 'rgba(0,0,0,.22)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(0, -78); g.lineTo(0, -35); g.stroke(); g.fillStyle = L2.sash; g.fillRect(-12.3, -54, 24.6, 4.4); g.fillRect(4, -50, 3, 11); }
+        else { g.fillStyle = L2.shawl; g.beginPath(); g.moveTo(-12.5, -82); g.lineTo(12.5, -82); g.lineTo(13.5, -60); g.lineTo(0, -50); g.lineTo(-13.5, -60); g.closePath(); g.fill(); g.strokeStyle = rgba(L2.shawl, 1); }
+        g.fillStyle = L2.hair; g.fillRect(-9.6, -82, 3.2, 14); g.fillRect(6.4, -82, 3.2, 14);
+        arms(g, coat ? L2.coat : L2.shawl, L2.skin, sw, o && o.reach);
+      }
+      g.restore();
+    }
+    // a white winter hare, side on, mid-hop or sitting
+    function hare(g, x, y, k, dir, hop, p) {
+      g.save(); g.translate(x, y); g.scale(k * dir, k);
+      const up = Math.sin(hop * Math.PI) * 9, st = Math.sin(hop * Math.PI);
+      g.fillStyle = 'rgba(30,40,60,0.18)'; ell(g, 0, 1, 11, 2.6); g.fill();
+      g.translate(0, -up);
+      const fur = PAL.night === p ? '#E9EEF6' : '#F7F9FC', sh = '#C9D3E2';
+      g.fillStyle = fur; ell(g, -1, -7, 10 + st * 2, 6.5 - st); g.fill();
+      g.fillStyle = sh; ell(g, -3, -4.5, 8, 2.6); g.fill();
+      g.fillStyle = fur; ell(g, -9.5 - st * 3, -2, 5.5, 2.4, 0.3 + st * 0.4); g.fill();
+      g.beginPath(); g.arc(8.5, -11, 4.6, 0, 7); g.fill();
+      g.save(); g.translate(7.6, -14.5); g.rotate(-0.55 - st * 0.35); g.fillStyle = fur; ell(g, 0, -6, 1.8, 6.4); g.fill(); g.fillStyle = '#1B1E24'; ell(g, 0, -11.4, 1.5, 1.4); g.fill(); g.restore();
+      g.fillStyle = '#1B1E24'; g.beginPath(); g.arc(10.4, -11.6, 0.9, 0, 7); g.fill();
+      g.fillStyle = fur; ell(g, 9 + st * 3, -2 + st, 2.4, 1.4); g.fill();
+      g.restore();
+    }
+
+    // ---------- the close look (seen from above, as if you knelt by it) ----------
+    function lensDraw(g, cx, cy, R, sp, p) {
+      g.save(); g.beginPath(); g.arc(cx, cy, R, 0, 7); g.clip();
+      g.fillStyle = p.snowNear; g.fillRect(cx - R, cy - R, R * 2, R * 2);
+      const RN = mulb(sp.seed), k = R / 70;
+      const groupTop = (x, y, ang, sc, col) => {
+        g.save(); g.translate(x, y); g.rotate(ang); g.scale(sc * k, sc * k); g.fillStyle = col;
+        ell(g, -4.3, -7, 3.2, 6.6); g.fill(); ell(g, 4.3, -7, 3.2, 6.6); g.fill();
+        ell(g, -1.4, 5, 2.3, 2.9); g.fill(); ell(g, 1.2, 12, 2.3, 2.9); g.fill();
+        g.restore();
+      };
+      const band = (ang, w, col) => { g.save(); g.translate(cx, cy); g.rotate(ang); g.fillStyle = col; g.fillRect(-w / 2, -R * 1.5, w, R * 3); g.restore(); };
+      const along = (ang, n, sc, col, jitter) => { for (let i = 0; i < n; i++) { const t = (i / (n - 1) - 0.5) * R * 1.8, j = (RN() - 0.5) * jitter * k; const x = cx + Math.sin(ang) * -t + Math.cos(ang) * j, y = cy + Math.cos(ang) * t + Math.sin(ang) * j; groupTop(x, y, ang + (RN() < 0.5 ? 0 : Math.PI), sc, col); } };
+      const stems = (x, y, n, col) => { for (let i = 0; i < n; i++) { const a = RN() * 7, d = RN() * 10 * k; g.fillStyle = rgba(p.snowNear, 1); g.beginPath(); g.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, 5 * k, 0, 7); g.fill(); g.fillStyle = col; g.beginPath(); g.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, 3 * k, 0, 7); g.fill(); } };
+      const ang = 0.35 + (sp.seed % 5) * 0.12;
+      if (sp.kind === 'gate' || sp.kind === 'run') {
+        band(ang, 34 * k, p.run); along(ang, 5, 0.95, p.printDk, 12);
+        if (sp.kind === 'gate') { const ox = Math.cos(ang) * 34 * k, oy = Math.sin(ang) * 34 * k; const col = sp.bush === 'young' ? p.needle : p.stem; stems(cx - ox, cy - oy, sp.bush === 'young' ? 1 : 5, col); stems(cx + ox, cy + oy, sp.bush === 'young' ? 1 : 5, col); if (sp.bush === 'young') [[-1], [1]].forEach(([sd]) => { g.fillStyle = rgba(p.needle2, 0.9); g.beginPath(); g.arc(cx + sd * ox * 1.15, cy + sd * oy * 1.15, 17 * k, 0, 7); g.fill(); g.fillStyle = rgba(p.snowOn, 0.7); g.beginPath(); g.arc(cx + sd * ox * 1.15 - 3 * k, cy + sd * oy * 1.15 - 3 * k, 9 * k, 0, 7); g.fill(); }); }
+      } else if (sp.kind === 'old') { band(ang, 36 * k, rgba(p.shade, 0.3)); for (let i = 0; i < 6; i++) { g.fillStyle = rgba(p.shade, 0.18); ell(g, cx + (RN() - 0.5) * R, cy + (RN() - 0.5) * R, 10 * k, 4 * k, RN() * 3); g.fill(); } }
+      else if (sp.kind === 'buried') { band(ang, 40 * k, rgba(p.shade, 0.14)); g.fillStyle = 'rgba(255,255,255,0.9)'; for (let i = 0; i < 26; i++) g.fillRect(cx + (RN() - 0.5) * 2 * R, cy + (RN() - 0.5) * 2 * R, 1.2, 1.2); }
+      else if (sp.kind === 'fox') { for (let i = 0; i < 6; i++) { const t = (i / 5 - 0.5) * R * 1.8, x = cx - Math.sin(ang) * t + (i % 2 ? 1.5 : -1.5) * k, y = cy + Math.cos(ang) * t; g.fillStyle = p.printDk; ell(g, x, y, 3.4 * k, 4.4 * k, ang); g.fill(); [-1, 1].forEach((sd) => { g.beginPath(); g.arc(x + Math.cos(ang) * sd * 2 * k - Math.sin(ang) * -5.5 * k, y + Math.sin(ang) * sd * 2 * k + Math.cos(ang) * -5.5 * k, 1.1 * k, 0, 7); g.fill(); }); } }
+      else if (sp.kind === 'moose') { for (let i = 0; i < 3; i++) { const t = (i - 1) * R * 0.75, x = cx - Math.sin(ang) * t + (i % 2 ? 9 : -9) * k, y = cy + Math.cos(ang) * t; g.fillStyle = rgba(p.shade, 0.7); ell(g, x, y, 15 * k, 19 * k, ang); g.fill(); g.fillStyle = p.printDk; ell(g, x - 4 * k, y, 4.4 * k, 11 * k, ang); g.fill(); ell(g, x + 4 * k, y, 4.4 * k, 11 * k, ang); g.fill(); } }
+      else if (sp.kind === 'path') { for (let i = 0; i < 4; i++) { const t = (i / 3 - 0.5) * R * 1.6, sd = i % 2 ? 1 : -1, x = cx - Math.sin(ang) * t + Math.cos(ang) * sd * 13 * k, y = cy + Math.cos(ang) * t + Math.sin(ang) * sd * 13 * k; g.fillStyle = rgba(p.shade, 0.55); ell(g, x, y, 10 * k, 22 * k, ang); g.fill(); g.strokeStyle = rgba(p.shadeDk, 0.4); g.lineWidth = 0.8; for (let j = -2; j <= 2; j++) { g.beginPath(); g.moveTo(x - 8 * k, y + j * 6 * k); g.lineTo(x + 8 * k, y + j * 6 * k); g.stroke(); } } }
+      else if (sp.kind === 'open') { [-0.5, 0.45].forEach((t) => groupTop(cx + t * R * 0.9, cy - t * R * 0.4, ang + 1.2, 0.95, p.printDk)); }
+      else if (sp.kind === 'browse') { for (let i = 0; i < 7; i++) groupTop(cx + (RN() - 0.5) * R * 1.4, cy + (RN() - 0.5) * R * 1.4, RN() * 7, 0.8, p.printDk); stems(cx - R * 0.35, cy - R * 0.2, 2, p.birch); stems(cx + R * 0.4, cy + R * 0.25, 2, p.birch); g.strokeStyle = p.stemHi; g.lineWidth = 1.4 * k; for (let i = 0; i < 9; i++) { const x = cx + (RN() - 0.5) * R * 1.5, y = cy + (RN() - 0.5) * R * 1.5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 7 * k, y + (RN() - 0.5) * 4 * k); g.stroke(); } }
+      g.restore();
+      g.strokeStyle = 'rgba(27,37,41,0.85)'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,0.9)'; g.lineWidth = 1.2; g.beginPath(); g.arc(cx, cy, R - 2.5, 0, 7); g.stroke();
+      const t = '🔍 Close look'; g.font = `700 ${Math.round(12 * FZ)}px ${SF}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const w = g.measureText(t).width + 16; g.fillStyle = 'rgba(27,37,41,0.82)'; rr(g, cx - w / 2, cy + R - 9, w, 20 * FZ, 10); g.fill(); g.fillStyle = '#FFFFFF'; g.fillText(t, cx, cy + R + 1 + 2 * (FZ - 1) * 4);
+    }
+
+    // ---------- the snare up close: looking along the run, the way a hare comes ----------
+    const K = small ? 8.6 : 10, VPX = W / 2, VPY = 182, YS = 322, Z0 = 100, FZD = (YS - VPY) * Z0, CAM = 20;
+    const zY = (z) => VPY + FZD / z, zK = (z) => K * Z0 / z;
+    const RUNW = 9.5;
+    function cprint(g, lat, z, ra, rb, col) { const kx = zK(z), sq = CAM / z, x = VPX + lat * kx, y = zY(z), rx = rb * kx, ry = Math.max(0.6, ra * kx * sq); ell(g, x, y, rx, ry); g.fillStyle = col; g.fill(); if (ry > 2.2) { ell(g, x, y - ry * 0.28, rx * 0.84, ry * 0.62); g.fillStyle = 'rgba(40,52,80,0.14)'; g.fill(); } }
+    function cgroup(g, lat, z, col) { cprint(g, lat - 2.4, z - 6, 4.6, 2.1, col); cprint(g, lat + 2.4, z - 6, 4.6, 2.1, col); cprint(g, lat - 0.5, z + 5, 2, 1.6, col); cprint(g, lat + 0.5, z + 12, 2, 1.6, col); }
+    let closeCache = {};
+    function closeBG(sp, ph) {
+      const key = sp.i + ph; if (closeCache[key]) return closeCache[key];
+      closeCache = {};
+      const cvs = document.createElement('canvas'); cvs.width = W * dpr; cvs.height = H * dpr;
+      const g = cvs.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const p = PAL[ph], RN = mulb(sp.seed + 11);
+      const sg = g.createLinearGradient(0, 0, 0, VPY); sg.addColorStop(0, p.skyTop); sg.addColorStop(1, p.skyBot); g.fillStyle = sg; g.fillRect(0, 0, W, VPY + 4);
+      if (ph === 'dawn') { const hg = g.createRadialGradient(W * 0.25, VPY, 8, W * 0.25, VPY, W * 0.7); hg.addColorStop(0, 'rgba(255,214,170,0.7)'); hg.addColorStop(1, 'rgba(255,214,170,0)'); g.fillStyle = hg; g.fillRect(0, 0, W, VPY); }
+      for (let i = 0; i < 26; i++) { const x = (i + RN() * 0.6) / 25 * W, h = 70 + RN() * 90; spruce(g, x, VPY + 4, h, p, (RN() * 1e6) | 0, M.fresh, true); }
+      const gg = g.createLinearGradient(0, VPY, 0, H); gg.addColorStop(0, p.snowFar); gg.addColorStop(1, p.snowNear); g.fillStyle = gg; g.fillRect(0, VPY, W, H - VPY);
+      for (let i = 0; i < 9; i++) { const z = 120 + RN() * 700, lat = (RN() - 0.5) * 260; const x = VPX + lat * zK(z), y = zY(z); g.fillStyle = rgba(p.shade, 0.18); ell(g, x, y, 60 * zK(z) / 4, 3 * zK(z) / 4); g.fill(); }
+      const isRun = sp.kind === 'gate' || sp.kind === 'run';
+      if (isRun || sp.kind === 'old' || sp.kind === 'buried') {
+        const hw = (z) => RUNW * zK(z), zs = [5000, 60];
+        g.beginPath(); g.moveTo(VPX - hw(zs[0]), zY(zs[0])); g.lineTo(VPX - hw(zs[1]), zY(zs[1])); g.lineTo(VPX + hw(zs[1]), zY(zs[1])); g.lineTo(VPX + hw(zs[0]), zY(zs[0])); g.closePath();
+        g.fillStyle = sp.kind === 'buried' ? rgba(p.shade, 0.14) : sp.kind === 'old' ? rgba(p.shade, 0.26) : p.run; g.fill();
+        if (isRun) { for (let z = 900; z > 112; z /= 1.22) cgroup(g, (RN() - 0.5) * 6, z, rgba(p.print, 0.75)); }
+      }
+      // the bushes beside the run, or open snow
+      const stemsAt = (side, willow) => { const z = Z0 + 6, kx = zK(z), x0 = VPX + side * (RUNW + 5) * kx, y0 = zY(z) + 2; closeBush(g, x0 + side * 40, y0 - 12, 220, p, sp.seed + side * 9, willow); closeBush(g, x0, y0, 300, p, sp.seed + side * 3, willow); };
+      if (sp.kind === 'gate') {
+        if (sp.bush === 'young') [-1, 1].forEach((side) => spruce(g, VPX + side * (RUNW + 10) * K, YS + 6, 330, p, sp.seed + side * 4, M.fresh, false));
+        else [-1, 1].forEach((side) => stemsAt(side, sp.bush === 'willow'));
+      } else {
+        [-1, 1].forEach((side) => { closeBush(g, VPX + side * W * 0.4, zY(260), 150, p, sp.seed + side, side > 0); });
+        if (sp.kind === 'browse') [-1, 1].forEach((side) => birch(g, VPX + side * 120, YS + 10, 260, p, sp.seed + side * 2, true));
+      }
+      if (sp.kind === 'fox') for (let z = 900, i = 0; z > 60; z /= 1.18, i++) cprint(g, (i % 2 ? 0.5 : -0.5) - 14, z, 2.6, 2, p.printDk);
+      if (sp.kind === 'moose') for (let z = 700, i = 0; z > 70; z /= 1.55, i++) { const lat = (i % 2 ? 7 : -7) + 12; cprint(g, lat - 2.2, z, 7, 3, p.printDk); cprint(g, lat + 2.2, z, 7, 3, p.printDk); }
+      if (sp.kind === 'path') for (let z = 800, i = 0; z > 60; z /= 1.3, i++) { const lat = (i % 2 ? 11 : -11); cprint(g, lat, z, 24, 10, rgba(p.shade, 0.6)); }
+      if (sp.kind === 'open') { cgroup(g, -30, 140, p.print); cgroup(g, 26, 260, p.print); }
+      if (sp.kind === 'browse') { for (let i = 0; i < 6; i++) cgroup(g, (RN() - 0.5) * 50, 80 + RN() * 300, p.print); }
+      return (closeCache[key] = cvs);
+    }
+    // the stake, the cord and the loop; h and d in centimetres
+    function snareDraw(g, sn, opts) {
+      const o = opts || {}, kx = zK(Z0), stx = VPX + (RUNW + 3.5) * kx;
+      const lb = YS - sn.h * kx, d = o.closed ? 3.2 : sn.d, lr = d / 2 * kx, lcx = o.aside ? VPX + 8 * kx : VPX, lcy = lb - lr;
+      if (sn.twigs) {
+        g.strokeStyle = '#6B4C36'; g.lineWidth = 3; g.lineCap = 'round';
+        [-1, 1].forEach((sd) => { for (let i = 0; i < 3; i++) { const bx = VPX + sd * (Math.max(sn.d / 2, 5) + 1.6 + i * 1.3) * kx, by = YS + 3; g.beginPath(); g.moveTo(bx, by); g.lineTo(bx - sd * 0.9 * kx, by - (12 + i * 2.2) * kx); g.stroke(); } });
+        g.fillStyle = rgba(PAL.day.snowNear, 0.9); [-1, 1].forEach((sd) => { ell(g, VPX + sd * (Math.max(sn.d / 2, 5) + 3) * kx, YS + 3, 3.4 * kx, 0.8 * kx); g.fill(); });
+      }
+      const lean = o.closed ? -0.07 : 0, topY = 34, sx = (y) => stx + (YS - y) * lean;
+      g.strokeStyle = '#5A4232'; g.lineWidth = Math.max(4, 0.9 * kx); g.lineCap = 'round'; g.beginPath(); g.moveTo(stx, YS + 8); g.lineTo(sx(topY), topY); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,0.18)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(stx - 1.5, YS + 6); g.lineTo(sx(topY) - 1.5, topY); g.stroke();
+      g.fillStyle = rgba(PAL.day.snowNear, 0.95); ell(g, stx, YS + 8, 2.6 * kx, 0.7 * kx); g.fill();
+      const ty = lcy - lr, tx = sx(ty - 4);
+      g.strokeStyle = '#3E3122'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(tx, ty - 4); g.quadraticCurveTo((tx + lcx) / 2, ty - 10, lcx, ty); g.stroke();
+      g.strokeStyle = '#E3D3AE'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(tx, ty - 4); g.quadraticCurveTo((tx + lcx) / 2, ty - 10, lcx, ty); g.stroke();
+      g.fillStyle = '#3E3122'; g.beginPath(); g.arc(tx, ty - 4, 3, 0, 7); g.fill();
+      g.save(); g.translate(lcx, lcy); if (o.aside) g.rotate(0.9);
+      g.strokeStyle = '#2E2418'; g.lineWidth = 4; ell(g, 0, 0, o.aside ? lr * 0.35 : lr, lr); g.stroke();
+      g.strokeStyle = '#E8D9B4'; g.lineWidth = 2; ell(g, 0, 0, o.aside ? lr * 0.35 : lr, lr); g.stroke();
+      g.restore();
+      if (o.sunk) {   // drifted snow over the bottom of the loop
+        const mw = lr * 1.5, mh = Math.max(8, YS - lb + lr * 0.55), sg = g.createLinearGradient(0, YS - mh, 0, YS + 6);
+        sg.addColorStop(0, '#FBF6F7'); sg.addColorStop(1, PAL.dawn.snowNear);
+        g.fillStyle = sg; g.beginPath(); g.moveTo(VPX - mw * 1.25, YS + 6);
+        g.bezierCurveTo(VPX - mw * 0.75, YS - mh * 0.15, VPX - mw * 0.45, YS - mh, VPX, YS - mh); g.bezierCurveTo(VPX + mw * 0.45, YS - mh, VPX + mw * 0.75, YS - mh * 0.15, VPX + mw * 1.25, YS + 6); g.closePath(); g.fill();
+        g.strokeStyle = rgba(PAL.dawn.shadeDk, 0.35); g.lineWidth = 1.2; g.beginPath(); g.moveTo(VPX - mw * 0.55, YS - mh * 0.72); g.bezierCurveTo(VPX - mw * 0.3, YS - mh * 1.0, VPX + mw * 0.3, YS - mh * 1.0, VPX + mw * 0.55, YS - mh * 0.72); g.stroke();
+        g.fillStyle = rgba(PAL.dawn.shade, 0.3); ell(g, VPX + mw * 0.35, YS + 2, mw * 0.8, 3); g.fill();
+      }
+      return { lcx, lcy, lr, lb, stx };
+    }
+    function measureDraw(g, sn, skin) {
+      const kx = zK(Z0), lb = YS - sn.h * kx, lr = sn.d / 2 * kx, lcy = lb - lr, fr = FIST / 2 * kx;
+      // a fist pushed through the loop: four curled fingers, the thumb across them, the wrist behind
+      const dk = mix(skin, '#4A2E1E', 0.4);
+      g.save(); g.globalAlpha = 0.9;
+      g.fillStyle = skin; rr(g, VPX + fr * 0.15, lcy + fr * 0.55, fr * 1.25, fr * 1.6, fr * 0.35); g.fill();
+      rr(g, VPX - fr, lcy - fr * 0.5, fr * 2, fr * 1.42, fr * 0.42); g.fill();
+      for (let i = 0; i < 4; i++) { const w = fr * 0.5, x = VPX - fr + i * w; g.fillStyle = mix(skin, '#FFFFFF', i % 2 ? 0 : 0.05); rr(g, x + 0.6, lcy - fr * 0.92, w - 1.2, fr * 0.98, w * 0.46); g.fill(); g.strokeStyle = rgba(dk, 0.55); g.lineWidth = 1.2; rr(g, x + 0.6, lcy - fr * 0.92, w - 1.2, fr * 0.98, w * 0.46); g.stroke(); }
+      g.fillStyle = mix(skin, '#FFFFFF', 0.1); rr(g, VPX - fr * 0.92, lcy + fr * 0.02, fr * 1.3, fr * 0.44, fr * 0.22); g.fill(); g.strokeStyle = rgba(dk, 0.5); g.lineWidth = 1.1; rr(g, VPX - fr * 0.92, lcy + fr * 0.02, fr * 1.3, fr * 0.44, fr * 0.22); g.stroke();
+      // four fingers laid flat, one on another, from the snow up to the loop
+      const fl = 6.5 * kx, fw = FINGER * kx, fx = VPX - lr - fl * 0.55;
+      g.fillStyle = skin; rr(g, fx - fl * 0.5, YS - fw * 4.3, fl * 0.62, fw * 4.3, fw * 0.9); g.fill();
+      for (let i = 0; i < 4; i++) { const yy = YS - (i + 1) * fw, len = fl * [0.84, 0.97, 1, 0.92][i]; g.fillStyle = skin; rr(g, fx, yy + 0.5, len, fw - 1, (fw - 1) / 2); g.fill(); g.strokeStyle = rgba(dk, 0.55); g.lineWidth = 1; rr(g, fx, yy + 0.5, len, fw - 1, (fw - 1) / 2); g.stroke(); g.fillStyle = 'rgba(255,255,255,0.35)'; rr(g, fx + len - fw * 0.95, yy + fw * 0.26, fw * 0.62, fw * 0.42, 2); g.fill(); }
+      g.restore();
+      g.font = `700 ${Math.round(12 * FZ)}px ${SF}`; g.textBaseline = 'middle';
+      const lab = (t, x, y, al) => { g.textAlign = al; const w = g.measureText(t).width + 12; const bx = al === 'right' ? x - w : x; g.fillStyle = 'rgba(27,37,41,0.78)'; rr(g, bx, y - 10 * FZ, w, 20 * FZ, 9); g.fill(); g.fillStyle = '#fff'; g.fillText(t, al === 'right' ? x - 6 : x + 6, y); };
+      lab('✊ your fist', VPX + Math.max(fr, lr) + 8, lcy, 'left');
+      lab('4 fingers', fx - 6, YS - 2 * fw, 'right');
+    }
+
+    // ---------- the state of the day ----------
+    const st = { phase: 'ready', t: 0, started: false, paused: false, ended: false, sel: -1, me: { u: M.start[0], v: M.start[1] }, bud: { u: M.start[0] - 0.035, v: M.start[1] + 0.035 }, walk: null, trail: [], step: 0, msg: null, msgT: 0, demo: null, set: null, night: 0, checked: 0, taken: 0, leaveTries: 0, takeTries: 0, pot: 0, low: false, flash: 0, look: false, hop: null, smoke: [] };
+    box._snare = st; st.L = L; st.spots = S; st.M = M;
+    const placed = () => S.filter((s) => s.snare);
+    const lineDone = () => placed().every((s) => s.snare.checked && (!L.takeUp || s.snare.taken));
+    const minePlaced = () => S.filter((s) => s.snare && !s.snare.kloq);
+    const say = (text, dur) => { st.msg = text; st.msgT = dur || 5; live.textContent = text; };
+    const syncGT = () => { box.dataset.idle = st.started && !st.paused && !st.ended ? '0' : '1'; box.dataset.busy = st.started && !st.ended ? '1' : '0'; };
+    const label = () => { cv.setAttribute('aria-label', st.phase === 'set' || st.phase === 'check' ? 'A snare seen up close, looking along the hare’s run: a stake in the snow, a cord and a loop hanging over the run.' : `A snowy clearing in the woods${L.map === 'brook' ? ' with a frozen brook' : ''}, seen from above. Rings on the snow mark places to look closely. ${nameOf(heroKey)} and ${HR.budName} stand on snowshoes.`); };
+
+    // ---------- buttons under the picture ----------
+    const btn = (text, fn, aria) => { const b = el('button', { class: 'gamebtn', type: 'button', text }); if (aria) b.setAttribute('aria-label', aria); b.onclick = () => { if (!begin()) fn(); cv.focus({ preventScroll: true }); }; return b; };
+    const pauseBtn = el('button', { class: 'gamebtn', type: 'button', text: '⏸ Pause' }); pauseBtn.onclick = () => { pause(); cv.focus({ preventScroll: true }); };
+    const backBtn = el('button', { class: 'gamebtn', type: 'button', text: '↩ Choose a day', onclick: () => menu() });
+    function bars() {
+      bar.innerHTML = '';
+      const ph = st.phase, add = (...b) => bar.append(...b);
+      if (ph === 'look' || ph === 'walk' || ph === 'demo') {
+        const all = placed().length >= L.total;
+        add(btn('◀', () => cycle(-1), 'Look at the place before'), btn('▶', () => cycle(1), 'Look at the next place'));
+        add(all ? btn('🌙 Back to camp for the night', () => goNight()) : btn('➰ Set a snare here', () => act()));
+      } else if (ph === 'set') {
+        const hold = (text, fn, aria) => { const b = el('button', { class: 'gamebtn', type: 'button', text }); b.setAttribute('aria-label', aria); let iv = 0; const on = (e) => { e.preventDefault(); begin(); fn(); clearInterval(iv); iv = setInterval(fn, 90); }, off = () => clearInterval(iv); b.addEventListener('pointerdown', on); ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => b.addEventListener(ev, off)); b.addEventListener('keydown', (e) => { if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); fn(); } }); b.addEventListener('contextmenu', (e) => e.preventDefault()); return b; };
+        add(hold('▲ Higher', () => adj(0.5, 0), 'Raise the loop'), hold('▼ Lower', () => adj(-0.5, 0), 'Lower the loop'), hold('➖ Smaller', () => adj(0, -0.5), 'Make the loop smaller'), hold('➕ Bigger', () => adj(0, 0.5), 'Make the loop bigger'));
+        add(btn('🌿 Twigs', () => twigs(), 'Add twigs on both sides'), btn('✊ Measure', () => measure(), 'Measure with your hand'), btn('✔ Tie it', () => tie(), 'Tie the snare to the stake'));
+      } else if (ph === 'night') add(btn('⏩ Morning', () => morning()));
+      else if (ph === 'morning' || ph === 'mwalk') { if (lineDone()) add(btn('🏕️ Back to camp', () => leave())); else add(btn('◀', () => cycle(-1), 'The snare before'), btn('▶', () => cycle(1), 'The next snare'), btn('👣 Check this snare', () => act()), btn('🏕️ Back to camp', () => leave())); }
+      else if (ph === 'check') { if (L.takeUp && st.set && !st.set.sp.snare.taken) add(btn('🧺 Take up this snare', () => takeUp()), btn('▶ Leave it for now', () => backToLine())); else add(btn('▶ Back to the line', () => backToLine())); }
+      add(pauseBtn, backBtn);
+    }
+
+    // ---------- choosing a place ----------
+    const needsVisit = (s) => s.snare && !s.snare.taken && (!s.snare.checked || L.takeUp);
+    const visible = () => (st.phase === 'morning' || st.phase === 'mwalk' ? S.filter(needsVisit) : S.filter((s) => !s.snare));
+    const nextUp = () => { const me = P(st.me.u, st.me.v), vis = S.filter(needsVisit); st.sel = vis.length ? vis.reduce((b, s) => (Math.hypot(s.x - me.x, s.y - me.y) < Math.hypot(b.x - me.x, b.y - me.y) ? s : b)).i : -1; };
+    function select(i) {
+      const sp = S[i]; if (!sp) return;
+      st.sel = i; st.look = true; sfx('tick');
+      if (st.phase === 'morning') { live.textContent = sp.snare.checked ? 'A snare you checked. It is still on the line.' : 'A snare to check.'; return; }
+      live.textContent = '🔍 ' + DESC(sp, M.fresh);
+      if (coach && relaxed && LOOKHINT[sp.kind] && sp.kind !== 'gate') say(LOOKHINT[sp.kind], 4.5);
+    }
+    function cycle(d) {
+      if (!st.started || st.paused || st.ended) return;
+      const vis = visible().sort((a, b) => a.x - b.x); if (!vis.length) return;
+      const k = vis.findIndex((s) => s.i === st.sel);
+      select(vis[(k + d + vis.length * 2 + (k < 0 && d < 0 ? 1 : 0)) % vis.length].i);
+    }
+    function walkTo(sp, then, who) {
+      const from = { u: st.me.u, v: st.me.v }, to = { u: sp.u + (sp.u > 0.5 ? -0.035 : 0.035), v: Math.max(0, sp.v - 0.03) };
+      const a = P(from.u, from.v), b = P(to.u, to.v), dist = Math.hypot(b.x - a.x, b.y - a.y);
+      st.walk = { from, to, t: 0, T: RM ? 0.01 : clamp(dist / 260, 0.35, 1.6), then, who: who || 'me' };
+    }
+    function act() {
+      if (!st.started || st.paused || st.ended || st.walk) return;
+      if (st.phase === 'look') {
+        if (placed().length >= L.total) { goNight(); return; }
+        const sp = S[st.sel]; if (!sp || sp.snare) { say('First choose a ring on the snow. Then set a snare there.', 3); return; }
+        st.phase = 'walk'; bars();
+        walkTo(sp, () => openSet(sp, false));
+      } else if (st.phase === 'morning') {
+        const sp = S[st.sel]; if (!sp || !sp.snare || sp.snare.taken) { say('Choose one of your snares.', 3); return; }
+        st.phase = 'mwalk'; bars();
+        walkTo(sp, () => openCheck(sp));
+      }
+    }
+
+    // ---------- setting the loop ----------
+    function openSet(sp, auto) {
+      const R = mulb(sp.seed + placed().length * 3);
+      const h0 = [12, 2.5, 13, 3][Math.floor(R() * 4)], d0 = [15, 7, 14.5, 7.5][Math.floor(R() * 4)];
+      st.set = { sp, sn: { h: h0, d: d0, twigs: false }, measure: relaxed || auto, auto, at: 0 };
+      st.phase = 'set'; st.look = false; bars(); label();
+      if (auto) say(HR.teach === 'me' ? 'Watch, Anne.' : 'Watch. I set this one where the run squeezes between two bushes.', 3);
+      else if (coach) say(sp.kind === 'run' ? 'Your fist should just fit through the loop. Four fingers under it, to the snow. And is there room for the hare to go around?' : 'Your fist should just fit through the loop. Four fingers under it, to the snow.', 6);
+      else say('Set the loop. Press ✊ Measure to use your hand.', 3.5);
+      live.textContent = 'Raise or lower the loop with ↑ and ↓, make it smaller or bigger with ← and →. M measures, T adds twigs, Enter ties it.';
+    }
+    function adj(dh, dd) {
+      if (st.phase !== 'set' || st.set.auto || st.paused) return;
+      const sn = st.set.sn; sn.h = clamp(Math.round((sn.h + dh) * 2) / 2, 0.5, 24); sn.d = clamp(Math.round((sn.d + dd) * 2) / 2, 4, 22);
+      sfx('tick'); if (st.set.measure) live.textContent = measureText(sn);
+    }
+    function measureText(sn) {
+      const fing = sn.h / FINGER, roomy = sn.d - FIST;
+      const ht = fing < 2.5 ? 'Only a finger or two fit under the loop.' : fing < 3.4 ? 'About three fingers fit under the loop.' : fing <= 4.6 ? 'Four fingers fit under the loop.' : fing <= 5.6 ? 'Five fingers fit under the loop.' : 'Many fingers fit under the loop: it is high.';
+      const dt = roomy < -0.5 ? 'Your fist does not fit through.' : roomy < 0.5 ? 'Your fist only just touches the sides.' : roomy <= 3.5 ? 'Your fist just fits through.' : roomy <= 5 ? 'There is room around your fist.' : 'There is a lot of room around your fist.';
+      return `${ht} ${dt}`;
+    }
+    function twigs() {
+      if (st.phase !== 'set' || st.set.auto || st.paused) return;
+      st.set.sn.twigs = !st.set.sn.twigs; sfx('twig');
+      live.textContent = st.set.sn.twigs ? 'Twigs stand on both sides of the loop, to guide the hare in.' : 'You took the twigs away.';
+    }
+    function measure() { if (st.phase !== 'set' || st.paused) return; st.set.measure = !st.set.measure; sfx('note'); live.textContent = st.set.measure ? measureText(st.set.sn) : 'You put your hand away.'; }
+    function tie() {
+      if (st.phase !== 'set' || st.paused) return;
+      const { sp, sn } = st.set;
+      sp.snare = { h: sn.h, d: sn.d, twigs: sn.twigs, kloq: !!st.set.auto, checked: false, taken: false, res: null };
+      sfx('tie'); st.set = null; st.phase = 'look'; st.sel = -1;
+      const n = placed().length;
+      if (st.demo && st.demo.step < 9) { st.demo.step = 9; say(TEACH === 'me' ? 'Now you show her. Find two more good places. Look closely first.' : 'Now you. Find two more good places. Look closely first.', 6); }
+      else if (n >= L.total) say('That’s all of them. Back to camp before dark.', 6);
+      else say(`Snare tied. ${L.total - n} more to set.`, 2.5);
+      live.textContent = n >= L.total ? 'All your snares are set. Go back to camp for the night.' : 'Choose another ring on the snow.';
+      bars(); label();
+    }
+
+    // ---------- night, and the morning after ----------
+    function grade(sp) {
+      const sn = sp.snare, kind = sp.kind;
+      const place = kind === 'run' ? (sn.twigs ? 1 : 0.6) : PLACE[kind];
+      const hq = sn.h >= HB[0] && sn.h <= HB[1] ? 1 : sn.h >= HO[0] && sn.h <= HO[1] ? 0.55 : 0;
+      const dq = sn.d >= DB[0] && sn.d <= DB[1] ? 1 : sn.d >= DO[0] && sn.d <= DO[1] ? 0.55 : 0;
+      const hw = sn.h < HB[0] ? 'low' : sn.h > HB[1] ? 'high' : '', dw = sn.d < DB[0] ? 'small' : sn.d > DB[1] ? 'big' : '';
+      return { place, hq, dq, hw, dw, q: place * hq * dq, good: place >= 0.99 && hq === 1 && dq === 1 };
+    }
+    function resolve() {
+      const list = placed();
+      list.forEach((sp) => { const g = grade(sp); sp.snare.g = g; sp.snare.caught = RNG() < 0.86 * g.q; });
+      const goodOnes = list.filter((sp) => sp.snare.g.good), want = Math.ceil(goodOnes.length / 2);
+      for (let i = 0; goodOnes.filter((sp) => sp.snare.caught).length < want && i < goodOnes.length; i++) goodOnes[i].snare.caught = true;
+      list.forEach((sp) => {
+        const g = sp.snare.g, sn = sp.snare;
+        sn.res = sn.caught ? 'caught' : g.place < 0.3 ? sp.kind : g.hq === 0 ? g.hw : g.dq === 0 ? g.dw : sp.kind === 'run' && !sn.twigs ? 'around' : g.hw || g.dw ? 'close' : 'luck';
+      });
+    }
+    function goNight() {
+      if (st.ended || st.phase !== 'look') return;
+      if (placed().length < L.total) { say(`Set ${L.total - placed().length} more first.`, 3); return; }
+      resolve();
+      st.phase = 'night'; st.night = 0; st.sel = -1; st.look = false; st.me = { u: M.start[0], v: M.start[1] }; st.bud = { u: M.start[0] - 0.035, v: M.start[1] + 0.035 }; st.trail = [];
+      // a hare out on a run far from the snares
+      let best = null;
+      Object.values(M.runs).filter((r) => !r.old && !r.buried).forEach((r) => { for (let i = 10; i < r.c.length - 40; i += 6) { const a = r.c[i], d = Math.min(...placed().map((sp) => Math.hypot(sp.x - a.x, sp.y - a.y))); if (!best || d > best.d) best = { d, r, i }; } });
+      st.hop = best ? { r: best.r, i0: best.i, t: 0 } : null;
+      say('Night. The hares come out between sundown and dawn.', 4);
+      live.textContent = 'Night falls over the woods. Press Space or tap to go on to the morning.';
+      bars(); label(); setTimeout(() => sfx('owl'), 900);
+    }
+    function morning() {
+      if (st.phase !== 'night') return;
+      st.phase = 'morning'; st.hop = null; nextUp();
+      say(L.takeUp ? 'First light. We move camp today: check every snare, then take each one up.' : 'First light. Walk the line, and check every snare.', 6);
+      live.textContent = 'The nearest snare is chosen. Press Space to check it, or choose another with ← and →, or tap one.';
+      bars(); label();
+    }
+    const RES = {
+      caught: (sp) => `A hare is in this snare. ${HR.bag}`,
+      high: () => 'Fresh tracks run right under the loop. It was set too high.',
+      low: () => 'The loop sank into the snow, and a hare hopped right over it. It was set too low.',
+      big: () => 'A hare went straight through the loop. It was too big.',
+      small: () => 'A hare pushed the loop aside with its nose. It was too small.',
+      around: () => 'Tracks go around the side of the loop. Twigs on both sides would have guided the hare in.',
+      close: (sp) => `Fresh tracks come close, but no hare went in. The loop was a little too ${sp.snare.g.hw || sp.snare.g.dw}.`,
+      luck: () => 'No hare came through tonight. Even a good snare does not catch every night.',
+      fox: () => 'No hare came. Small prints in one straight line: a fox walked here, not a hare.',
+      moose: () => 'No hare came. A moose walked here, not on a hare’s run.',
+      path: () => 'No hare came. This is your own snowshoe trail, not a hare’s run.',
+      old: () => 'No fresh tracks. The hares were not using this old run.',
+      buried: () => 'No tracks. The hares have not opened this buried run again yet.',
+      open: () => 'One hare crossed here once, but it did not come back this way.',
+      browse: () => 'The hares came here to feed and wandered everywhere, but not through the loop.',
+    };
+    function openCheck(sp) {
+      const sn = sp.snare; st.set = { sp, sn, check: true, measure: false, at: 0 };
+      st.phase = 'check'; st.look = false;
+      if (!sn.checked) { sn.checked = true; st.checked++; if (sn.caught) { st.pot++; st.flash = 1.2; sfx('catch'); } else sfx('empty'); }
+      let t = RES[sn.res](sp);
+      if (L.takeUp && sn.seen) t = 'You checked this snare already. Take it up before we move camp.';
+      sn.seen = true;
+      if (!(L.takeUp && sn.seen2) && sn.caught && sn.g && (sn.g.hq < 1 || sn.g.dq < 1)) t += ` It worked, but next time set the loop a little ${sn.g.hw === 'high' ? 'lower' : sn.g.hw === 'low' ? 'higher' : sn.g.dw === 'big' ? 'smaller' : 'bigger'}.`;
+      if (!(L.takeUp && sn.seen2) && sn.caught && sp.kind === 'run' && !sn.twigs) t += ' The twigs would help it catch more often.';
+      if (sn.seen) sn.seen2 = true;
+      say(t, 30); bars(); label();
+    }
+    function backToLine() {
+      if (st.phase !== 'check') return;
+      st.set = null; st.phase = 'morning'; nextUp();
+      const left = placed().filter((s) => !s.snare.checked).length;
+      if (left) say(`${left} more to check.`, 2.5);
+      else if (L.takeUp && placed().some((s) => !s.snare.taken) && !st.takeHint) { st.takeHint = 1; say('Every snare is checked. Now take up each one before we go.', 4); }
+      else say('Every snare is checked. Back to camp!', 4);
+      if (lineDone()) live.textContent = 'Every snare is done. Press Space, or the Back to camp button.';
+      bars(); label();
+    }
+    function takeUp() {
+      if (st.phase !== 'check' || !L.takeUp) return;
+      const sp = st.set.sp; if (sp.snare.taken) return backToLine();
+      sp.snare.taken = true; st.taken++; sfx('take');
+      st.set = null; st.phase = 'morning'; nextUp();
+      const left = placed().filter((s) => !s.snare.taken).length;
+      say(left ? `Taken up. ${left} more on the line.` : 'Every snare is taken up. Nothing is left behind. Back to camp!', 4);
+      if (lineDone()) live.textContent = 'Every snare is done. Press Space, or the Back to camp button.';
+      bars(); label();
+    }
+    function leave() {
+      if (st.ended || (st.phase !== 'morning')) return;
+      if (placed().some((s) => !s.snare.checked)) { st.leaveTries++; sfx('note'); say('Not yet. We check every snare, every morning.', 4.5); return; }
+      if (L.takeUp && placed().some((s) => !s.snare.taken)) { st.takeTries++; sfx('note'); say('Take up every snare first. A snare left behind could catch a hare that nobody comes for.', 5.5); return; }
+      st.ended = true; finish();
+    }
+
+    // ---------- moving ----------
+    function step(dt) {
+      st.t += dt; if (st.msgT > 0) st.msgT -= dt; if (st.flash > 0) st.flash -= dt;
+      if (st.walk) {
+        const w = st.walk; w.t += dt; const u = clamp(w.t / w.T, 0, 1), e = u * u * (3 - 2 * u);
+        const prev = { u: st.me.u, v: st.me.v };
+        st.me = { u: lerp(w.from.u, w.to.u, e), v: lerp(w.from.v, w.to.v, e) };
+        st.bud = { u: lerp(st.bud.u, st.me.u - 0.035 * Math.sign(w.to.u - w.from.u || 1), Math.min(1, dt * 3.5)), v: lerp(st.bud.v, st.me.v + 0.03, Math.min(1, dt * 3.5)) };
+        st.step += Math.hypot(st.me.u - prev.u, st.me.v - prev.v) * 60;
+        if (st.step > 1) { st.step = 0; sfx('step'); if (st.trail.length < 220) st.trail.push({ u: st.me.u, v: st.me.v, side: st.trail.length % 2 ? 1 : -1 }); }
+        if (u >= 1) { st.walk = null; w.then(); }
+      }
+      if (st.demo && st.started) demoStep(dt);
+      if (st.phase === 'set' && st.set && st.set.auto) {
+        const sn = st.set.sn; st.set.at += dt;
+        if (RM) { sn.h = 7.6; sn.d = 11; } else { sn.h = lerp(sn.h, 7.6, Math.min(1, dt * 2.2)); sn.d = lerp(sn.d, 11, Math.min(1, dt * 2.2)); }
+        if (st.set.at > 2.2 && st.set.at - dt <= 2.2) say('Your fist should just fit through the loop.', 3);
+        if (st.set.at > 4.2 && st.set.at - dt <= 4.2) say('Four fingers under it, to the snow. Then tie it to the stake.', 3);
+        if (st.set.at > 6.4) { sn.h = 7.6; sn.d = 11; tie(); }
+      }
+      if (st.phase === 'night') {
+        st.night += dt; if (st.hop) st.hop.t += dt;
+        if (st.night > (RM ? 3 : 5.2)) morning();
+      }
+      if (!RM && !st.low && M.camp && Math.random() < dt * 2.2 && st.smoke.length < 18) { const q = P(M.camp[0], M.camp[1]); st.smoke.push({ x: q.x, y: q.y - 104 * q.s * SZ * 0.95, r: 3, a: 0.5, vx: 4 + Math.random() * 4, vy: -12 - Math.random() * 6 }); }
+      st.smoke.forEach((m) => { m.x += m.vx * dt; m.y += m.vy * dt; m.r += dt * 5; m.a -= dt * 0.12; }); st.smoke = st.smoke.filter((m) => m.a > 0);
+    }
+    function demoStep() {
+      const D = st.demo;
+      if (D.step === 0) { D.step = 1; say('Snowshoe hares use the same runs every night. I set snares where a run squeezes between two bushes.', 5); D.wait = st.t + (RM ? 1.5 : 3.2); }
+      else if (D.step === 1 && st.t >= D.wait) { D.step = 2; const sp = S.find((s) => s.demo); st.sel = sp.i; st.phase = 'demo'; bars(); walkTo(sp, () => openSet(sp, true)); }
+    }
+
+    // ---------- drawing ----------
+    function drawMap(ph) {
+      c.drawImage(layer(ph), 0, 0, W, H);
+      if (M.camp) for (const m of st.smoke) { c.fillStyle = ph === 'night' ? `rgba(170,180,200,${m.a * 0.6})` : `rgba(235,238,242,${m.a})`; c.beginPath(); c.arc(m.x, m.y, m.r, 0, 7); c.fill(); }
+      const p = PAL[ph];
+      for (const tp of st.trail) { const q = P(tp.u, tp.v); c.fillStyle = rgba(p.shade, 0.55); ell(c, q.x + tp.side * 4 * q.s, q.y + 2 * q.s, 5 * q.s, 2.2 * q.s); c.fill(); }
+      // the snares on the line
+      for (const sp of S) {
+        if (!sp.snare || sp.snare.taken) { if (sp.snare && sp.snare.taken) { c.fillStyle = rgba(p.shade, 0.6); ell(c, sp.x + 6 * sp.s, sp.y, 2.5 * sp.s, 1.2 * sp.s); c.fill(); } continue; }
+        const x = sp.x + 7 * sp.s, y = sp.y + 1;
+        c.strokeStyle = '#3E2C20'; c.lineWidth = Math.max(2.2, 3.4 * sp.s); c.lineCap = 'round'; c.beginPath(); c.moveTo(x, y); c.lineTo(x + 2 * sp.s, y - 40 * sp.s); c.stroke();
+        c.strokeStyle = '#E8D9B4'; c.lineWidth = Math.max(1, 1.4 * sp.s); c.beginPath(); c.moveTo(x + 1, y - 9 * sp.s); c.lineTo(sp.x, y - 9 * sp.s); c.stroke();
+        c.lineWidth = Math.max(1.4, 2 * sp.s); ell(c, sp.x, y - 5.6 * sp.s, (sp.snare.checked && sp.snare.caught ? 1.6 : 4.6) * sp.s, (sp.snare.checked && sp.snare.caught ? 1.6 : 4.8) * sp.s); c.stroke();
+        if (sp.snare.twigs) { c.strokeStyle = '#6B4C36'; c.lineWidth = 1; [-1, 1].forEach((sd) => { c.beginPath(); c.moveTo(sp.x + sd * 7 * sp.s, y); c.lineTo(sp.x + sd * 6 * sp.s, y - 9 * sp.s); c.stroke(); }); }
+        if (sp.snare.checked) { const t = sp.snare.caught ? '✔' : '○'; c.font = `700 ${Math.round(13 * FZ)}px ${SF}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = 'rgba(27,37,41,0.8)'; c.beginPath(); c.arc(x + 10 * sp.s, y - 46 * sp.s, 9 * FZ, 0, 7); c.fill(); c.fillStyle = sp.snare.caught ? '#BFF2B8' : '#FFFFFF'; c.fillText(t, x + 10 * sp.s, y - 45.5 * sp.s); }
+      }
+      // rings where you can look
+      if (st.phase === 'look' || st.phase === 'morning' || st.phase === 'ready') {
+        for (const sp of visible()) {
+          const sel = sp.i === st.sel, r = (sel ? 25 : 21) * sp.s * (small ? 1.12 : 1), pulse = RM ? 0 : Math.sin(st.t * 3 + sp.i) * 1.5;
+          c.setLineDash(sel ? [] : [5, 4]); c.lineWidth = sel ? 3.2 : 2;
+          c.strokeStyle = sel ? '#FFD54A' : 'rgba(27,37,41,0.7)'; ell(c, sp.x, sp.y, r + pulse, (r + pulse) * Q); c.stroke();
+          if (!sel) { c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineWidth = 1; ell(c, sp.x, sp.y, r + pulse - 2, (r + pulse - 2) * Q); c.stroke(); }
+          c.setLineDash([]);
+        }
+      }
+      // people, far one first
+      const ppl = [['me', st.me, ME], ['bud', st.bud, BUD]].sort((a, b) => b[1].v - a[1].v);
+      const walking = !!st.walk;
+      for (const [k, pos, who] of ppl) { const q = P(pos.u, pos.v), sw = walking ? Math.sin(st.t * 12 + (k === 'me' ? 0 : 1.5)) : 0; person(c, q.x, q.y, q.s * 0.84 * SZ, who, { sw }); }
+      // the night hare
+      if (ph === 'night' && st.hop) {
+        const r = st.hop.r, T = RM ? 0 : st.hop.t, idx = Math.min(r.c.length - 1, st.hop.i0 + Math.floor(T * 26)), o = r.c[idx], hopPhase = RM ? 0 : (T * 2.6) % 1;
+        const nxt = r.c[Math.min(r.c.length - 1, idx + 2)], dir = nxt.x >= o.x ? 1 : -1;
+        if (idx < r.c.length - 1) hare(c, o.x, o.y, o.s * 0.85 * SZ, dir, hopPhase, p);
+      }
+      if (ph === 'night') { const vg = c.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.7); vg.addColorStop(0, 'rgba(5,10,25,0)'); vg.addColorStop(1, 'rgba(5,10,25,0.45)'); c.fillStyle = vg; c.fillRect(0, 0, W, H); }
+      // the close look
+      if (lensOn()) {
+        const sp = S[st.sel], R = small ? 86 : 74, cx = sp.x > W * 0.55 ? R + 14 : W - R - 14, cy = R + 54 * FZ;
+        lensDraw(c, cx, cy, R, sp, PAL.day);
+        c.strokeStyle = 'rgba(255,213,74,0.8)'; c.lineWidth = 1.5; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(sp.x, sp.y); c.lineTo(cx + (sp.x - cx) * (R / Math.hypot(sp.x - cx, sp.y - cy)), cy + (sp.y - cy) * (R / Math.hypot(sp.x - cx, sp.y - cy))); c.stroke(); c.setLineDash([]);
+      }
+    }
+    function drawClose() {
+      const s0 = st.set, sp = s0.sp, ph = s0.check ? 'dawn' : 'day';
+      c.drawImage(closeBG(sp, ph), 0, 0, W, H);
+      const p = PAL[ph], sn = s0.sn;
+      if (s0.check) {
+        const res = sn.res, z0 = Z0, g = c;
+        if (['high', 'big', 'small', 'close', 'caught', 'low', 'around'].includes(res)) {
+          // last night's tracks, coming down the run toward you
+          const col = rgba(p.print, 0.62), side = sn.d / 2 + 4.5;
+          for (let z = 700; z > 70; z /= 1.2) {
+            if (res === 'caught' && z < z0 * 0.95) break;
+            if (res === 'close' && z < z0 * 1.3) break;
+            if (res === 'low' && z > z0 * 0.8 && z < z0 * 1.32) continue;
+            let lat = ((z * 7) % 3) - 1.5;
+            if (res === 'around') lat = -side * (z > z0 * 2.2 ? 0 : z > z0 ? (z0 * 2.2 - z) / (z0 * 1.2) : Math.max(0.35, (z - z0 * 0.4) / (z0 * 0.6)));
+            if (res === 'close' && z < z0 * 2) lat += (z0 * 2 - z) / (z0 * 0.7) * 6;
+            cgroup(g, lat, z, col);
+          }
+        }
+        const r = snareDraw(c, sn, { closed: res === 'caught', aside: res === 'small', sunk: res === 'low' });
+        if (res === 'caught') {
+          // the bag beside the stake: nothing is shown hurt
+          const bx = r.stx + 40, by = YS + 24;
+          c.fillStyle = 'rgba(40,40,70,0.16)'; ell(c, bx, by + 2, 34, 6); c.fill();
+          c.fillStyle = '#A27852'; c.beginPath(); c.moveTo(bx - 25, by); c.quadraticCurveTo(bx - 33, by - 30, bx - 14, by - 46); c.lineTo(bx + 14, by - 46); c.quadraticCurveTo(bx + 33, by - 30, bx + 25, by); c.closePath(); c.fill();
+          c.fillStyle = 'rgba(70,45,25,0.18)'; c.beginPath(); c.moveTo(bx + 4, by - 44); c.quadraticCurveTo(bx + 30, by - 28, bx + 25, by); c.lineTo(bx + 8, by); c.closePath(); c.fill();
+          c.fillStyle = '#8C6444'; c.beginPath(); c.moveTo(bx - 14, by - 46); c.quadraticCurveTo(bx, by - 41, bx + 14, by - 46); c.lineTo(bx + 11, by - 56); c.quadraticCurveTo(bx, by - 52, bx - 11, by - 56); c.closePath(); c.fill();
+          c.strokeStyle = '#5A3E28'; c.lineWidth = 2; c.beginPath(); c.moveTo(bx - 15, by - 45); c.quadraticCurveTo(bx, by - 39, bx + 15, by - 45); c.stroke();
+          c.beginPath(); c.moveTo(bx + 12, by - 44); c.quadraticCurveTo(bx + 20, by - 36, bx + 16, by - 28); c.stroke();
+          c.strokeStyle = 'rgba(90,62,40,0.55)'; c.lineWidth = 1; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(bx - 20, by - 6); c.quadraticCurveTo(bx, by - 2, bx + 20, by - 6); c.stroke(); c.setLineDash([]);
+          if (st.flash > 0 && !RM) { const a = clamp(st.flash, 0, 1); c.strokeStyle = `rgba(255,226,120,${a})`; c.lineWidth = 2; for (let i = 0; i < 6; i++) { const an = i * Math.PI / 3 + st.t, r1 = 16 + (1 - a) * 18; c.beginPath(); c.moveTo(VPX + Math.cos(an) * r1, r.lcy + Math.sin(an) * r1); c.lineTo(VPX + Math.cos(an) * (r1 + 8), r.lcy + Math.sin(an) * (r1 + 8)); c.stroke(); } }
+        }
+      } else {
+        snareDraw(c, sn, {});
+        if (s0.measure) measureDraw(c, sn, LOOK[ME].skin);
+      }
+      if (!s0.check) {
+        // where you are: the snow under the loop
+        c.strokeStyle = 'rgba(27,37,41,0.25)'; c.setLineDash([4, 5]); c.lineWidth = 1; c.beginPath(); c.moveTo(VPX - 60 * FZ, YS); c.lineTo(VPX + 60 * FZ, YS); c.stroke(); c.setLineDash([]);
+      }
+    }
+    function wrapLines(text, maxW) {
+      const out = []; let line = '';
+      for (const wd of text.split(' ')) { const t = line ? line + ' ' + wd : wd; if (c.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; }
+      if (line) out.push(line); return out;
+    }
+    function bubble(text, x, y, w) {
+      c.font = `600 ${Math.round(14 * FZ)}px ${SF}`; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+      const words = text.split(' '), lines = []; let line = '';
+      for (const wd of words) { const t = line ? line + ' ' + wd : wd; if (c.measureText(t).width > w - 24 && line) { lines.push(line); line = wd; } else line = t; }
+      if (line) lines.push(line);
+      const lh = 18 * FZ, bh = lines.length * lh + 16, bw = Math.min(w, Math.max(...lines.map((l) => c.measureText(l).width)) + 26);
+      let bx = clamp(x - bw / 2, 8, W - bw - 8), by = y - bh - 14; if (by < 8) by = y + 26;
+      c.fillStyle = 'rgba(255,253,248,0.96)'; rr(c, bx, by, bw, bh, 12); c.fill(); c.strokeStyle = 'rgba(27,37,41,0.35)'; c.lineWidth = 1; rr(c, bx, by, bw, bh, 12); c.stroke();
+      if (by < y) { c.fillStyle = 'rgba(255,253,248,0.96)'; c.beginPath(); c.moveTo(clamp(x, bx + 14, bx + bw - 14) - 7, by + bh - 1); c.lineTo(clamp(x, bx + 14, bx + bw - 14) + 7, by + bh - 1); c.lineTo(x, by + bh + 10); c.closePath(); c.fill(); }
+      c.fillStyle = '#22252B'; lines.forEach((l, i) => c.fillText(l, bx + 13, by + 8 + lh * (i + 0.78)));
+    }
+    const lensOn = () => st.look && st.sel >= 0 && st.phase === 'look';
+    function bubbleFree(text) {
+      c.font = `600 ${Math.round(14 * FZ)}px ${SF}`; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+      const words = text.split(' '), lines = []; let line = ''; const maxW = W - 70;
+      for (const wd of words) { const t = line ? line + ' ' + wd : wd; if (c.measureText(t).width > maxW && line) { lines.push(line); line = wd; } else line = t; }
+      if (line) lines.push(line);
+      const lh = 18 * FZ, bh = lines.length * lh + 16, bw = Math.min(W - 24, Math.max(...lines.map((l) => c.measureText(l).width)) + 26), bx = W / 2 - bw / 2, by = H - bh - 10;
+      c.fillStyle = 'rgba(255,253,248,0.95)'; rr(c, bx, by, bw, bh, 12); c.fill(); c.strokeStyle = 'rgba(27,37,41,0.35)'; c.lineWidth = 1; rr(c, bx, by, bw, bh, 12); c.stroke();
+      c.fillStyle = '#22252B'; lines.forEach((l, i) => c.fillText(l, bx + 13, by + 8 + lh * (i + 0.78)));
+    }
+    function banner(text) {
+      c.font = `600 ${Math.round(15 * FZ)}px ${SF}`; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+      const words = text.split(' '), lines = []; let line = ''; const maxW = W - 60;
+      for (const wd of words) { const t = line ? line + ' ' + wd : wd; if (c.measureText(t).width > maxW && line) { lines.push(line); line = wd; } else line = t; }
+      if (line) lines.push(line);
+      const lh = 19 * FZ, bh = lines.length * lh + 18, bw = Math.min(W - 24, Math.max(...lines.map((l) => c.measureText(l).width)) + 28);
+      c.fillStyle = 'rgba(255,253,248,0.95)'; rr(c, W / 2 - bw / 2, 12, bw, bh, 14); c.fill(); c.strokeStyle = 'rgba(27,37,41,0.3)'; c.lineWidth = 1; rr(c, W / 2 - bw / 2, 12, bw, bh, 14); c.stroke();
+      c.fillStyle = '#22252B'; lines.forEach((l, i) => c.fillText(l, W / 2 - bw / 2 + 14, 12 + 9 + lh * (i + 0.8)));
+    }
+    function pill(x, y, text, val) {
+      c.font = `700 ${Math.round(12 * FZ)}px ${SF}`; c.textAlign = 'left'; c.textBaseline = 'middle';
+      const tw = c.measureText(text).width, w = tw + 24 + (val !== undefined ? 70 * FZ : 0), h = 26 * FZ;
+      c.fillStyle = 'rgba(255,253,248,0.93)'; rr(c, x, y, w, h, h / 2); c.fill();
+      c.fillStyle = '#22252B'; c.fillText(text, x + 12, y + h / 2 + 0.5);
+      if (val !== undefined) { const bx = x + tw + 18, bw = 60 * FZ; c.fillStyle = '#E8E1D2'; rr(c, bx, y + h / 2 - 5, bw, 10, 5); c.fill(); if (val > 0.01) { c.fillStyle = '#C9862F'; rr(c, bx, y + h / 2 - 5, Math.max(10, bw * Math.min(1, val)), 10, 5); c.fill(); } }
+      return w;
+    }
+    function draw() {
+      const ph = st.phase;
+      if (ph === 'set' || ph === 'check') drawClose();
+      else drawMap(ph === 'night' ? 'night' : ph === 'morning' || ph === 'mwalk' ? 'dawn' : 'day');
+      // what you can read at a glance
+      const py = ph === 'set' || ph === 'check' ? H - 10 - 26 * FZ : 10;
+      if (ph === 'look' || ph === 'walk' || ph === 'demo' || ph === 'set') pill(10, py, `➰ Snares set: ${placed().length} of ${L.total}`);
+      else if (ph === 'morning' || ph === 'mwalk' || ph === 'check') {
+        const w1 = pill(10, py, L.takeUp ? `👣 Checked ${st.checked} · taken up ${st.taken} of ${L.total}` : `👣 Checked: ${st.checked} of ${L.total}`);
+        pill(16 + w1, py, '🍲 Kettle', st.pot / L.need);
+      } else if (ph === 'night') pill(10, 10, '🌙 Night');
+      if (ph === 'set' || ph === 'check') { if (st.msg && st.msgT > 0) banner(st.msg); }
+      else if (st.msg && st.msgT > 0 && st.started && !st.paused) {
+        const sp = TEACH === 'me' ? st.me : st.bud, q = P(sp.u, sp.v);
+        if (lensOn()) bubbleFree(st.msg); else bubble(st.msg, q.x, q.y - 88 * q.s * SZ, small ? W - 40 : 340);
+      }
+      if ((!st.started || st.paused) && !st.hideUI) {
+        c.fillStyle = 'rgba(20,28,34,.45)'; c.fillRect(0, 0, W, H);
+        const cw = Math.min(W - 24, 540), title = st.paused ? 'Paused' : L.n === 1 ? HR.ready : `Ready? ${HR.budName} is waiting.`;
+        const body = st.paused ? ['Press Space or tap to carry on.'] : [L.n === 3 ? 'New snow fell all night. Look for runs the hares have opened since.' : 'Read the snow. Set each loop well. Check every one at first light.', 'Press Space or tap to start.'];
+        c.font = `700 ${Math.round(20 * FZ)}px ${SF}`; const tl = wrapLines(title, cw - 36);
+        c.font = `600 ${Math.round(14 * FZ)}px ${SF}`; const bl = body.flatMap((t) => wrapLines(t, cw - 36));
+        const th = 26 * FZ, lh = 20 * FZ, ch = 30 + tl.length * th + 8 + bl.length * lh, cy = H / 2 - ch / 2;
+        c.fillStyle = 'rgba(255,253,248,.96)'; rr(c, W / 2 - cw / 2, cy, cw, ch, 16); c.fill();
+        c.fillStyle = '#22252B'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.font = `700 ${Math.round(20 * FZ)}px ${SF}`; tl.forEach((t, i) => c.fillText(t, W / 2, cy + 15 + th * (i + 0.5)));
+        c.font = `600 ${Math.round(14 * FZ)}px ${SF}`; bl.forEach((t, i) => c.fillText(t, W / 2, cy + 15 + tl.length * th + 8 + lh * (i + 0.5)));
+      }
+    }
+
+    // ---------- loop and controls ----------
+    let raf = 0, last = 0, alive = true, fN = 0, fT = 0;
+    const frame = (now) => {
+      if (!alive) return; if (!cv.isConnected) { stop(); return; }
+      const raw = (now - last) / 1000 || 0, dt = Math.min(0.05, raw); last = now;
+      if (st.started && !st.paused && !st.ended && !st.hold) {
+        step(dt);
+        if (!st.low && raw < 0.25 && fN < 90) { fN++; fT += raw; if (fN === 90 && fT / 90 > 0.026) { st.low = true; if (dpr > 1) { dpr = 1; cv.width = W; cv.height = H; c.setTransform(1, 0, 0, 1, 0, 0); layers = {}; closeCache = {}; } } }
+      }
+      if (st.ended) return;
+      draw(); raf = requestAnimationFrame(frame);
+    };
+    function begin() {
+      if (st.ended) return false;
+      try { if (typeof SND !== 'undefined' && SND.on) SND.resume(); } catch (e) { /* no sound */ }
+      if (st.paused) { st.paused = false; pauseBtn.textContent = '⏸ Pause'; syncGT(); return true; }
+      if (!st.started) {
+        st.started = true; st.phase = 'look'; syncGT(); bars(); label();
+        if (demoOn) st.demo = { step: 0 };
+        else if (L.n === 3) say('New snow fell all night. Look for runs the hares have opened since the snow stopped.', 6);
+        else if (coach) say('Hares use the same runs every night. Look for packed snow with fresh prints in groups of four.', 6);
+        else say(`Find good places for ${L.total} snares.`, 4);
+        live.textContent = 'Tap a ring on the snow, or use ← and →, to look closely.';
+        return true;
+      }
+      return false;
+    }
+    function pause() { if (!st.started || st.ended) return; st.paused = !st.paused; pauseBtn.textContent = st.paused ? '▶ Carry on' : '⏸ Pause'; syncGT(); }
+    const kd = (e) => {
+      if (!cv.isConnected) { stop(); return; }
+      const tg = document.activeElement; if (tg && /INPUT|TEXTAREA|SELECT/.test(tg.tagName)) return;
+      const k = e.code, onBtn = tg && tg.tagName === 'BUTTON';
+      if (k === 'KeyP') { pause(); return; }
+      if (!st.started || st.paused) { if (k === 'Space' || k === 'Enter' || /^Arrow/.test(k)) { if (onBtn && k !== 'Space' && !/^Arrow/.test(k)) return; e.preventDefault(); begin(); } return; }
+      const ph = st.phase;
+      if (ph === 'set') {
+        if (k === 'ArrowUp' || k === 'KeyW') { e.preventDefault(); adj(0.5, 0); }
+        else if (k === 'ArrowDown' || k === 'KeyS') { e.preventDefault(); adj(-0.5, 0); }
+        else if (k === 'ArrowLeft' || k === 'KeyA') { e.preventDefault(); adj(0, -0.5); }
+        else if (k === 'ArrowRight' || k === 'KeyD') { e.preventDefault(); adj(0, 0.5); }
+        else if (k === 'KeyT') twigs(); else if (k === 'KeyM') measure();
+        else if ((k === 'Enter' || k === 'Space') && !onBtn) { e.preventDefault(); if (!e.repeat) tie(); }
+      } else if (ph === 'look' || ph === 'morning') {
+        if (k === 'ArrowLeft' || k === 'KeyA' || k === 'ArrowUp' || k === 'KeyW') { e.preventDefault(); cycle(-1); }
+        else if (k === 'ArrowRight' || k === 'KeyD' || k === 'ArrowDown' || k === 'KeyS') { e.preventDefault(); cycle(1); }
+        else if ((k === 'Enter' || k === 'Space') && !onBtn) { e.preventDefault(); if (e.repeat) return; if (ph === 'look' && placed().length >= L.total) goNight(); else if (ph === 'morning' && lineDone()) leave(); else if (st.sel < 0) cycle(1); else act(); }
+        else if (k === 'KeyN' && ph === 'look') goNight();
+        else if (k === 'KeyH' && ph === 'morning') leave();
+      } else if (ph === 'night') { if ((k === 'Space' || k === 'Enter') && !onBtn) { e.preventDefault(); morning(); } }
+      else if (ph === 'check') { if ((k === 'Space' || k === 'Enter') && !onBtn) { e.preventDefault(); if (e.repeat) return; if (L.takeUp && !st.set.sp.snare.taken) takeUp(); else backToLine(); } }
+    };
+    const vis = () => { if (document.hidden && st.started && !st.ended && !st.paused) pause(); };
+    const toXY = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
+    let drag = null;
+    const pd = (e) => {
+      e.preventDefault(); cv.focus({ preventScroll: true });
+      if (begin() || st.ended) return;
+      const p = toXY(e), ph = st.phase;
+      if (ph === 'look' || ph === 'morning') {
+        let best = null, bd = 1e9;
+        for (const sp of visible()) { const dx = (p.x - sp.x) / (34 * sp.s * (small ? 1.25 : 1)), dy = (p.y - sp.y) / (34 * sp.s * (small ? 1.25 : 1) * 0.75), d = Math.hypot(dx, dy); if (d < 1 && d < bd) { bd = d; best = sp; } }
+        if (best) { if (best.i === st.sel) act(); else select(best.i); }
+      } else if (ph === 'set' && !st.set.auto) { drag = { y: p.y, h: st.set.sn.h }; try { cv.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } }
+      else if (ph === 'night') morning();
+      else if (ph === 'check') { if (L.takeUp && !st.set.sp.snare.taken) takeUp(); else backToLine(); }
+    };
+    const pm = (e) => { if (!drag || st.phase !== 'set') return; const p = toXY(e), kx = zK(Z0); const h = clamp(Math.round((drag.h + (drag.y - p.y) / kx) * 2) / 2, 0.5, 24); if (h !== st.set.sn.h) { st.set.sn.h = h; sfx('tick'); if (st.set.measure) live.textContent = measureText(st.set.sn); } };
+    const pu = () => { drag = null; };
+    window.addEventListener('keydown', kd); document.addEventListener('visibilitychange', vis);
+    cv.addEventListener('pointerdown', pd); cv.addEventListener('pointermove', pm); cv.addEventListener('pointerup', pu); cv.addEventListener('pointercancel', pu);
+    cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    function stop() { alive = false; cancelAnimationFrame(raf); layers = {}; closeCache = {}; window.removeEventListener('keydown', kd); document.removeEventListener('visibilitychange', vis); if (stopRun === stop) stopRun = null; }
+    stopRun = stop;
+    st.api = { begin, select, cycle, act, adj, twigs, measure, tie, goNight, morning, backToLine, takeUp, leave, step, draw, grade, pause,
+      skip: () => { if (st.walk) { st.walk.t = st.walk.T; step(0.001); } if (st.phase === 'set' && st.set && st.set.auto) { st.set.at = 99; step(0.001); } if (st.demo && st.demo.step === 1) { st.demo.wait = 0; step(0.001); } },
+      setLoop: (h, d) => { if (st.phase === 'set') { st.set.sn.h = h; st.set.sn.d = d; } } };
+    bars(); label(); cv.focus({ preventScroll: true }); raf = requestAnimationFrame(frame);
+    live.textContent = 'Press Space or tap the picture to start.';
+
+    // ---------- back at camp ----------
+    function finish() {
+      stop();
+      const mine = minePlaced(), gs = mine.map((sp) => sp.snare.g || grade(sp)), good = gs.filter((g) => g.good).length;
+      const fair = L.total / Math.max(1, nMine), pPlace = Math.round(gs.reduce((a, g) => a + g.place * 100, 0) * fair), pLoop = Math.round(gs.reduce((a, g) => a + (g.hq + g.dq) * 75, 0) * fair);
+      const pCare = Math.max(0, 100 - st.leaveTries * 50), pTake = L.takeUp ? Math.max(0, 100 - st.takeTries * 50) : 0;
+      const score = Math.round((pPlace + pLoop + pCare + pTake) * L.mult * (relaxed ? 0.8 : 1));
+      const n = 1 + (good >= Math.ceil(nMine / 2) ? 1 : 0) + (good === nMine ? 1 : 0);
+      PROG.snareStars = PROG.snareStars || {}; PROG.snareStars[L.n] = Math.max(PROG.snareStars[L.n] || 0, n);
+      const isBest = score > (PROG.snareBest || 0); PROG.snareBest = Math.max(PROG.snareBest || 0, score);
+      const fact = CFG.facts[((PROG.snareN = (PROG.snareN || 0) + 1) - 1) % CFG.facts.length];
+      saveProg(); try { cloudSend(true); } catch (e) { /* not signed in */ } win(); sfx('done');
+      box.innerHTML = '';
+      box.dataset.idle = '1'; box.dataset.busy = '0'; box.dataset.done = '1';
+      const caught = st.pot, full = caught >= L.need, NW = ['no', 'one', 'two', 'three', 'four', 'five', 'six'], nw = (k) => NW[k] || String(k);
+      const pic = document.createElement('canvas'); pic.className = 'trailcv'; pic.style.aspectRatio = `${W} / 250`; pic.width = W * dpr; pic.height = 250 * dpr;
+      pic.setAttribute('role', 'img'); pic.setAttribute('aria-label', `Back at camp at dusk: smoke rises from the wikuom, banked with snow. ${nameOf(heroKey)} and ${HR.budName} stand by the door${heroKey === 'qalipu' ? ', and Nukumi is in the doorway' : ''}.`);
+      camp(pic.getContext('2d'), full);
+      const firstLine = `${nMine === L.total ? `You set ${nw(L.total)} snares` : `${HR.budName} set one snare and you set ${nw(nMine)}`}, and you checked every one at first light${L.takeUp ? ', then took them all up' : ''}. ${caught === 0 ? 'There were no hares this time.' : `${caught === 1 ? 'One hare' : `${nw(caught).charAt(0).toUpperCase() + nw(caught).slice(1)} hares`} for the kettle.`}`;
+      const potLine = full ? `There is enough stew for everyone tonight.${caught > L.need ? ' There is even some to share.' : ''}` : HR.thin;
+      const careLine = st.leaveTries || st.takeTries ? ' You needed a reminder, and that is how everyone learns.' : '';
+      box.append(
+        el('h2', { class: 'trail-title readable', text: full ? '🍲 Enough for everyone tonight' : caught ? '🍲 Something for the kettle' : '🌙 Nothing in the snares this time' }),
+        el('p', { class: 'trail-stars', text: stars(n), role: 'img', 'aria-label': `${n} out of 3 stars` }),
+        el('div', { class: 'trailwrap' }, [pic]),
+        el('p', { class: 'readable', text: firstLine + careLine }),
+        el('p', { class: 'readable', text: `${potLine} Nothing is wasted: the meat goes into the kettle, and the bones are boiled twice. ${HR.neta} ${HR.thanks}` }),
+        el('section', { class: 'fact' }, [
+          el('h2', { text: `Score: ${score}${isBest ? '  (your new best!)' : ''}` }),
+          el('p', { text: `Good places ${pPlace}  +  good loops ${pLoop}  +  checked every snare ${pCare}${L.takeUp ? `  +  took every snare up ${pTake}` : ''}${L.mult !== 1 ? `, then × ${L.mult} for this harder day` : ''}${relaxed ? ', then × 0.8 for relaxed mode' : ''}.` }),
+          el('p', { text: n < 3 ? `${good} of your ${nMine} snares were in a good place with a good loop. For three stars, set every one where the run squeezes between bushes, or guide the hare in with twigs, with the loop a fist wide and four fingers above the snow.` : 'Three stars. Every snare was in a good place with a good loop.' }),
+        ]),
+        el('section', { class: 'fact' }, [el('h2', { text: '💡 Did you know?' }), el('p', { text: fact })]),
+        el('section', { class: 'fact' }, [el('h2', { text: '🌲 Today' }), ...CFG.today.map((t) => el('p', { text: t })), el('p', { class: 'hint', text: CFG.sources })]),
+        timeUp()
+          ? el('p', { class: 'gtline out', text: typeof GT_DONE === 'string' ? GT_DONE : '' })
+          : el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: '▶ Set snares on this day again', onclick: () => play(L) }), el('button', { class: 'secondary', type: 'button', text: '🐇 Choose a different day', onclick: () => menu() })]),
+      );
+      window.scrollTo(0, 0);
+    }
+    function camp(g, full) {
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const HH = 250, p = { ...PAL.dawn, skyTop: '#3E4C78', skyBot: '#D9A79A', snowFar: '#B9B4C8', snowNear: '#E8E2EA' };
+      const sg = g.createLinearGradient(0, 0, 0, 150); sg.addColorStop(0, p.skyTop); sg.addColorStop(1, p.skyBot); g.fillStyle = sg; g.fillRect(0, 0, W, HH);
+      const R = mulb(41);
+      for (let i = 0; i < 30; i++) { g.fillStyle = `rgba(255,255,255,${0.3 + R() * 0.5})`; g.fillRect(R() * W, R() * 60, 1, 1); }
+      g.fillStyle = p.hill; g.beginPath(); g.moveTo(0, 128); for (let x = 0; x <= W; x += 30) g.lineTo(x, 122 - Math.sin(x * 0.013) * 7); g.lineTo(W, 150); g.lineTo(0, 150); g.closePath(); g.fill();
+      const gg = g.createLinearGradient(0, 140, 0, HH); gg.addColorStop(0, p.snowFar); gg.addColorStop(1, p.snowNear); g.fillStyle = gg; g.fillRect(0, 140, W, HH - 140);
+      for (let x = -10; x < W + 20; x += 18 + R() * 16) spruce(g, x, 146 + R() * 6, 70 + R() * 70, p, (R() * 1e6) | 0, false, true);
+      const wx = W * 0.46, wy = 214;
+      for (let i = 0; i < 7; i++) { g.fillStyle = `rgba(220,222,230,${0.42 - i * 0.05})`; g.beginPath(); g.arc(wx + 6 + i * 7 + Math.sin(i) * 3, wy - 128 - i * 14, 6 + i * 3, 0, 7); g.fill(); }
+      wikuom(g, wx, wy, 128, p);
+      const glow = g.createRadialGradient(wx + 2, wy - 18, 2, wx + 2, wy - 18, 40); glow.addColorStop(0, 'rgba(255,190,110,0.85)'); glow.addColorStop(1, 'rgba(255,170,90,0)'); g.fillStyle = glow; g.beginPath(); g.arc(wx + 2, wy - 18, 40, 0, 7); g.fill();
+      g.fillStyle = '#F2A85A'; g.beginPath(); g.moveTo(wx - 9, wy); g.lineTo(wx - 6, wy - 32); g.quadraticCurveTo(wx, wy - 38, wx + 6, wy - 32); g.lineTo(wx + 1, wy); g.closePath(); g.fill();
+      person(g, wx - 86, wy + 16, 0.78, ME, {}); person(g, wx + 92, wy + 18, 0.78, BUD, {});
+      if (heroKey === 'qalipu') person(g, wx + 20, wy + 4, 0.62, 'nukumi', {});
+      // the kettle meter
+      g.font = `700 ${Math.round(13 * FZ)}px ${SF}`; g.textAlign = 'left'; g.textBaseline = 'middle';
+      const t = full ? '🍲 The kettle is full' : '🍲 The kettle', tw = g.measureText(t).width;
+      g.fillStyle = 'rgba(255,253,248,0.93)'; rr(g, 10, 10, tw + 110 * FZ, 28 * FZ, 14 * FZ); g.fill();
+      g.fillStyle = '#22252B'; g.fillText(t, 22, 10 + 14 * FZ);
+      const bx = 22 + tw + 10, bw = 80 * FZ; g.fillStyle = '#E8E1D2'; rr(g, bx, 10 + 14 * FZ - 5, bw, 10, 5); g.fill();
+      if (st.pot > 0) { g.fillStyle = '#C9862F'; rr(g, bx, 10 + 14 * FZ - 5, Math.max(10, bw * Math.min(1, st.pot / L.need)), 10, 5); g.fill(); }
+    }
+  }
+  menu();
+}
+
 const GAMES = {
   aboiteau: { icon: '🌊', name: 'Work the aboiteau', blurb: 'Open and close the dyke gate with the tides to save the harvest.', where: 'Anne and Pierre at the dykes', run: gAboiteau },
   coffre: { icon: '📦', name: 'Pack the coffre', blurb: 'The ships are waiting. What will your family bring?', where: 'Before the ships, in Anne’s and Pierre’s stories', run: gCoffre },
@@ -11462,11 +12749,12 @@ const GAMES = {
   truck: { icon: '⚖️', name: 'Truckhouse trading', blurb: 'Trade furs for what your family needs, and learn why it still matters.', where: 'Muin at the truckhouse, 1760', run: gTruck },
   morse: { icon: '📡', name: 'Signaller’s Morse code', blurb: 'Decode a message from the front, dot by dash.', where: 'Émile at the signallers’ school', run: gMorse },
   kitchen: { icon: '👩‍🍳', name: 'Kitchen mix-up', blurb: 'Put a recipe’s steps back in order.', where: 'The Kitchens', run: gKitchen },
+  snare: { icon: '🐇', name: 'Set the snares', blurb: 'Read the snow, set your snares where the hares run, and check every one at first light.', where: 'Anne and Muin in the winter woods', run: gSnare },
   dyke: { icon: '🌾', name: 'Patch the dyke', blurb: 'The sea has broken the dyke. Pack sods and spruce boughs into the break before the tide comes back.', where: 'Pierre at Grand-Pré, 1760', run: gDyke },
   apples: { icon: '🍎', name: 'Apples in the wind', blurb: 'The wind is shaking the ripe apples loose. Catch them in your basket, and let the wormy ones fall.', where: 'The orchard at Grand-Pré', run: gApples },
   trail: { icon: '🌲', name: 'The trail home', blurb: 'Run and jump through the woods, fill your basket, and get home before dark. Nobody is chasing you.', where: 'Anytime', run: gForestRun },
 };
-const GAME_AT = { 756: ['morse'], 54: ['aboiteau'], 204: ['aboiteau'], 5: ['coffre'], 206: ['coffre'], 281: ['dyke'], 284: ['dyke'], 501: ['eel'], 511: ['route'], 209: ['who'], 250: ['decode'], 565: ['truck'], 577: ['truck'] };
+const GAME_AT = { 11: ['snare'], 513: ['snare'], 756: ['morse'], 54: ['aboiteau'], 204: ['aboiteau'], 5: ['coffre'], 206: ['coffre'], 281: ['dyke'], 284: ['dyke'], 501: ['eel'], 511: ['route'], 209: ['who'], 250: ['decode'], 565: ['truck'], 577: ['truck'] };
 // ================= GAME TIME =================
 // Each student gets 10 minutes of mini-games a day, so that games do not take over the class.
 // The count is kept in this browser and is shared by all four story games on this site, so switching
@@ -11899,6 +13187,15 @@ const SRC_LIST = [
   { g: '🍲 Food', items: [
     ['Health Canada: Fiddlehead safety', 'Why fiddleheads must always be cooked.', 'https://www.canada.ca/en/health-canada/services/food-safety-fruits-vegetables/fiddlehead-safety-tips.html'],
     ['Tourism New Brunswick: Ployes', 'The Acadian buckwheat pancake from Madawaska.', 'https://tourismnewbrunswick.ca/madawaska-ploye-pancake'],
+  ] },
+  { g: '🐇 Setting snares', intro: 'What the snare game teaches about hares, tracks and snares comes from these.', items: [
+    ['Hinterland Who’s Who: Snowshoe Hare', 'The hare’s runways through the woods, its winter food and coat, and when it is busy. From the Canadian Wildlife Federation and Environment and Climate Change Canada.', 'https://www.hww.ca/?p=8145'],
+    ['U.S. Fish and Wildlife Service: Snow Tracks', 'How to read tracks in the snow. A hare’s big hind prints land beyond its front prints.', 'https://www.fws.gov/node/259489'],
+    ['U.S. National Park Service: Patterns in the Snow', 'Hopper and walker tracks: the hare and the fox.', 'https://www.nps.gov/places/patterns-in-the-snow-exhibit.htm'],
+    ['Outdoor Canada: How to snare a rabbit or hare', 'Where to set a snare on a worn trail, how big to make the loop and how high to hang it, and twigs to guide the hare in.', 'https://www.outdoorcanada.ca/how-to-snare-a-rabbit-or-hare/'],
+    ['Government of Newfoundland and Labrador: Hunting and Trapping Guide', 'Responsible snaring: check snares every day, in the morning, and take every snare up at the end of the season.', 'https://www.gov.nl.ca/hunting-trapping-guide/2026-27/trapping-practices-to-avoid-non-target-species/'],
+    ['CBC News: First Nations students learn art of snaring rabbits', 'Grade 7 and 8 students at the Mi’kmawey School in Potlotek First Nation learn snaring from a traditional trapper.', 'https://www.cbc.ca/news/canada/nova-scotia/snaring-rabbits-hunting-first-nations-potlotek-1.4959618'],
+    ['Nova Scotia: Base Licence', 'Nova Scotia’s rule that you need a licence to snare rabbits, even if you are under 18, and the winter season.', 'https://novascotia.ca/sns/paal/DNR/paal345.asp'],
   ] },
   { g: '🦊 Animals and birds in the pictures', intro: 'Facts about the animals and birds you can find in the pictures come from these.', items: [
     ['Nicolas Denys, The Description and Natural History of the Coasts of North America (Acadia), 1672', 'A French trader in Acadia described the animals he saw there, including beavers, otters, foxes, hares, porcupines and squirrels. Translated by W. F. Ganong for the Champlain Society, 1908.', 'https://archive.org/details/descriptionnatur00deny'],
@@ -12487,6 +13784,7 @@ function cloudStats() {
     r: P.frun || 0,
     y: P.dykeBest || 0,
     a: P.applesBest || 0,
+    s: P.snareBest || 0,
   };
 }
 function cloudPacket() {
@@ -12569,6 +13867,7 @@ async function cloudPull() {
   const crun = (mine.d.st || {}).r || 0; if (crun > (PROG.frun || 0)) { PROG.frun = crun; added++; }
   const cdyke = (mine.d.st || {}).y || 0; if (cdyke > (PROG.dykeBest || 0)) { PROG.dykeBest = cdyke; added++; }
   const capple = (mine.d.st || {}).a || 0; if (capple > (PROG.applesBest || 0)) { PROG.applesBest = capple; added++; }
+  const csnare = (mine.d.st || {}).s || 0; if (csnare > (PROG.snareBest || 0)) { PROG.snareBest = csnare; added++; }
   const found = load(KEY_FOUND, []);
   (mine.d.f || []).forEach((e) => { if (!found.includes(e)) { found.push(e); added++; } });
   save(KEY_FOUND, found); saveProg();
@@ -12667,6 +13966,7 @@ const BOARDS = [
   ['r', '🌲 Best trail run'],
   ['y', '🌾 Best dyke mending'],
   ['a', '🍎 Best apple catch'],
+  ['s', '🐇 Best snare line'],
 ];
 function topTrait(tr) {
   const t = Object.entries(tr || {}).filter(([k, v]) => v > 0 && LEARN.traits[k]).sort((a, b) => b[1] - a[1])[0];
