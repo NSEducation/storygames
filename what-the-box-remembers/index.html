@@ -697,6 +697,41 @@
   .poprow { position: relative; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.8rem 0; }
   .poprow .popwrap { margin: 0; }
   .popchip { font-size: 0.85rem; font-weight: 600; padding: 0.35rem 0.8rem; border-width: 1px; }
+
+  /* reflections: a writing box under the choices, and every answer gathered on the ending pages */
+  .sheet .reflect, .sheet .reflectsum { margin: 1.6rem 0; padding: 0 1.1rem 1rem; border-radius: 12px; border: 2px solid #22686A; background: #EEF6F5; box-shadow: 0 2px 6px rgba(0,0,0,0.06); overflow: hidden; }
+  .sheet .reflect > h2, .sheet .reflectsum > h2 { margin: 0 -1.1rem 0.8rem; padding: 0.55rem 1.1rem; font-size: 1.02rem; background: #22686A; color: #fff; }
+  .rf-head { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.35rem; }
+  .rf-q { display: block; font-weight: 700; margin: 0 0 0.6rem; }
+  .rf-text { display: block; width: 100%; min-height: 5.4em; font: inherit; line-height: 1.45; padding: 0.55rem 0.7rem; border: 1px solid #7FA9A7; border-radius: 8px; background: #fff; color: var(--ink); resize: vertical; box-sizing: border-box; }
+  .rf-text:focus { outline: 3px solid #22686A; outline-offset: 1px; }
+  .rf-status { margin: 0.45rem 0 0; }
+  .reflectsum .rf-h { font-size: 1rem; margin: 1.1rem 0 0.35rem; color: #1B5456; }
+  .reflectsum .rf-item { margin: 0 0 0.75rem; }
+  .reflectsum .rf-askd { font-size: 0.9rem; font-style: italic; color: var(--muted); margin: 0 0 0.25rem; }
+  .reflectsum .rf-a, .rf-paper .rf-a { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+  .reflectsum .rf-a { background: #fff; border-left: 4px solid #22686A; padding: 0.45rem 0.7rem; border-radius: 4px; }
+  .reflectsum .rf-none { font-size: 0.9rem; font-style: italic; color: var(--muted); margin: 0 0 0.4rem; }
+  .reflectsum .rf-how { font-size: 1rem; margin: 1.5rem 0 0.4rem; padding-top: 1rem; border-top: 2px solid #BFD8D6; color: #1B5456; }
+  .reflectsum .rf-steps { margin: 0 0 0.9rem; padding-left: 1.4rem; }
+  .reflectsum .rf-steps li { margin: 0.25rem 0; }
+  .reflectsum .rf-copy { font: inherit; font-size: 1rem; font-weight: 700; color: #fff; background: #22686A; border: 2px solid #22686A; border-radius: 8px; padding: 0.7rem 1.3rem; cursor: pointer; }
+  .reflectsum .rf-copy:hover { background: #1B5456; border-color: #1B5456; }
+  .reflectsum .rf-copy:focus-visible { outline: 3px solid #E0A526; outline-offset: 2px; }
+  .rf-msg { font-weight: 700; color: #1B5456; margin: 0.6rem 0 0; }
+  .rf-msg:empty { display: none; }
+  .rf-manual { display: block; width: 100%; font: inherit; font-size: 0.9rem; margin-top: 0.6rem; padding: 0.5rem; box-sizing: border-box; }
+  .rf-share { margin-top: 1.2rem; }
+  .rf-paper { display: none; }
+  @media print {
+    .rf-paper { display: block; }
+    .rf-line { border-bottom: 1px solid #000; height: 2em; }
+    .reflect .rf-text, .reflect .rf-status { display: none !important; }
+    .sheet .reflect, .sheet .reflectsum { border: 1px solid #000 !important; background: #fff !important; box-shadow: none !important; }
+    .sheet .reflect > h2, .sheet .reflectsum > h2 { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; }
+    .reflectsum .rf-a { border-left: 2px solid #000; }
+    .reflectsum .rf-item, .reflect { break-inside: avoid; }
+  }
 </style><style id="scheme">
   /* colour scheme: African Nova Scotian: warm plum, amber and walnut (the wooden box), Bedford Basin blue. Light only. */
   html:root, html:root[data-theme] {
@@ -3757,6 +3792,7 @@ function cover() {
         el('p', { text: 'Who wrote it: This story was written by a Nova Scotia teacher working with an AI writing assistant, using published historical sources. It was not written by African Nova Scotian or Mi’kmaw writers. African Nova Scotian and Mi’kmaw readers may notice things we got wrong, or things we should have included. We welcome that feedback, and there is a space for community reviewers on the Sources page.' }),
         el('p', { text: 'Perspective: The story is told by Black characters, about their own lives. They make their own choices and lead their own communities. Real white people appear, like John Clarkson and the Mayor of Halifax, but they do not rescue anyone. We tried to write the Mi’kmaw characters, Marie, Louis and Theresa, as neighbours with their own lives, but they are invented, and their words were written by non-Mi’kmaw authors.' }),
         el('p', { text: 'Language: The game never uses slurs. Some real documents from the 1700s use words that are offensive today. Where they do, an “About the words” note explains why.' }),
+        el('p', { text: 'Reflections: Every story page with choices has a 📝 box with a question written for that scene, under one of 12 headings. Writing is optional. Answers are saved only in the browser on that Chromebook and are never sent anywhere. Every ending page gathers a character’s answers under the 12 headings, with a Copy button and steps for pasting them into a Google Doc.' }),
         el('p', { text: 'What it doesn’t do: No one plays an enslaved character, and escaping slavery is never turned into a puzzle. Violence is described, not shown.' }),
       ]),
       el('details', {}, [
@@ -4123,6 +4159,145 @@ function runSummary() {
     ...(chicks ? [el('p', { class: 'readable', text: `🐦 Chickadees you spotted in the pictures: ${chicks}` })] : []),
   ]);
 }
+// ================= REFLECTIONS =================
+// Under the choices on every page with choices, a 📝 box asks a question written for that scene, under one of 12 headings.
+// Writing is optional. Answers stay in this browser only: they are never sent anywhere and are not part of the class leaderboard.
+// Every ending page gathers the answers for that character under the 12 headings, ready to copy into a Google Doc.
+const KEY_REFLECT = 'box-remembers-reflections';
+const REFLECT_HEADS = ["What surprised me, or changed what I used to think", "What I understand now that I did not understand before", "A moment in the game that stayed with me, and why", "A choice I made, and what I might do differently next time", "How people in the story showed courage, skill, humour or love", "Something this community built, protected or kept going", "Something that was unfair, and how people stood up to it", "Whose voice I did not hear in the story, and what they might say", "A word I learned, and why it matters to the people who use it", "How this history connects to Nova Scotia today, or to my own life", "Someone from the story I would like to talk to, and what I would ask", "What I am still wondering about, and where I could find out"];
+const REFLECT_Q = {"1":[1,"Sam waits in line with his Birch certificate, while the Americans call people like him “their property.” Before this story, did you know about the Black Loyalists? What surprised you on this first page?"],"4":[8,"From the shore, Sam watches a Mi’kmaw family paddle past, and the woman raises her hand to him. Whose land is Birchtown being built on? What might that family want the newcomers to know?"],"5":[6,"Violet King shows Hannah where to dig: “The ground keeps you warmer than any wall you can build in a week.” How do the families who came first help the ones who come after? What does that build?"],"6":[3,"Hannah looks up through the smoke hole: “Nobody can sell us here, and nobody can take the children. And we built this roof with our own hands.” Why might her words stay with you? What does freedom mean to her?"],"7":[7,"A white man who does the same work is paid more, and the foreman shrugs: “Take it or leave it.” What is unfair here? What could Sam and the other Black workers do about it?"],"8":[11,"Pierre Landry, whose Acadian family was shipped away in 1755, tells Sam, “I hope they keep their promises to you better.” If you could talk to Pierre and Sam together, what would you ask them?"],"9":[5,"Sam has nothing to give but his skill, so he offers to mend Louis’s cracked door frame, and Louis shares what he knows about getting through the winter. What makes this a fair exchange between neighbours?"],"10":[10,"In the log meetinghouse, Daddy Moses preaches, everyone sings, and Hannah feels at home for the first time since Virginia. Is there a place where you feel at home with your community? What makes it feel that way?"],"11":[4,"Sam has carried his Birch certificate inside his shirt for months. Would you put it in the pine box he made, or keep it on you? What does each choice say about feeling safe?"],"13":[4,"The fog has carried you far up the coast. Ishmael says you could go home to Hannah and the children, or keep going to where the fishing is good. What would you choose, and why?"],"18":[12,"The land grants still have not come, and every time Colonel Blucke writes, the answer is the same: soon. What do you wonder about why the Black Loyalists waited so long for their land? Where could you find out?"],"20":[2,"The angry crowd could have blamed the officials who broke their promises. Instead, they turned on Black families, and about twenty homes were destroyed. What do you understand now about why people sometimes blame their neighbours instead of the people in power?"],"23":[11,"An officer writes your family into his muster book and rides away without telling you what the book is for. If you could ask him one question before he left, what would it be?"],"27":[9,"Hannah has to learn a hard word: indenture. Moses would not be enslaved, but he could not leave for seven years. Why does the difference between those two things matter so much? What would you tell Hannah?"],"29":[7,"Sam’s land grant is forty rocky acres with more swamp than soil, while white Loyalists who came at the same time got much more, and much better land. What is unfair here? What could the Black families do about it?"],"33":[5,"Thomas Peters plans to carry the families’ complaints all the way to London. What kind of courage does it take to stand up like this? Would you walk to Annapolis to add your story?"],"34":[2,"John Clarkson promises land and equal rights in Sierra Leone, and someone calls out, “They promised us land here too.” What do you understand now about why some families trusted the offer and others did not?"],"35":[4,"In Africa, Sam will not need a paper to prove he is free, but Hannah’s children might need it here someday. Would you leave the box with Hannah, or take it with you? Why?"],"36":[6,"Half of Birchtown is gone in a week. The people who are left look at each other, and then they go back to work. What does it take to keep a community going after so many people leave?"],"37":[1,"In Halifax, the families organize themselves into companies, each with a Black captain who speaks for it. Did that surprise you? What does it show about the people of these communities?"],"40":[3,"On the deck, someone starts to sing, and the hymn passes from ship to ship until the whole fleet seems to be singing. Why might this moment stay with you?"],"201":[7,"The sergeant says, “This is a white man’s war,” and nobody in the line says a word. What is unfair here? What are the different ways Isaac could stand up to it?"],"202":[2,"The second sergeant says the quota is full, while a white boy who can’t be more than sixteen signs his name at the next table. What do you understand now about how unfairness can hide behind an excuse?"],"203":[11,"Reverend William White speaks about courage, about patience, and about the difference between the two. If you could talk to him, what would you ask?"],"205":[4,"Isaac loads the ships that carry other men to the war. Would you join the campaign for Black men’s right to serve, keep working, or wait to see if the army changes its mind? Why?"],"209":[1,"Men come to Pictou from all over Nova Scotia, and from New Brunswick, Ontario, the West, the United States and the Caribbean, to join No. 2 Construction Battalion. Before this story, had you heard of it? What surprised you?"],"211":[6,"The battalion trains with picks and shovels instead of rifles, but there is music in the evenings, arguments about baseball, and letters read aloud from home. How do the men build pride and community even when they are treated unfairly?"],"217":[8,"In France, the army still keeps Isaac’s company apart from white units. Whose voices do you think are missing from most stories about Canadian soldiers in the First World War? Why?"],"218":[5,"An old French forester studies Isaac’s line of track, asks how he chose it, and walks the next section with him. What does it feel like when someone respects your skill? What would you like to be known for?"],"219":[9,"The village children teach Isaac to say “la scierie,” the sawmill, and he teaches them to say “Nova Scotia.” Why can trading words like this matter? What word from another language would you like to learn?"],"221":[12,"Reverend White writes in a small black diary every day: who preached, who was sick, the weather, and how much he misses his wife. What would you want to find in a diary like his? Where could you find out more about him?"],"222":[3,"Isaac reads Lena’s letter about the explosion three times. Then he sits in the dark and prays for everyone he knows. Why might this moment stay with you? What do you think he feels, so far from home?"],"229":[4,"A crowd gathers after a Black sergeant tries to arrest a white soldier who was rude to him, and some of your friends have been attacked. Would you go out and stand with your sergeant, or stay inside? What would you weigh?"],"230":[10,"Isaac comes home to no parade and no crowds. How do you think Nova Scotia should remember the men of No. 2 Construction Battalion today? Had you heard of them before?"],"501":[1,"Africville is waking up: roosters crow, gospel music plays on a radio, and Grandpa waves at the train engineer. Before this story, what did you know about Africville? Did this first page change your picture of it?"],"503":[7,"The women at the store say the city never gave Africville water pipes or a paved road, and that “everything Halifax didn’t want, it put out here with us.” What is unfair here? How do people like Miss Pearl stand up for their community?"],"504":[3,"Bev says her family might be moving, then throws a stone into the water, and you both watch the ripples spread. Why do you think the scene ends with the ripples? What did you feel?"],"505":[6,"Seaview church holds Africville together: the choir, the baptism in the Basin, the long tables at the church supper. What does a place like Seaview do for a community?"],"508":[8,"The bulldozer driver doesn’t look at anybody. We never hear what he thinks, or what the Johnsons felt as they left. Whose voice would you most want to hear about this day? What might they say?"],"509":[4,"The city man talks about “progress” and “opportunity,” but nobody in the room asked to be moved. You are twelve, and the room is full of grown-ups. Would you stand up and say it? What would you say?"],"511":[5,"Ruth writes everything down and photographs the church, the store, the train and Grandpa on the rocks, “so somebody remembers.” Why does keeping a record like this take courage? What would you record about your own community?"],"513":[9,"On a hard first day at a new school, Theresa whispers “Kwe’” to Ruth and teaches her to say “Wela’lin.” Why do you think a word of welcome meant so much? Who has made you feel welcome?"],"515":[2,"Ruth says, “It isn’t enough. But you spoke up, and that is something.” What do you understand now about why speaking up matters, even when it doesn’t fix everything?"],"519":[11,"Grandpa says, “Enjoy this, Ruthie. Enjoy every bit of it,” and his voice sounds strange. If you could talk to Grandpa Isaac, what would you ask him?"],"520":[3,"Grandpa taps the lid of the pine box: “This box was made by one of us. That’s the difference.” What do you think he means? Why might this moment stay with you?"],"522":[12,"Some families who had lived in Africville for generations had no papers to prove they owned their land, and got almost nothing. What do you wonder about how this was allowed to happen? Where could you find out?"],"523":[7,"In the night, while everyone was asleep, the city bulldozed Seaview church. Why does it matter that it happened at night? How could the community stand up to something like this?"],"524":[5,"The city sends the same kind of truck that carries garbage to move the family’s furniture, and Mama stands very straight while the men load it. How is she showing courage and dignity? What would you carry in your one box?"],"525":[10,"In North Preston, an old woman pats Ruth’s hand: “Africville people. You’re welcome here. You’re home.” What do you know about North Preston, or other African Nova Scotian communities, today? How do communities welcome people who have lost their homes?"],"530":[6,"Where Africville stood, there is now a park. But the people keep finding each other and telling the story. How can a community stay alive after its houses are gone? What part could you play in keeping a story like this alive?"]};
+const REFLECT_SAVES = (() => { try { const k = KEY_REFLECT + '-test'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true; } catch (e) { return false; } })();
+let REFLECT = (() => { const v = load(KEY_REFLECT, {}); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; })();
+const heroKeyOf = (id) => { const h = heroOf(id); return Object.keys(HEROES).find((k) => HEROES[k] === h) || Object.keys(HEROES)[0]; };
+function reflectSet(hk, id, text) {
+  const mine = REFLECT[hk] || (REFLECT[hk] = {});
+  if (text.trim()) mine[id] = { t: text, at: (mine[id] && mine[id].at) || Date.now() };
+  else delete mine[id];
+  if (!Object.keys(mine).length) delete REFLECT[hk];
+  save(KEY_REFLECT, REFLECT);
+}
+function reflectEntries(hk) {
+  return Object.entries(REFLECT[hk] || {})
+    .filter(([sid, v]) => v && typeof v.t === 'string' && v.t.trim() && REFLECT_Q[sid])
+    .map(([sid, v]) => ({ sid, h: REFLECT_Q[sid][0], q: REFLECT_Q[sid][1], t: v.t.trim(), at: Number(v.at) || 0 }))
+    .sort((a, b) => (a.at - b.at) || (Number(a.sid) - Number(b.sid)));
+}
+function reflectBox(id) {
+  const q = REFLECT_Q[id]; if (!q) return null;
+  const hk = heroKeyOf(id), sid = String(id), tid = 'rf-' + sid;
+  const mine = (REFLECT[hk] || {})[sid];
+  const ta = el('textarea', { id: tid, class: 'rf-text', rows: '3', maxlength: '4000', placeholder: 'Write your thoughts here…', 'aria-describedby': tid + '-s' });
+  ta.value = mine && typeof mine.t === 'string' ? mine.t : '';
+  const status = el('p', { class: 'hint rf-status', id: tid + '-s', 'aria-live': 'polite' });
+  const paper = el('div', { class: 'rf-paper' });
+  let had = null;
+  const update = () => {
+    const has = !!ta.value.trim();
+    if (has !== had) {
+      had = has;
+      status.textContent = REFLECT_SAVES
+        ? (has ? '✓ Saved on this Chromebook. You will find all your reflections on the last page of your story.' : 'Optional. What you write saves by itself, only on this Chromebook. Nothing is sent anywhere.')
+        : (has ? '✓ Kept while this page is open. On the last page of your story, copy your reflections before you close the page.' : 'Optional. This browser can’t save between visits, so what you write is kept only while this page is open.');
+    }
+    paper.replaceChildren(...(has ? [el('p', { class: 'rf-a', text: ta.value })] : [0, 1, 2, 3].map(() => el('div', { class: 'rf-line' }))));
+  };
+  const grow = () => { if (!ta.isConnected) return; ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 2, 480) + 'px'; };
+  ta.addEventListener('input', () => { reflectSet(hk, sid, ta.value); update(); grow(); });
+  update();
+  requestAnimationFrame(grow);
+  return el('section', { class: 'reflect' }, [
+    el('h2', { text: '📝 Your reflection' }),
+    el('p', { class: 'rf-head', text: `Heading ${q[0]} of 12: ${REFLECT_HEADS[q[0] - 1]}` }),
+    el('label', { class: 'readable rf-q', for: tid, text: q[1] }),
+    ta, status, paper,
+  ]);
+}
+async function reflectCopy(html, text, status, manual) {
+  const ok = () => { manual.hidden = true; status.textContent = '✓ Copied! Now open a new Google Doc and press Ctrl + V to paste.'; toast('📋 Your reflections are copied.'); };
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
+      ok(); return;
+    }
+  } catch (e) { /* blocked, for example inside a Google Sites embed: try the older way */ }
+  try {
+    const holder = el('div', { contenteditable: 'true', 'aria-hidden': 'true', style: 'position:fixed;left:-10000px;top:0;width:600px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11pt' });
+    holder.innerHTML = html;
+    document.body.appendChild(holder);
+    const sel = window.getSelection(), range = document.createRange();
+    range.selectNodeContents(holder); sel.removeAllRanges(); sel.addRange(range);
+    const done = document.execCommand('copy');
+    sel.removeAllRanges(); holder.remove();
+    if (done) { ok(); return; }
+  } catch (e) { /* show the text instead */ }
+  manual.value = text; manual.hidden = false; manual.focus(); manual.select();
+  status.textContent = 'This browser would not let the game copy. Your reflections are in the box below, already selected: press Ctrl + C to copy them, then paste them into your Google Doc with Ctrl + V.';
+}
+function reflectSummary(id) {
+  const box = el('section', { class: 'reflectsum' });
+  const fill = (msg) => box.replaceChildren(...reflectSummaryNodes(id, fill, msg));
+  fill();
+  return box;
+}
+function reflectSummaryNodes(id, refill, msg) {
+  const hk = heroKeyOf(id), hero = HEROES[hk], list = reflectEntries(hk);
+  const others = Object.keys(HEROES).filter((k) => k !== hk && reflectEntries(k).length).map((k) => `${HEROES[k].name}’s`);
+  const othersNote = others.length ? [el('p', { class: 'hint', text: `You also wrote reflections in ${others.length === 1 ? others[0] + ' story' : others.slice(0, -1).join(', ') + ' and ' + others[others.length - 1] + ' stories'}. You will find them on the ending pages of ${others.length === 1 ? 'that story' : 'those stories'}.` })] : [];
+  const head = el('h2', { class: 'readable', text: `📝 My reflections: ${hero.name}’s story` });
+  const note = msg ? [el('p', { class: 'rf-msg', role: 'status', text: msg })] : [];
+  if (!list.length) return [head, ...note, el('p', { class: 'readable', text: `You haven’t written any reflections in ${hero.name}’s story yet. Next time, look for the 📝 box under the choices on each page. Everything you write there will be gathered here, ready to copy into a Google Doc.` }), ...othersNote];
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const title = document.title || 'My story';
+  const ending = (STORY[id] && STORY[id].end) || '';
+  const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const doc = el('div', { class: 'rf-doc' });
+  const html = ['<h1>My reflections</h1>', `<p><b>${esc(title)}</b>: ${esc(hero.name)}’s story</p>`, '<p>Name: </p>', `<p>Ending: ${esc(ending)}. Copied on ${esc(date)}.</p>`];
+  const txt = ['My reflections', `${title}: ${hero.name}’s story`, 'Name: ', `Ending: ${ending}. Copied on ${date}.`, ''];
+  REFLECT_HEADS.forEach((h, i) => {
+    const mine = list.filter((x) => x.h === i + 1);
+    doc.appendChild(el('h3', { class: 'rf-h', text: `${i + 1}. ${h}` }));
+    html.push(`<h2>${i + 1}. ${esc(h)}</h2>`); txt.push(`${i + 1}. ${h}`);
+    if (!mine.length) { doc.appendChild(el('p', { class: 'rf-none', text: 'No answer yet.' })); html.push('<p><i>No answer yet.</i></p>'); txt.push('No answer yet.', ''); }
+    mine.forEach((x) => {
+      doc.appendChild(el('div', { class: 'rf-item' }, [el('p', { class: 'rf-askd', text: x.q }), el('p', { class: 'rf-a', text: x.t })]));
+      html.push(`<p><i>${esc(x.q)}</i></p>`, `<p>${esc(x.t).replace(/\r?\n/g, '<br>')}</p>`);
+      txt.push(`Question: ${x.q}`, `My answer: ${x.t}`, '');
+    });
+  });
+  const status = el('p', { class: 'rf-msg', role: 'status', 'aria-live': 'polite' });
+  const manual = el('textarea', { class: 'rf-manual noprint', readonly: '', rows: '8', 'aria-label': 'Your reflections, ready to copy', hidden: '' });
+  const copyBtn = el('button', { class: 'rf-copy', type: 'button', text: '📋 Copy my reflections', onclick: () => reflectCopy(html.join(''), txt.join('\n'), status, manual) });
+  const label = `🗑️ Clear ${hero.name}’s reflections`;
+  let armed = null;
+  const clearBtn = el('button', { class: 'secondary rf-clear', type: 'button', text: label });
+  clearBtn.onclick = () => {
+    if (!armed) { clearBtn.textContent = `Press again to clear all of ${hero.name}’s reflections`; armed = setTimeout(() => { armed = null; clearBtn.textContent = label; }, 6000); return; }
+    clearTimeout(armed); armed = null;
+    delete REFLECT[hk]; save(KEY_REFLECT, REFLECT);
+    refill(`${hero.name}’s reflections are cleared.`);
+  };
+  const n = list.length;
+  return [
+    head, ...note,
+    el('p', { class: 'kind', text: `Everything you wrote in the 📝 boxes in ${hero.name}’s story, sorted under 12 headings: ${n} answer${n === 1 ? '' : 's'} so far.` }),
+    doc,
+    el('h3', { class: 'rf-how noprint', text: '📄 Put your reflections in a Google Doc' }),
+    el('ol', { class: 'readable rf-steps noprint' }, [
+      'Press 📋 Copy my reflections, just below.',
+      'Open a new Google Doc. In Google Drive, choose New, then Google Docs, then Blank document.',
+      'Click inside the new document and press Ctrl + V to paste.',
+      'Type your name after “Name:” at the top, and give your document a title.',
+      'Hand it in the way your teacher asks.',
+    ].map((t) => el('li', { text: t }))),
+    el('div', { class: 'row tight noprint' }, [copyBtn]),
+    status, manual,
+    ...othersNote,
+    el('div', { class: 'rf-share noprint' }, [
+      el('p', { class: 'hint', text: REFLECT_SAVES ? 'Your reflections stay on this Chromebook until you clear them. If you share this Chromebook, clear them after you copy them.' : 'This browser is not saving between visits, so copy your reflections before you close this page.' }),
+      el('div', { class: 'row tight' }, [clearBtn]),
+    ]),
+  ];
+}
 function render(id) {
   undoBtn.hidden = trail.length === 0;
   const s = STORY[id];
@@ -4171,6 +4346,7 @@ function render(id) {
     s.c.forEach(([label, target]) => list.appendChild(el('button', { class: 'choice', type: 'button', text: label, onclick: () => { tagChoice(id, target); recordChoice(id, target, label); go(String(target)); } })));
     const db = doorButtons(id); if (db) list.appendChild(db);
     nodes.push(list);
+    const rfb = reflectBox(id); if (rfb) nodes.push(rfb);
   } else if (s.next) {
     nodes.push(el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: 'Keep reading', onclick: () => go(String(s.next)) })]));
   } else if (s.end) {
@@ -4201,7 +4377,7 @@ function render(id) {
       ...Object.values(HEROES).filter((h) => h !== heroOf(id)).map((h) => el('button', { class: 'secondary', type: 'button', text: `Play as ${h.name}`, onclick: () => go(h.start, false) })),
       el('button', { class: 'secondary', type: 'button', text: 'Back to the title page', onclick: cover }),
     ]));
-    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs); const qz = quizBox(id); if (qz) nodes.splice(nodes.length - 1, 0, qz);
+    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs); const qz = quizBox(id); if (qz) nodes.splice(nodes.length - 1, 0, qz); const rfs = reflectSummary(id); if (rfs) nodes.splice(nodes.length - 1, 0, rfs);
     undoBtn.hidden = true;
   }
   // From any scene: back to the story's title page, where you choose who to play.
