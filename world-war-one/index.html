@@ -708,41 +708,6 @@
   .poprow { position: relative; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.8rem 0; }
   .poprow .popwrap { margin: 0; }
   .popchip { font-size: 0.85rem; font-weight: 600; padding: 0.35rem 0.8rem; border-width: 1px; }
-
-  /* reflections: a writing box under the choices, and every answer gathered on the ending pages */
-  .sheet .reflect, .sheet .reflectsum { margin: 1.6rem 0; padding: 0 1.1rem 1rem; border-radius: 12px; border: 2px solid #22686A; background: #EEF6F5; box-shadow: 0 2px 6px rgba(0,0,0,0.06); overflow: hidden; }
-  .sheet .reflect > h2, .sheet .reflectsum > h2 { margin: 0 -1.1rem 0.8rem; padding: 0.55rem 1.1rem; font-size: 1.02rem; background: #22686A; color: #fff; }
-  .rf-head { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.35rem; }
-  .rf-q { display: block; font-weight: 700; margin: 0 0 0.6rem; }
-  .rf-text { display: block; width: 100%; min-height: 5.4em; font: inherit; line-height: 1.45; padding: 0.55rem 0.7rem; border: 1px solid #7FA9A7; border-radius: 8px; background: #fff; color: var(--ink); resize: vertical; box-sizing: border-box; }
-  .rf-text:focus { outline: 3px solid #22686A; outline-offset: 1px; }
-  .rf-status { margin: 0.45rem 0 0; }
-  .reflectsum .rf-h { font-size: 1rem; margin: 1.1rem 0 0.35rem; color: #1B5456; }
-  .reflectsum .rf-item { margin: 0 0 0.75rem; }
-  .reflectsum .rf-askd { font-size: 0.9rem; font-style: italic; color: var(--muted); margin: 0 0 0.25rem; }
-  .reflectsum .rf-a, .rf-paper .rf-a { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
-  .reflectsum .rf-a { background: #fff; border-left: 4px solid #22686A; padding: 0.45rem 0.7rem; border-radius: 4px; }
-  .reflectsum .rf-none { font-size: 0.9rem; font-style: italic; color: var(--muted); margin: 0 0 0.4rem; }
-  .reflectsum .rf-how { font-size: 1rem; margin: 1.5rem 0 0.4rem; padding-top: 1rem; border-top: 2px solid #BFD8D6; color: #1B5456; }
-  .reflectsum .rf-steps { margin: 0 0 0.9rem; padding-left: 1.4rem; }
-  .reflectsum .rf-steps li { margin: 0.25rem 0; }
-  .reflectsum .rf-copy { font: inherit; font-size: 1rem; font-weight: 700; color: #fff; background: #22686A; border: 2px solid #22686A; border-radius: 8px; padding: 0.7rem 1.3rem; cursor: pointer; }
-  .reflectsum .rf-copy:hover { background: #1B5456; border-color: #1B5456; }
-  .reflectsum .rf-copy:focus-visible { outline: 3px solid #E0A526; outline-offset: 2px; }
-  .rf-msg { font-weight: 700; color: #1B5456; margin: 0.6rem 0 0; }
-  .rf-msg:empty { display: none; }
-  .rf-manual { display: block; width: 100%; font: inherit; font-size: 0.9rem; margin-top: 0.6rem; padding: 0.5rem; box-sizing: border-box; }
-  .rf-share { margin-top: 1.2rem; }
-  .rf-paper { display: none; }
-  @media print {
-    .rf-paper { display: block; }
-    .rf-line { border-bottom: 1px solid #000; height: 2em; }
-    .reflect .rf-text, .reflect .rf-status { display: none !important; }
-    .sheet .reflect, .sheet .reflectsum { border: 1px solid #000 !important; background: #fff !important; box-shadow: none !important; }
-    .sheet .reflect > h2, .sheet .reflectsum > h2 { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; }
-    .reflectsum .rf-a { border-left: 2px solid #000; }
-    .reflectsum .rf-item, .reflect { break-inside: avoid; }
-  }
 </style><style id="scheme">
   /* colour scheme: World War I: khaki, poppy red and slate blue. Light only. */
   html:root, html:root[data-theme] {
@@ -5002,7 +4967,6 @@ function cover() {
         el('p', { text: 'Who wrote it: This game was written by a Grade 7 teacher in Nova Scotia, working with an AI writing assistant (Claude) and published sources from Veterans Affairs Canada, the Canadian War Museum, Library and Archives Canada, The Canadian Encyclopedia and others. It was not written by military historians.' }),
         el('p', { text: 'Before your class plays: all four stories include wounds, death, shell shock and grief, told gently and without graphic detail. The people the student plays all survive, but friends and patients do not, and two endings are about remembering them. The game never asks students to fight or kill to win anything. Prisoners are treated with humanity.' }),
         el('p', { text: 'Perspective: The game is honest that not every Canadian supported the war, that Black, First Nations and French-speaking Canadians were not treated equally, and that the soldiers on the other side were people too.' }),
-        el('p', { text: 'Reflections: Every story page with choices has a 📝 box with a question written for that scene, under one of 12 headings. Writing is optional. Answers are saved only in the browser on that Chromebook and are never sent anywhere. Every ending page gathers a character’s answers under the 12 headings, with a Copy button and steps for pasting them into a Google Doc.' }),
         el('p', { text: 'Not trivializing war: The mini-games are about real soldiers’ work: digging trenches, laying duckboards, keeping feet dry, checking equipment, finding the way through a maze of trenches, and keeping pace with the barrage in training. There are no points for fighting.' }),
       ]),
       el('details', {}, [
@@ -5451,145 +5415,8 @@ function photoGallery(back) {
     el('p', { class: 'hint', text: 'All of these pictures are in the public domain or are shared freely by the archives that keep them. The credit under each one says where it comes from.' }),
   ]);
 }
-// ================= REFLECTIONS =================
-// Under the choices on every page with choices, a 📝 box asks a question written for that scene, under one of 12 headings.
-// Writing is optional. Answers stay in this browser only: they are never sent anywhere and are not part of the class leaderboard.
-// Every ending page gathers the answers for that character under the 12 headings, ready to copy into a Google Doc.
-const KEY_REFLECT = 'ww1-game-reflections';
-const REFLECT_HEADS = ["What surprised me, or changed what I used to think", "What I understand now that I did not understand before", "A moment in the game that stayed with me, and why", "A choice I made, and what I might do differently next time", "How people in the story showed courage, skill, humour or love", "Something this community built, protected or kept going", "Something that was unfair, and how people stood up to it", "Whose voice I did not hear in the story, and what they might say", "A word I learned, and why it matters to the people who use it", "How this history connects to Nova Scotia today, or to my own life", "Someone from the story I would like to talk to, and what I would ask", "What I am still wondering about, and where I could find out"];
-const REFLECT_Q = {"1":[10,"This story begins in an orchard near Middleton, in the Annapolis Valley. Do you know the names of people from your own community who served in the First World War? Where could you find them?"],"3":[2,"There is a piper, a poster of a soldier pointing straight at you, and clapping for every young man who signs. What do you understand now about how recruiting meetings made it hard to say no?"],"4":[3,"Will’s cheerful letter is almost all about socks, until one line at the bottom: “Tell them it is not like the posters.” Why do you think that one line stays with readers?"],"9":[11,"Your sergeant, MacLeod, grew up in Cape Breton speaking Gaelic at home and English everywhere else. If you could talk to Sergeant MacLeod, what would you ask him?"],"13":[5,"People line the streets, a small girl gives you a Valley apple, and Sergeant MacLeod counts every one of you twice. How do the people around you show that they care?"],"17":[1,"The 219th, the battalion you trained with all summer, is broken up because not enough new men are coming from Canada. Did that surprise you? How would it feel to be split from your friends?"],"21":[5,"Pictou, a Mi’kmaw soldier from Fisher’s Grant, teaches you to care for your feet: whale oil, and a dry pair of socks inside your tunic. Why do you think small skills like this mattered so much in the trenches?"],"28":[2,"On the practice field, officers on horseback pretend to be the creeping barrage, and you walk it again and again until your feet know it. What do you understand now about why the Canadians practised so carefully?"],"34":[3,"On Easter Sunday, somebody plays a mouth organ, and nobody sings. Why do you think nobody sings? What did you feel as you read this page?"],"38":[4,"Danny has slipped and fallen behind you just as the whistle blows. Keep pace with the barrage, the way you practised, or stop for Danny? What makes this choice so hard?"],"41":[8,"One German prisoner is younger than you, with his hands shaking above his head. We never hear his story. What might he say about how he came to be here?"],"44":[12,"The Germans had been looking down from Vimy Ridge for two and a half years. Now you are looking at their side. What do you still wonder about why this ridge mattered so much? Where could you find out?"],"48":[3,"At roll call, sometimes no voice answers, and the sergeant makes a mark and reads the next name. Why do you think this moment stays with people? What did you feel?"],"50":[1,"Vimy did not end the war. It was not even close to ending it. Did that surprise you? Why do you think people at home hoped it might?"],"54":[4,"At Passchendaele, horses, mules and even guns sink into the mud. First wave, second wave, or carrying ammunition up the duckboard track? What would you be thinking about as you chose?"],"57":[6,"You go back to the orchard. The trees need pruning. They always do. How can going back to everyday work help a person, and a community, keep going after a war?"],"201":[1,"Canada went to war because it was part of the British Empire, and the town cheers while a woman beside you cries. Did anything about how the war began surprise you? Why do you think people reacted so differently?"],"205":[4,"The sergeant asks why you want to join: because your best friend is going, because the pay is better than the mine, or because you think it is right. Which reason would be yours? Is it a good enough reason?"],"209":[6,"Your mother sends a fruitcake, a letter and two pairs of thick grey socks. How did parcels and letters keep soldiers and their families connected? What would you send?"],"212":[3,"You stand at the rail and watch the lights of Halifax go out one by one behind the hills. What would you be thinking about? Why might this moment stay with you?"],"215":[12,"On clear nights in England, you can hear the guns in France from across the water. What do you wonder about what soldiers knew, and didn’t know, before they reached the front? Where could you find out?"],"220":[9,"The strip of torn ground between the two sides is called no man’s land. Why do you think soldiers gave it that name? What does the name tell you about that place?"],"226":[5,"For ten whole minutes in the brewery tub you are warm and clean, and then the lice come back two days later. How do humour and small comforts help soldiers get through a war?"],"231":[1,"Beyond Albert, the roads are packed day and night: soldiers, wagons, guns, horses, mules and ambulances. What surprised you most about what it took to keep an army going?"],"235":[11,"Somewhere along the line, the 22nd are getting the same orders in French. If you could talk to Arthur from the 22nd before the attack, what would you say or ask?"],"239":[4,"The captain looks around for whoever is closest, and it is you. Carry a message back, help hold the village, or go back for the wounded? What would you weigh?"],"243":[8,"The Germans attack Courcelette again and again for three days and nights. We never hear from the German soldiers. What might one of them say about those three days?"],"246":[2,"One choice is to tell the doctor that you can’t sleep and your hands won’t stop shaking. What do you understand now about how war can hurt a person’s mind as well as their body?"],"247":[7,"The barbed wire was supposed to be cut by the shells, and it has not been. Was it fair to send soldiers forward anyway? Who should have been responsible?"],"253":[6,"You tell the new kid, “Show me your feet,” the way Pictou said it to you. How do soldiers pass on what they know to keep each other alive? Who has passed something important on to you?"],"301":[1,"Dalhousie University raises a whole hospital to send overseas, with twenty-seven nurses. Before this story, did you know about the nurses who served in the First World War? What surprised you?"],"304":[12,"The troopship is painted grey and runs without lights. What do you wonder about the dangers ships faced crossing the Atlantic in the war? Where could you find out?"],"307":[3,"Every one of the men, grey with tiredness and caked in mud, says, “Sorry about the mess, Sister.” Why do you think they apologize? Why might this moment stay with you?"],"310":[2,"Two days after the battle on the Somme begins, the hospital trains start coming, all night, for weeks. What do you understand now about the work nurses did behind the lines?"],"313":[4,"The boy catches your sleeve: “Sister. Tell me straight. Will I keep it?” Would you tell him the truth, gently, or tell him the surgeon will say? What does each answer give him?"],"317":[8,"The German prisoners, sick and wounded, have a ward of their own, and it is short of nurses. We never hear their stories. What might one of them want to say to the nurse who cares for him?"],"320":[11,"The matron gives you until morning to choose. If you could talk to her that night, what would you ask her before you decided?"],"322":[5,"A sergeant will not last until morning, and a frightened boy keeps asking for the socks his mother knitted. There is one of you. What does caring for both of them ask of you?"],"325":[6,"When the bombing starts, you finish a dressing by touch in the dark, talking quietly so the man knows you are still there. How do people keep important work going in the hardest conditions?"],"328":[1,"All fourteen nursing sisters of the Llandovery Castle are lost, and one of them trained at the Victoria General, like you. Did you know that nurses were killed in the war too? What would you decide tonight?"],"336":[10,"The matron asks, “What will you do with what you know?” What would you do with everything this nurse has learned? Where do you see nurses making a difference in Nova Scotia today?"],"401":[1,"You are proud of Tom, and frightened, and already doing arithmetic: his army pay will not cover the rent and the coal. Had you thought about how families at home managed when a soldier left? What surprised you?"],"404":[5,"Lena shows you how to tie the knot with one hand and how to pitch your voice under the noise. How do workers help each other learn a hard job? Who has helped you learn something new?"],"407":[8,"The visitor from the Patriotic Fund asks about your money, your account book and your work, but not about what you and the children need. If you could speak freely, what would you tell her?"],"410":[4,"The train fare to Kentville for you and the children is most of a week’s pay. Would you spend it to see Tom before he sails, or save it and send a parcel? What matters most in this choice?"],"414":[7,"Everything costs more, but your pay has not changed. Some of the women are going to the office to ask for more pay. Is this a good way to stand up to something unfair? Would you go with them?"],"417":[3,"People stand on the sidewalk in front of the newspaper window, reading the lists with their lips moving. Why do you think this moment stays with readers? What would you do?"],"420":[6,"Families save food, dig up their yards for potatoes and knit socks for the Red Cross. How did a whole community help in the war without ever going near the front?"],"424":[10,"When the news of the explosion reaches Truro, the whole town turns out to help Halifax. How do Nova Scotia communities help each other in a disaster today? Can you think of an example?"],"430":[11,"Lena reads the news aloud over the noise of the mill: the women of Nova Scotia have won the right to vote in the province’s elections. If you could talk to Lena that day, what would you ask her?"],"433":[5,"Ellie is burning with the flu, and half the street is sick too. Would you stay with Ellie, or nurse her and carry soup to the neighbours as well? What does each choice show about love?"],"437":[2,"Lena says, “They needed us well enough two years ago.” What do you understand now about how the war changed women’s work, and what happened when it ended?"],"439":[12,"Tom is home, and you are not the same person who said goodbye. What do you wonder about how women’s lives changed after the war? Where could you find out?"]};
-const REFLECT_SAVES = (() => { try { const k = KEY_REFLECT + '-test'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true; } catch (e) { return false; } })();
-let REFLECT = (() => { const v = load(KEY_REFLECT, {}); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; })();
-const heroKeyOf = (id) => { const h = heroOf(id); return Object.keys(HEROES).find((k) => HEROES[k] === h) || Object.keys(HEROES)[0]; };
-function reflectSet(hk, id, text) {
-  const mine = REFLECT[hk] || (REFLECT[hk] = {});
-  if (text.trim()) mine[id] = { t: text, at: (mine[id] && mine[id].at) || Date.now() };
-  else delete mine[id];
-  if (!Object.keys(mine).length) delete REFLECT[hk];
-  save(KEY_REFLECT, REFLECT);
-}
-function reflectEntries(hk) {
-  return Object.entries(REFLECT[hk] || {})
-    .filter(([sid, v]) => v && typeof v.t === 'string' && v.t.trim() && REFLECT_Q[sid])
-    .map(([sid, v]) => ({ sid, h: REFLECT_Q[sid][0], q: REFLECT_Q[sid][1], t: v.t.trim(), at: Number(v.at) || 0 }))
-    .sort((a, b) => (a.at - b.at) || (Number(a.sid) - Number(b.sid)));
-}
-function reflectBox(id) {
-  const q = REFLECT_Q[id]; if (!q) return null;
-  const hk = heroKeyOf(id), sid = String(id), tid = 'rf-' + sid;
-  const mine = (REFLECT[hk] || {})[sid];
-  const ta = el('textarea', { id: tid, class: 'rf-text', rows: '3', maxlength: '4000', placeholder: 'Write your thoughts here…', 'aria-describedby': tid + '-s' });
-  ta.value = mine && typeof mine.t === 'string' ? mine.t : '';
-  const status = el('p', { class: 'hint rf-status', id: tid + '-s', 'aria-live': 'polite' });
-  const paper = el('div', { class: 'rf-paper' });
-  let had = null;
-  const update = () => {
-    const has = !!ta.value.trim();
-    if (has !== had) {
-      had = has;
-      status.textContent = REFLECT_SAVES
-        ? (has ? '✓ Saved on this Chromebook. You will find all your reflections on the last page of your story.' : 'Optional. What you write saves by itself, only on this Chromebook. Nothing is sent anywhere.')
-        : (has ? '✓ Kept while this page is open. On the last page of your story, copy your reflections before you close the page.' : 'Optional. This browser can’t save between visits, so what you write is kept only while this page is open.');
-    }
-    paper.replaceChildren(...(has ? [el('p', { class: 'rf-a', text: ta.value })] : [0, 1, 2, 3].map(() => el('div', { class: 'rf-line' }))));
-  };
-  const grow = () => { if (!ta.isConnected) return; ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 2, 480) + 'px'; };
-  ta.addEventListener('input', () => { reflectSet(hk, sid, ta.value); update(); grow(); });
-  update();
-  requestAnimationFrame(grow);
-  return el('section', { class: 'reflect' }, [
-    el('h2', { text: '📝 Your reflection' }),
-    el('p', { class: 'rf-head', text: `Heading ${q[0]} of 12: ${REFLECT_HEADS[q[0] - 1]}` }),
-    el('label', { class: 'readable rf-q', for: tid, text: q[1] }),
-    ta, status, paper,
-  ]);
-}
-async function reflectCopy(html, text, status, manual) {
-  const ok = () => { manual.hidden = true; status.textContent = '✓ Copied! Now open a new Google Doc and press Ctrl + V to paste.'; toast('📋 Your reflections are copied.'); };
-  try {
-    if (navigator.clipboard && window.ClipboardItem) {
-      await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
-      ok(); return;
-    }
-  } catch (e) { /* blocked, for example inside a Google Sites embed: try the older way */ }
-  try {
-    const holder = el('div', { contenteditable: 'true', 'aria-hidden': 'true', style: 'position:fixed;left:-10000px;top:0;width:600px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11pt' });
-    holder.innerHTML = html;
-    document.body.appendChild(holder);
-    const sel = window.getSelection(), range = document.createRange();
-    range.selectNodeContents(holder); sel.removeAllRanges(); sel.addRange(range);
-    const done = document.execCommand('copy');
-    sel.removeAllRanges(); holder.remove();
-    if (done) { ok(); return; }
-  } catch (e) { /* show the text instead */ }
-  manual.value = text; manual.hidden = false; manual.focus(); manual.select();
-  status.textContent = 'This browser would not let the game copy. Your reflections are in the box below, already selected: press Ctrl + C to copy them, then paste them into your Google Doc with Ctrl + V.';
-}
-function reflectSummary(id) {
-  const box = el('section', { class: 'reflectsum' });
-  const fill = (msg) => box.replaceChildren(...reflectSummaryNodes(id, fill, msg));
-  fill();
-  return box;
-}
-function reflectSummaryNodes(id, refill, msg) {
-  const hk = heroKeyOf(id), hero = HEROES[hk], list = reflectEntries(hk);
-  const others = Object.keys(HEROES).filter((k) => k !== hk && reflectEntries(k).length).map((k) => `“${HEROES[k].name}”`);
-  const othersNote = others.length ? [el('p', { class: 'hint', text: `You also wrote reflections in ${others.length === 1 ? others[0] : others.slice(0, -1).join(', ') + ' and ' + others[others.length - 1]}. You will find them on the ending pages of ${others.length === 1 ? 'that story' : 'those stories'}.` })] : [];
-  const head = el('h2', { class: 'readable', text: `📝 My reflections: “${hero.name}”` });
-  const note = msg ? [el('p', { class: 'rf-msg', role: 'status', text: msg })] : [];
-  if (!list.length) return [head, ...note, el('p', { class: 'readable', text: `You haven’t written any reflections in “${hero.name}” yet. Next time, look for the 📝 box under the choices on each page. Everything you write there will be gathered here, ready to copy into a Google Doc.` }), ...othersNote];
-  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const title = document.title || 'My story';
-  const ending = (STORY[id] && STORY[id].end) || '';
-  const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
-  const doc = el('div', { class: 'rf-doc' });
-  const html = ['<h1>My reflections</h1>', `<p><b>${esc(title)}</b></p>`, `<p>Story: ${esc(hero.name)}</p>`, '<p>Name: </p>', `<p>Ending: ${esc(ending)}. Copied on ${esc(date)}.</p>`];
-  const txt = ['My reflections', title, `Story: ${hero.name}`, 'Name: ', `Ending: ${ending}. Copied on ${date}.`, ''];
-  REFLECT_HEADS.forEach((h, i) => {
-    const mine = list.filter((x) => x.h === i + 1);
-    doc.appendChild(el('h3', { class: 'rf-h', text: `${i + 1}. ${h}` }));
-    html.push(`<h2>${i + 1}. ${esc(h)}</h2>`); txt.push(`${i + 1}. ${h}`);
-    if (!mine.length) { doc.appendChild(el('p', { class: 'rf-none', text: 'No answer yet.' })); html.push('<p><i>No answer yet.</i></p>'); txt.push('No answer yet.', ''); }
-    mine.forEach((x) => {
-      doc.appendChild(el('div', { class: 'rf-item' }, [el('p', { class: 'rf-askd', text: x.q }), el('p', { class: 'rf-a', text: x.t })]));
-      html.push(`<p><i>${esc(x.q)}</i></p>`, `<p>${esc(x.t).replace(/\r?\n/g, '<br>')}</p>`);
-      txt.push(`Question: ${x.q}`, `My answer: ${x.t}`, '');
-    });
-  });
-  const status = el('p', { class: 'rf-msg', role: 'status', 'aria-live': 'polite' });
-  const manual = el('textarea', { class: 'rf-manual noprint', readonly: '', rows: '8', 'aria-label': 'Your reflections, ready to copy', hidden: '' });
-  const copyBtn = el('button', { class: 'rf-copy', type: 'button', text: '📋 Copy my reflections', onclick: () => reflectCopy(html.join(''), txt.join('\n'), status, manual) });
-  const label = `🗑️ Clear my reflections in “${hero.name}”`;
-  let armed = null;
-  const clearBtn = el('button', { class: 'secondary rf-clear', type: 'button', text: label });
-  clearBtn.onclick = () => {
-    if (!armed) { clearBtn.textContent = `Press again to clear all your reflections in “${hero.name}”`; armed = setTimeout(() => { armed = null; clearBtn.textContent = label; }, 6000); return; }
-    clearTimeout(armed); armed = null;
-    delete REFLECT[hk]; save(KEY_REFLECT, REFLECT);
-    refill(`Your reflections in “${hero.name}” are cleared.`);
-  };
-  const n = list.length;
-  return [
-    head, ...note,
-    el('p', { class: 'kind', text: `Everything you wrote in the 📝 boxes in “${hero.name}”, sorted under 12 headings: ${n} answer${n === 1 ? '' : 's'} so far.` }),
-    doc,
-    el('h3', { class: 'rf-how noprint', text: '📄 Put your reflections in a Google Doc' }),
-    el('ol', { class: 'readable rf-steps noprint' }, [
-      'Press 📋 Copy my reflections, just below.',
-      'Open a new Google Doc. In Google Drive, choose New, then Google Docs, then Blank document.',
-      'Click inside the new document and press Ctrl + V to paste.',
-      'Type your name after “Name:” at the top, and give your document a title.',
-      'Hand it in the way your teacher asks.',
-    ].map((t) => el('li', { text: t }))),
-    el('div', { class: 'row tight noprint' }, [copyBtn]),
-    status, manual,
-    ...othersNote,
-    el('div', { class: 'rf-share noprint' }, [
-      el('p', { class: 'hint', text: REFLECT_SAVES ? 'Your reflections stay on this Chromebook until you clear them. If you share this Chromebook, clear them after you copy them.' : 'This browser is not saving between visits, so copy your reflections before you close this page.' }),
-      el('div', { class: 'row tight' }, [clearBtn]),
-    ]),
-  ];
-}
+// The 📝 reflection boxes were taken out on 28 November 2026. This removes any answers still saved in this browser.
+try { localStorage.removeItem('ww1-game-reflections'); } catch (e) { /* storage blocked */ }
 function render(id) {
   undoBtn.hidden = trail.length === 0;
   const s = STORY[id];
@@ -5641,7 +5468,6 @@ function render(id) {
     s.c.forEach(([label, target]) => list.appendChild(el('button', { class: 'choice', type: 'button', text: label, onclick: () => { tagChoice(id, target); recordChoice(id, target, label); go(String(target)); } })));
     const db = doorButtons(id); if (db) list.appendChild(db);
     nodes.push(list);
-    const rfb = reflectBox(id); if (rfb) nodes.push(rfb);
   } else if (s.next) {
     nodes.push(el('div', { class: 'row' }, [el('button', { class: 'primary', type: 'button', text: 'Keep reading', onclick: () => go(String(s.next)) })]));
   } else if (s.end) {
@@ -5671,7 +5497,7 @@ function render(id) {
       ...Object.values(HEROES).filter((h) => h !== heroOf(id)).map((h) => el('button', { class: 'secondary', type: 'button', text: `Play ${h.name}`, onclick: () => go(h.start, false) })),
       el('button', { class: 'secondary', type: 'button', text: 'Back to the title page', onclick: cover }),
     ]));
-    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs); const qz = quizBox(id); if (qz) nodes.splice(nodes.length - 1, 0, qz); const rfs = reflectSummary(id); if (rfs) nodes.splice(nodes.length - 1, 0, rfs);
+    const rs = runSummary(); if (rs) nodes.splice(nodes.length - 1, 0, rs); const qz = quizBox(id); if (qz) nodes.splice(nodes.length - 1, 0, qz);
     undoBtn.hidden = true;
   }
   // From any scene: back to the story's title page, where you choose who to play.
